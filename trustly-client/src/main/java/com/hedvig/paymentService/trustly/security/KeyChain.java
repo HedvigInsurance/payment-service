@@ -24,10 +24,7 @@
 
 package com.hedvig.paymentService.trustly.security;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.security.KeyException;
 import java.security.KeyPair;
@@ -95,9 +92,9 @@ class KeyChain {
         try {
             String keyPath = testEnvironment ? TEST_TRUSTLY_PUBLIC_KEY_PATH : LIVE_TRUSTLY_PUBLIC_KEY_PATH;
 
-            final File file = new File(this.getClass().getResource(keyPath).toURI());
+            final InputStreamReader inputStreamReader = new InputStreamReader(this.getClass().getResourceAsStream(keyPath));
 
-            final PEMParser pemParser = new PEMParser(new FileReader(file));
+            final PEMParser pemParser = new PEMParser(inputStreamReader);
             final PemObject object = pemParser.readPemObject();
 
             final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(new BouncyCastleProvider());
