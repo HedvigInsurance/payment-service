@@ -43,6 +43,7 @@ public class TrustlyServiceTest {
     public static final String EXCEPTION_MESSAGE = "Could not connect to trustly";
     public static final String SUCCESS_URL = "https://hedvig.com/success";
     public static final String FAIL_URL = "https://hedvig.com/failure";
+    public static final String NOTIFICATION_URL = "https://gateway.test.hedvig.com/notificationHook";
     @Mock
     SignedAPI signedAPI;
 
@@ -65,7 +66,7 @@ public class TrustlyServiceTest {
     public void setUp() {
         given(uuidGenerator.generateRandom()).willReturn(REQUEST_ID);
 
-        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, SUCCESS_URL, FAIL_URL);
+        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, SUCCESS_URL, FAIL_URL, NOTIFICATION_URL);
     }
 
     @Test
@@ -115,6 +116,17 @@ public class TrustlyServiceTest {
         assertThat(requestData.getAttributes().get("FailURL")).isEqualTo(withQuotes(FAIL_URL));
         assertThat(requestData.getEndUserID()).isEqualTo(withQuotes(MEMBER_ID));
 
+    }
+
+    @Test
+    public void requestDirectDebitAccount_setsNotificationURL(){
+        final Response trustlyResponse = createResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
+        given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
+
+        testService.requestDirectDebitAccount(MEMBER_ID, createDirectDebitRequest());
+
+        SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
+        assertThat(requestData.getNotificationURL()).isEqualTo(withQuotes(NOTIFICATION_URL));
     }
 
 

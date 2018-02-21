@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.services.trustly;
 
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyAPIException;
-import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyConnectionException;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.response.Error;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
@@ -19,7 +18,6 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -28,7 +26,7 @@ import java.util.UUID;
 @Component
 public class TrustlyService {
 
-    public static final String NOTIFICATION_URL = "https://google.com";
+    private final String notificationUrl;
     public static final String COUNTRY = "SE";
     private final Logger log = LoggerFactory.getLogger(TrustlyService.class);
     private final SignedAPI api;
@@ -37,12 +35,13 @@ public class TrustlyService {
     private final String successUrl;
     private final String failUrl;
 
-    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl) {
+    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl, @Value("${hedvig.trustly.notificationURL}") String notificationUrl) {
         this.api = api;
         this.gateway = gateway;
         this.uuidGenerator = uuidGenerator;
         this.successUrl = successUrl;
         this.failUrl = failUrl;
+        this.notificationUrl = notificationUrl;
     }
 
     public DirectDebitResponse requestDirectDebitAccount(String memberId, DirectDebitRequest request) {
@@ -82,7 +81,7 @@ public class TrustlyService {
     }
 
     private Request createRequest(UUID hedvigOrderId, String memberId, DirectDebitRequest request) {
-        final SelectAccount.Build build = new SelectAccount.Build(NOTIFICATION_URL, memberId, hedvigOrderId.toString());
+        final SelectAccount.Build build = new SelectAccount.Build(notificationUrl, memberId, hedvigOrderId.toString());
         build.requestDirectDebitMandate("1");
         build.firstName(request.getFirstName());
         build.lastName(request.getLastName());
@@ -94,7 +93,8 @@ public class TrustlyService {
         build.failURL(failUrl);
 
         final Request request1 = build.getRequest();
-        request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
+
+        //request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
 
         return request1;
     }
