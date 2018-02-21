@@ -7,9 +7,11 @@ import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.response.Error;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateTrustlySelectAccountOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceviedCommand;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
+import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.data.request.Request;
@@ -44,13 +46,13 @@ public class TrustlyService {
         this.notificationUrl = notificationUrl;
     }
 
-    public DirectDebitResponse requestDirectDebitAccount(String memberId, DirectDebitRequest request) {
+    public DirectDebitResponse requestDirectDebitAccount(DirectDebitRequest request) {
 
         final UUID requestId = uuidGenerator.generateRandom();
 
-        gateway.sendAndWait(new CreateTrustlySelectAccountOrderCommand(memberId, requestId));
+        gateway.sendAndWait(new CreateOrderCommand(request.getMemberId(), requestId));
 
-        return startTrustlyOrder(memberId, request, requestId);
+        return startTrustlyOrder(request.getMemberId(), request, requestId);
 
     }
 
@@ -93,9 +95,7 @@ public class TrustlyService {
         build.failURL(failUrl);
 
         final Request request1 = build.getRequest();
-
-        //request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
-
+        request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
         return request1;
     }
 
@@ -105,7 +105,16 @@ public class TrustlyService {
 
     public ResponseStatus recieveNotification(Notification notification) {
 
-        return ResponseStatus.OK;
+        log.info("Received notification from Trustly: {}", notification.getMethod());
 
+        UUID requestId = UUID.fromString(notification.getParams().getData().getMessageId());
+
+        gateway.sendAndWait(new NotificationReceivedCommand(requestId, notification));
+
+        return ResponseStatus.OK;
+    }
+
+    public OrderInformation orderInformation(UUID requestId) {
+        return null;
     }
 }

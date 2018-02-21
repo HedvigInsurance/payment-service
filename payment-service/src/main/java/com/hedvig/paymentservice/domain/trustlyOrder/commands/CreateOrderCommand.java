@@ -5,9 +5,9 @@ import lombok.Value;
 import java.util.UUID;
 
 @Value
-public class CreateTrustlySelectAccountOrderCommand {
+public class CreateOrderCommand {
 
     String memberId;
 
-    UUID requestId;
+    UUID hedvigOrderId;
 }

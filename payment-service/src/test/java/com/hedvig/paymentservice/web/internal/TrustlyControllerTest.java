@@ -2,9 +2,11 @@ package com.hedvig.paymentservice.web.internal;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.exceptions.MemberNotFoundException;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
+import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.trustly.testHelpers.TestData;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import org.junit.Test;
@@ -16,11 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Objects;
 import java.util.UUID;
 
+import org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TrustlyControllerTest {
 
     public static final String TRUSTLY_IFRAME_URL = "https://example.url";
+    public static final String IFRAME_URL = "http://alkjdljda";
+    public static final OrderState CONFIRMED = OrderState.CONFIRMED;
     @Autowired
     MockMvc mockMvc;
 
@@ -46,7 +51,7 @@ public class TrustlyControllerTest {
     public void getTrustlyDirectDebitReturnsEmptyDTO() throws Exception {
 
         mockMvc.perform(
-                get("/_/member/1337/trustly/registerDirectDebit")
+                get("/_/trustlyOrder/registerDirectDebit")
         ).andExpect(status().is2xxSuccessful());
 
     }
@@ -56,10 +61,10 @@ public class TrustlyControllerTest {
 
         DirectDebitRequest requestData = TestData.createDirectDebitRequest();
 
-        given(trustlyService.requestDirectDebitAccount(anyString(), any())).willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL));
+        given(trustlyService.requestDirectDebitAccount(any())).willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL));
 
         mockMvc.perform(
-                post("/_/member/1337/trustly/registerDirectDebit").
+                post("/_/trustlyOrder/registerDirectDebit").
                 contentType(MediaType.APPLICATION_JSON).
                 content(objectMapper.writeValueAsString(requestData))
         ).andExpect(status().is2xxSuccessful())
@@ -71,13 +76,28 @@ public class TrustlyControllerTest {
 
         DirectDebitRequest requestData = TestData.createDirectDebitRequest();
 
-        given(trustlyService.requestDirectDebitAccount(anyString(), any())).willThrow(MemberNotFoundException.class);
+        given(trustlyService.requestDirectDebitAccount(any())).willThrow(MemberNotFoundException.class);
 
         mockMvc.perform(
-                post("/_/member/1337/trustly/registerDirectDebit").
+                post("/_/trustlyOrder/registerDirectDebit").
                         contentType(MediaType.APPLICATION_JSON).
                         content(objectMapper.writeValueAsString(requestData))
         ).andExpect(status().is4xxClientError());
+    }
+
+
+    @Test
+    public void post_returnsOrderInformation() throws Exception {
+        UUID requestId = UUID.randomUUID();
+        given(trustlyService.orderInformation(requestId)).willReturn(new OrderInformation(requestId, IFRAME_URL, OrderState.CONFIRMED));
+
+        mockMvc.perform(
+                    get("/_/trustlyOrder/"+requestId)).
+                andExpect(status().is2xxSuccessful()).
+                andExpect(jsonPath("$.iframeUrl").value(IFRAME_URL)).
+                andExpect(jsonPath("$.id").value(requestId.toString())).
+                andExpect(jsonPath("$.state").value(Objects.toString(CONFIRMED)));
+
     }
 
 }

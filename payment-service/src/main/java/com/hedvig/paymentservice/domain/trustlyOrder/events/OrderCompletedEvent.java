@@ -5,7 +5,6 @@ import lombok.Value;
 import java.util.UUID;
 
 @Value
-public class TrustlyOrderCreatedEvent {
-    UUID hedvigOrderId;
-
+public class OrderCompletedEvent {
+    UUID id;
 }
