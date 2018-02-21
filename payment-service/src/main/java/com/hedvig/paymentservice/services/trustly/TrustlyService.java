@@ -76,7 +76,7 @@ public class TrustlyService {
                 gateway.sendAndWait(
                         new SelectAccountResponseReceviedCommand(requestId, (String) data.get("url"), (String) data.get("orderid")));
 
-                return new DirectDebitResponse((String) data.get("url"));
+                return new DirectDebitResponse((String) data.get("url"), requestId.toString());
             } else {
                 final Error error = response.getError();
                 log.info("Order creation failed: {}, {}, {}", error.getName(), error.getCode(), error.getMessage());
@@ -124,8 +124,8 @@ public class TrustlyService {
     public OrderInformation orderInformation(UUID requestId) {
 
         final Optional<TrustlyOrder> byId = this.orderRepository.findById(requestId);
-        byId.orElseThrow(() -> new OrderNotFoundException("Order not found with id " + requestId));
+        final TrustlyOrder trustlyOrder = byId.orElseThrow(() -> new OrderNotFoundException("Order not found with id " + requestId));
 
-        return null;
+        return new OrderInformation(requestId, trustlyOrder.getIframeUrl(), trustlyOrder.getState());
     }
 }

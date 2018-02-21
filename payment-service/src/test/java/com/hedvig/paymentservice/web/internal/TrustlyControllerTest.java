@@ -61,7 +61,7 @@ public class TrustlyControllerTest {
 
         DirectDebitRequest requestData = TestData.createDirectDebitRequest();
 
-        given(trustlyService.requestDirectDebitAccount(any())).willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL));
+        given(trustlyService.requestDirectDebitAccount(any())).willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL, ORDER_ID.toString()));
 
         mockMvc.perform(
                 post("/_/trustlyOrder/registerDirectDebit").

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("_/trustlyOrder/")
+@RequestMapping("/_/trustlyOrder/")
 public class TrustlyController {
 
     final TrustlyService service;
