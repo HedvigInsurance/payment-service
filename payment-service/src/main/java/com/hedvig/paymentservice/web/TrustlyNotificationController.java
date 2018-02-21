@@ -36,7 +36,7 @@ public class TrustlyNotificationController {
 
         final ResponseStatus responseStatus = trustlyService.recieveNotification(notification);
 
-        final Response response = handler.prepareNotificationResponse(Method.ACCOUNT, notification.getUUID(), responseStatus);
+        final Response response = handler.prepareNotificationResponse(notification.getMethod(), notification.getUUID(), responseStatus);
 
         final Gson gson = new Gson();
         return ResponseEntity.ok(gson.toJson(response));
