@@ -27,6 +27,7 @@ package com.hedvig.paymentService.trustly.security;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.KeyException;
 import java.security.NoSuchAlgorithmException;
@@ -65,7 +66,7 @@ public class SignatureHandler {
         return instance;
     }
 
-    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password, final boolean testEnvironment) throws KeyException {
+    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password, final boolean testEnvironment) throws KeyException, URISyntaxException {
         this.username = username;
         this.password = password;
 

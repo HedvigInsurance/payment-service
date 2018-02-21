@@ -26,6 +26,7 @@ package com.hedvig.paymentService.trustly;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.security.KeyException;
 import java.security.SecureRandom;
 
@@ -59,7 +60,7 @@ public class SignedAPI {
      * @param keyPassword Seeing that the private key is somewhat considered a password in
      * itself, the private key password is usually an empty string.
      */
-    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password) {
+    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password) throws URISyntaxException {
         init(privateKeyPath, keyPassword, username, password, false);
     }
 
@@ -69,7 +70,7 @@ public class SignedAPI {
      * @param keyPassword Seeing that the private key is somewhat considered a password in
      * itself, the private key password is usually an empty string.
      */
-    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password, final boolean testEnvironment) {
+    public void init(final String privateKeyPath, final String keyPassword, final String username, final String password, final boolean testEnvironment) throws URISyntaxException {
         setEnvironment(testEnvironment);
         try {
             signatureHandler.init(privateKeyPath, keyPassword, username, password, testEnvironment);

@@ -27,6 +27,8 @@ package com.hedvig.paymentService.trustly.security;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.security.KeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -45,13 +47,13 @@ import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
 
 class KeyChain {
-    private static final String TEST_TRUSTLY_PUBLIC_KEY_PATH = "src/main/resources/keys/test_trustly_public.pem";
-    private static final String LIVE_TRUSTLY_PUBLIC_KEY_PATH = "src/main/resources/keys/trustly_public.pem";
+    private static final String TEST_TRUSTLY_PUBLIC_KEY_PATH = "/keys/test_trustly_public.pem";
+    private static final String LIVE_TRUSTLY_PUBLIC_KEY_PATH = "/keys/trustly_public.pem";
 
     private PrivateKey merchantPrivateKey;
     private PublicKey trustlyPublicKey;
 
-    KeyChain(final boolean testEnvironment) {
+    KeyChain(final boolean testEnvironment) throws URISyntaxException {
         loadTrustlyPublicKey(testEnvironment);
     }
 
@@ -63,6 +65,7 @@ class KeyChain {
      */
     void loadMerchantPrivateKey(final String privateKeyFilename, final String password) throws KeyException {
         try {
+
             final File privateKeyFile = new File(privateKeyFilename); // private key file in PEM format
             final PEMParser pemParser = new PEMParser(new FileReader(privateKeyFile));
             final Object object = pemParser.readObject();
@@ -88,9 +91,11 @@ class KeyChain {
      * Loads the Trustly public key.
      * @param testEnvironment whether to load the key for test environment or not.
      */
-    private void loadTrustlyPublicKey(final boolean testEnvironment) {
+    private void loadTrustlyPublicKey(final boolean testEnvironment) throws URISyntaxException {
         try {
-            final File file = testEnvironment ? new File(TEST_TRUSTLY_PUBLIC_KEY_PATH) : new File(LIVE_TRUSTLY_PUBLIC_KEY_PATH);
+            String keyPath = testEnvironment ? TEST_TRUSTLY_PUBLIC_KEY_PATH : LIVE_TRUSTLY_PUBLIC_KEY_PATH;
+
+            final File file = new File(this.getClass().getResource(keyPath).toURI());
 
             final PEMParser pemParser = new PEMParser(new FileReader(file));
             final PemObject object = pemParser.readPemObject();
