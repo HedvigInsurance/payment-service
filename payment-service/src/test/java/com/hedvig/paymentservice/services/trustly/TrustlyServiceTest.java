@@ -13,8 +13,14 @@ import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountD
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
+import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
+import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceviedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
+import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
+import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
+import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
+import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Before;
@@ -26,6 +32,7 @@ import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.createDirectDebitRequest;
@@ -55,6 +62,9 @@ public class TrustlyServiceTest {
     @Mock
     UUIDGenerator uuidGenerator;
 
+    @Mock
+    private TrustlyOrderRepository orderRepository;
+
     TrustlyService testService;
 
     @Captor
@@ -64,11 +74,12 @@ public class TrustlyServiceTest {
     public ExpectedException thrown = ExpectedException.none();
     public static final UUID REQUEST_ID = UUID.randomUUID();
 
+
     @Before
     public void setUp() {
         given(uuidGenerator.generateRandom()).willReturn(REQUEST_ID);
 
-        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, SUCCESS_URL, FAIL_URL, NOTIFICATION_URL);
+        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, orderRepository, SUCCESS_URL, FAIL_URL, NOTIFICATION_URL);
     }
 
     @Test
@@ -144,6 +155,33 @@ public class TrustlyServiceTest {
 
         verify(gateway, atLeastOnce()).sendAndWait(new SelectAccountRequestFailedCommand(REQUEST_ID, EXCEPTION_MESSAGE));
 
+    }
+
+    @Test
+    public void orderInformation_throwsOrderNotFoundException() {
+
+        given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.empty());
+
+        thrown.expect(OrderNotFoundException.class);
+        testService.orderInformation(REQUEST_ID);
+
+    }
+
+    @Test
+    public void orderInformation_returnsOrderInformation(){
+        final TrustlyOrder trustlyOrder = createTrustlyOrder();
+
+        given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.of(trustlyOrder));
+    }
+
+    public TrustlyOrder createTrustlyOrder() {
+        final TrustlyOrder trustlyOrder = new TrustlyOrder();
+        trustlyOrder.setType(OrderType.SELECT_ACCOUNT);
+        trustlyOrder.setState(OrderState.STARTED);
+        trustlyOrder.setTrustlyOrderId(TRUSTLY_ORDERID);
+        trustlyOrder.setId(REQUEST_ID);
+        trustlyOrder.setIframeUrl(TRUSTLY_IFRAME_URL);
+        return trustlyOrder;
     }
 
 

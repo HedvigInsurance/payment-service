@@ -4,7 +4,7 @@ package com.hedvig.paymentservice.web.internal;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
-import com.hedvig.paymentservice.services.exceptions.MemberNotFoundException;
+import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.trustly.testHelpers.TestData;
@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,6 +44,7 @@ public class TrustlyControllerTest {
 
     @MockBean
     TrustlyService trustlyService;
+    public static final UUID ORDER_ID = UUID.randomUUID();
 
 
     @Test
@@ -76,26 +76,24 @@ public class TrustlyControllerTest {
 
         DirectDebitRequest requestData = TestData.createDirectDebitRequest();
 
-        given(trustlyService.requestDirectDebitAccount(any())).willThrow(MemberNotFoundException.class);
+        given(trustlyService.requestDirectDebitAccount(any())).willThrow(OrderNotFoundException.class);
 
         mockMvc.perform(
-                post("/_/trustlyOrder/registerDirectDebit").
+                post("/_/trustlyOrder/" + ORDER_ID.toString()).
                         contentType(MediaType.APPLICATION_JSON).
                         content(objectMapper.writeValueAsString(requestData))
         ).andExpect(status().is4xxClientError());
     }
 
-
     @Test
     public void post_returnsOrderInformation() throws Exception {
-        UUID requestId = UUID.randomUUID();
-        given(trustlyService.orderInformation(requestId)).willReturn(new OrderInformation(requestId, IFRAME_URL, OrderState.CONFIRMED));
+        given(trustlyService.orderInformation(ORDER_ID)).willReturn(new OrderInformation(ORDER_ID, IFRAME_URL, OrderState.CONFIRMED));
 
         mockMvc.perform(
-                    get("/_/trustlyOrder/"+requestId)).
+                    get("/_/trustlyOrder/"+ ORDER_ID)).
                 andExpect(status().is2xxSuccessful()).
                 andExpect(jsonPath("$.iframeUrl").value(IFRAME_URL)).
-                andExpect(jsonPath("$.id").value(requestId.toString())).
+                andExpect(jsonPath("$.id").value(ORDER_ID.toString())).
                 andExpect(jsonPath("$.state").value(Objects.toString(CONFIRMED)));
 
     }

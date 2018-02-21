@@ -10,6 +10,9 @@ import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceviedCommand;
+import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
+import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
+import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -37,10 +41,13 @@ public class TrustlyService {
     private final String successUrl;
     private final String failUrl;
 
-    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl, @Value("${hedvig.trustly.notificationURL}") String notificationUrl) {
+    private final TrustlyOrderRepository orderRepository;
+
+    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, TrustlyOrderRepository orderRepository, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl, @Value("${hedvig.trustly.notificationURL}") String notificationUrl) {
         this.api = api;
         this.gateway = gateway;
         this.uuidGenerator = uuidGenerator;
+        this.orderRepository = orderRepository;
         this.successUrl = successUrl;
         this.failUrl = failUrl;
         this.notificationUrl = notificationUrl;
@@ -115,6 +122,10 @@ public class TrustlyService {
     }
 
     public OrderInformation orderInformation(UUID requestId) {
+
+        final Optional<TrustlyOrder> byId = this.orderRepository.findById(requestId);
+        byId.orElseThrow(() -> new OrderNotFoundException("Order not found with id " + requestId));
+
         return null;
     }
 }
