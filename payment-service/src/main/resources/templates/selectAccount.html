@@ -1,0 +1,12 @@
+{{>layout/header}}
+<div class="starter-template">
+    {{#data}}
+    <form method="post" action="selectAccount">
+        <p><label>ssn: </label><input name="ssn" value="{{ssn}}" /></label></p>
+        <p><label>email:<input name="email" value="{{email}}" /></label></p>
+        <p><label>first name<input name="firstName" value="{{firstName}}" /></label></p>
+        <p><label>last name<input name="lastName" value="{{lastName}}" /></label></p>
+        <input type="submit">
+    {{/data}}
+    </form>
+</div>
