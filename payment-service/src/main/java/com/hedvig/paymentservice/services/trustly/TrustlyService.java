@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.services.trustly;
 
 
+import com.google.gson.Gson;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyAPIException;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
@@ -73,6 +74,7 @@ public class TrustlyService {
                 data = response.getResult().getData();
                 log.info("SelectAccount Order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}", data.get("orderid"), requestId);
 
+
                 gateway.sendAndWait(
                         new SelectAccountResponseReceviedCommand(requestId, (String) data.get("url"), (String) data.get("orderid")));
 
@@ -101,7 +103,11 @@ public class TrustlyService {
         build.successURL(appendTriggerId(successUrl, request.getTriggerId()));
         build.failURL(appendTriggerId(failUrl, request.getTriggerId()));
 
+
+
         final Request request1 = build.getRequest();
+        final Gson gson = new Gson();
+        log.info("Trustly request details: {}", gson.toJson(request1));
         //request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
         return request1;
     }
