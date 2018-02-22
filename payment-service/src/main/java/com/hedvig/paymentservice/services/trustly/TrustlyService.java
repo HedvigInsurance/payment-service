@@ -98,12 +98,16 @@ public class TrustlyService {
         build.email(request.getEmail());
         build.locale("sv_SE");
         build.nationalIdentificationNumber(request.getSsn());
-        build.successURL(successUrl);
-        build.failURL(failUrl);
+        build.successURL(appendTriggerId(successUrl, request.getTriggerId()));
+        build.failURL(appendTriggerId(failUrl, request.getTriggerId()));
 
         final Request request1 = build.getRequest();
-        request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
+        //request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
         return request1;
+    }
+
+    private String appendTriggerId(String failUrl, String triggerId) {
+        return failUrl + "&triggerId=" + triggerId;
     }
 
     public Response sendRequest(Request request) {

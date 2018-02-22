@@ -9,4 +9,5 @@ public class DirectDebitRequest {
     String ssn;
     String email;
     String memberId;
+    String triggerId;
 }

@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRIGGER_ID;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.createDirectDebitRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -51,7 +52,7 @@ public class TrustlyServiceTest {
     public static final String MEMBER_ID = "1337";
     public static final String EXCEPTION_MESSAGE = "Could not connect to trustly";
     public static final String SUCCESS_URL = "https://hedvig.com/success";
-    public static final String FAIL_URL = "https://hedvig.com/failure";
+    public static final String FAIL_URL = "https://hedvig.com/failure&triggerId";
     public static final String NOTIFICATION_URL = "https://gateway.test.hedvig.com/notificationHook";
     @Mock
     SignedAPI signedAPI;
@@ -125,8 +126,8 @@ public class TrustlyServiceTest {
         testService.requestDirectDebitAccount(createDirectDebitRequest());
 
         SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
-        assertThat(requestData.getAttributes().get("SuccessURL")).isEqualTo(withQuotes(SUCCESS_URL));
-        assertThat(requestData.getAttributes().get("FailURL")).isEqualTo(withQuotes(FAIL_URL));
+        assertThat(requestData.getAttributes().get("SuccessURL")).isEqualTo(withQuotes(SUCCESS_URL + "&triggerId=" +TRIGGER_ID));
+        assertThat(requestData.getAttributes().get("FailURL")).isEqualTo(withQuotes(FAIL_URL +  "&triggerId=" +TRIGGER_ID));
         assertThat(requestData.getEndUserID()).isEqualTo(withQuotes(MEMBER_ID));
 
     }
