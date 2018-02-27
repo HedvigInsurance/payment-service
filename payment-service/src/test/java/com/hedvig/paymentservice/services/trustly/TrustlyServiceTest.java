@@ -15,12 +15,11 @@ import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceviedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
-import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Before;
@@ -30,6 +29,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.*;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.env.Environment;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -66,6 +66,9 @@ public class TrustlyServiceTest {
     @Mock
     private TrustlyOrderRepository orderRepository;
 
+    @Mock
+    Environment springEnvironment;
+
     TrustlyService testService;
 
     @Captor
@@ -78,9 +81,12 @@ public class TrustlyServiceTest {
 
     @Before
     public void setUp() {
+
+        given(springEnvironment.acceptsProfiles("development")).willReturn(true);
+
         given(uuidGenerator.generateRandom()).willReturn(REQUEST_ID);
 
-        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, orderRepository, SUCCESS_URL, FAIL_URL, NOTIFICATION_URL);
+        testService = new TrustlyService(signedAPI, gateway, uuidGenerator, orderRepository, SUCCESS_URL, FAIL_URL, NOTIFICATION_URL, springEnvironment);
     }
 
     @Test
@@ -99,7 +105,7 @@ public class TrustlyServiceTest {
         InOrder inOrder = Mockito.inOrder(gateway);
 
         inOrder.verify(gateway).sendAndWait(isA(CreateOrderCommand.class));
-        inOrder.verify(gateway).sendAndWait(new SelectAccountResponseReceviedCommand(REQUEST_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID));
+        inOrder.verify(gateway).sendAndWait(new SelectAccountResponseReceivedCommand(REQUEST_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID));
 
     }
 

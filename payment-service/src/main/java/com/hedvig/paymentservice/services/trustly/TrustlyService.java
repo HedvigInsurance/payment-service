@@ -10,7 +10,7 @@ import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceviedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
@@ -24,6 +24,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -44,7 +45,9 @@ public class TrustlyService {
 
     private final TrustlyOrderRepository orderRepository;
 
-    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, TrustlyOrderRepository orderRepository, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl, @Value("${hedvig.trustly.notificationURL}") String notificationUrl) {
+    private final Environment springEnvironmnet;
+
+    public TrustlyService(SignedAPI api, CommandGateway gateway, UUIDGenerator uuidGenerator, TrustlyOrderRepository orderRepository, @Value("${hedvig.trustly.successURL}") String successUrl, @Value("${hedvig.trustly.failURL}") String failUrl, @Value("${hedvig.trustly.notificationURL}") String notificationUrl, Environment springEnvironmnet) {
         this.api = api;
         this.gateway = gateway;
         this.uuidGenerator = uuidGenerator;
@@ -52,6 +55,7 @@ public class TrustlyService {
         this.successUrl = successUrl;
         this.failUrl = failUrl;
         this.notificationUrl = notificationUrl;
+        this.springEnvironmnet = springEnvironmnet;
     }
 
     public DirectDebitResponse requestDirectDebitAccount(DirectDebitRequest request) {
@@ -76,7 +80,7 @@ public class TrustlyService {
 
 
                 gateway.sendAndWait(
-                        new SelectAccountResponseReceviedCommand(requestId, (String) data.get("url"), (String) data.get("orderid")));
+                        new SelectAccountResponseReceivedCommand(requestId, (String) data.get("url"), (String) data.get("orderid")));
 
                 return new DirectDebitResponse((String) data.get("url"), requestId.toString());
             } else {
@@ -108,7 +112,11 @@ public class TrustlyService {
         final Request request1 = build.getRequest();
         final Gson gson = new Gson();
         log.info("Trustly request details: {}", gson.toJson(request1));
-        //request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
+
+        if(springEnvironmnet.acceptsProfiles("development")) {
+            request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
+        }
+
         return request1;
     }
 

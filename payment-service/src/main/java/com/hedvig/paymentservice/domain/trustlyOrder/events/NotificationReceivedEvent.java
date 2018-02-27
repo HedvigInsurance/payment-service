@@ -5,4 +5,5 @@ import lombok.Value;
 @Value
 public class NotificationReceivedEvent {
     String notificationId;
+    String trustlyOrderId;
 }

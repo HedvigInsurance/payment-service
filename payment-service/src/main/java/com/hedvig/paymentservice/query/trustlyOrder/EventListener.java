@@ -4,6 +4,7 @@ package com.hedvig.paymentservice.query.trustlyOrder;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
+import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyNotification;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import org.axonframework.eventhandling.EventHandler;
@@ -23,6 +24,7 @@ public class EventListener {
         TrustlyOrder order = new TrustlyOrder();
 
         order.setId(e.getHedvigOrderId());
+        order.setMemberId(e.getMemberId());
 
         orderRepository.save(order);
     }
@@ -55,6 +57,28 @@ public class EventListener {
         order.setIframeUrl(e.getIframeUrl());
         order.setType(OrderType.SELECT_ACCOUNT);
         orderRepository.save(order);
+    }
+
+    @EventHandler
+    public void on(AccountNotificationReceivedEvent e) {
+        TrustlyOrder order = orderRepository.findByTrustlyOrderId(e.getTrustlyOrderId());
+        TrustlyNotification notification = new TrustlyNotification();
+        notification.setNotificationId(e.getNotificationId());
+        order.addNotification(notification);
+
+        notification.setAccountId(e.getAccountId());
+        notification.setAddress(e.getAddress());
+        notification.setBank(e.getBank());
+        notification.setCity(e.getCity());
+        notification.setClearingHouse(e.getClearingHouse());
+        notification.setDescriptor(e.getDescriptor());
+        notification.setDirectDebitMandate(e.getDirectDebitMandate());
+        notification.setLastDigits(e.getLastDigits());
+        notification.setName(e.getName());
+        notification.setPersonId(e.getPersonId());
+        notification.setZipCode(e.getZipCode());
+
+        //orderRepository.save(order);
     }
 
 

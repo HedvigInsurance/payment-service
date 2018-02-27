@@ -1,0 +1,6 @@
+
+
+spring.jpa.generate-ddl: true
+spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
+
+

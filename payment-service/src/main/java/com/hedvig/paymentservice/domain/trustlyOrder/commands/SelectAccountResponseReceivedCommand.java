@@ -7,7 +7,7 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier;
 import java.util.UUID;
 
 @Value
-public class SelectAccountResponseReceviedCommand {
+public class SelectAccountResponseReceivedCommand {
     @TargetAggregateIdentifier
     private final UUID hedvigOrderId;
 

@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface TrustlyOrderRepository extends CrudRepository<TrustlyOrder, UUID> {
 
     Optional<TrustlyOrder> findById(UUID id);
+    TrustlyOrder findByTrustlyOrderId(String orderId);
 }
