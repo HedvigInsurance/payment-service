@@ -9,12 +9,14 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountRespo
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
+import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
@@ -30,6 +32,7 @@ public class TrustlyOrder {
     private OrderType orderType;
     private OrderState orderState;
     private String memberId;
+    private TreeSet<String> notifications = new TreeSet<>();
 
     public TrustlyOrder() {}
 
@@ -47,8 +50,15 @@ public class TrustlyOrder {
 
     @CommandHandler
     public void cmd(NotificationReceivedCommand cmd) {
+
         final NotificationData data = cmd.getNotification().getParams().getData();
-        apply(new NotificationReceivedEvent(data.getNotificationId(), data.getOrderId()));
+
+        if(notifications.contains(data.getNotificationId())) {
+            return;
+        }
+
+
+        apply(new NotificationReceivedEvent(this.id, data.getNotificationId(), data.getOrderId()));
         switch (cmd.getNotification().getMethod()) {
             case ACCOUNT:
                 try{
@@ -85,6 +95,7 @@ public class TrustlyOrder {
 
         String accountId = accountData.getAccountId();
         apply(new AccountNotificationReceivedEvent(
+                this.id,
                 data.getNotificationId(),
                 data.getOrderId(),
                 accountId,
@@ -125,6 +136,11 @@ public class TrustlyOrder {
     @EventSourcingHandler
     public void on(OrderCanceledEvent e) {
         this.orderState = OrderState.CANCELED;
+    }
+
+    @EventHandler
+    public void on(NotificationReceivedEvent e) {
+        notifications.add(e.getNotificationId());
     }
 
 }

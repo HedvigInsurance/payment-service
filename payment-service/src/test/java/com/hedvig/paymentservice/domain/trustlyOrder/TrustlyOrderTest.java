@@ -50,7 +50,7 @@ public class TrustlyOrderTest {
     }
 
     @Test
-    public void GIVEN_trustlyOrder_WHEN_accountNotificationTHENnotificationReceivedANDaccountNotificationReceivedANDorderCompletedEvents() {
+    public void GIVEN_trustlyOrder_WHEN_accountNotification_THEN_notificationReceived_AND_accountNotificationReceived_AND_orderCompletedEvents() {
         fixture.given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent())
@@ -65,14 +65,14 @@ public class TrustlyOrderTest {
     }
 
     @Test
-    public void GIVEN_trustlyOrderWithAccountReceivedEvent_WHEN_accountNotificaitonTHENsendOnlyAccountEvent() {
+    public void GIVEN_trustlyOrderWithAccountReceivedEvent_WHEN_accountNotificationTHENsendOnlyAccountEvents() {
         final String notificationId = "872943";
 
         fixture.given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent(),
-                    notificationReceivedEvent(notificationId, TRUSTLY_ORDER_ID),
-                    accountNotificationRecievedEvent(false, notificationId),
+                    notificationReceivedEvent(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID),
+                    accountNotificationRecievedEvent(false, TRUSTLY_NOTIFICATION_ID),
                     orderCompletedEvent())
                 .when(
                         new NotificationReceivedCommand(HEDVIG_ORDER_ID, accountNotification(notificationId, true)))
@@ -83,12 +83,27 @@ public class TrustlyOrderTest {
                 );
     }
 
+    @Test
+    public void GIVEN_oneAccountNotificaiton_WHEN_newAccountNotification_THEN_doNothing() {
+
+        fixture
+                .given(
+                    orderCreatedEvent(),
+                    orderAssignedTrustlyIdEvent(),
+                    notificationReceivedEvent(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID))
+                .when(
+                    new NotificationReceivedCommand(HEDVIG_ORDER_ID, accountNotification(TRUSTLY_NOTIFICATION_ID, false)))
+                .expectSuccessfulHandlerExecution()
+                .expectEvents();
+
+    }
+
     public OrderCompletedEvent orderCompletedEvent() {
         return new OrderCompletedEvent(HEDVIG_ORDER_ID);
     }
 
     public AccountNotificationReceivedEvent accountNotificationRecievedEvent(boolean directDebitMandate, String notificationId) {
-        return new AccountNotificationReceivedEvent(notificationId,
+        return new AccountNotificationReceivedEvent(HEDVIG_ORDER_ID, notificationId,
                 TRUSTLY_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
                 null,
@@ -105,7 +120,7 @@ public class TrustlyOrderTest {
     }
 
     public NotificationReceivedEvent notificationReceivedEvent(String notificationId, String trustlyOrderId) {
-        return new NotificationReceivedEvent(notificationId, trustlyOrderId);
+        return new NotificationReceivedEvent(HEDVIG_ORDER_ID, notificationId, trustlyOrderId);
     }
 
     private Notification accountNotification(String trustlyNotificationId, Boolean directDebitMandate) {
