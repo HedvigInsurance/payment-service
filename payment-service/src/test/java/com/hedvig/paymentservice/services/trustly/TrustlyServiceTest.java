@@ -181,15 +181,7 @@ public class TrustlyServiceTest {
         given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.of(trustlyOrder));
     }
 
-    public TrustlyOrder createTrustlyOrder() {
-        final TrustlyOrder trustlyOrder = new TrustlyOrder();
-        trustlyOrder.setType(OrderType.SELECT_ACCOUNT);
-        trustlyOrder.setState(OrderState.STARTED);
-        trustlyOrder.setTrustlyOrderId(TRUSTLY_ORDERID);
-        trustlyOrder.setId(REQUEST_ID);
-        trustlyOrder.setIframeUrl(TRUSTLY_IFRAME_URL);
-        return trustlyOrder;
-    }
+
 
 
     @Test
@@ -209,6 +201,16 @@ public class TrustlyServiceTest {
 
     private String withQuotes(String requestId) {
         return String.format("%s",requestId);
+    }
+
+    public TrustlyOrder createTrustlyOrder() {
+        final TrustlyOrder trustlyOrder = new TrustlyOrder();
+        trustlyOrder.setType(OrderType.SELECT_ACCOUNT);
+        trustlyOrder.setState(OrderState.STARTED);
+        trustlyOrder.setTrustlyOrderId(TRUSTLY_ORDERID);
+        trustlyOrder.setId(REQUEST_ID);
+        trustlyOrder.setIframeUrl(TRUSTLY_IFRAME_URL);
+        return trustlyOrder;
     }
 
     private Response createResponse(String iframeUrl, String orderid) {
