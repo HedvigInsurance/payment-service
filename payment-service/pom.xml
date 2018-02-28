@@ -36,6 +36,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.vdurmont</groupId>
@@ -118,6 +119,11 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-kubernetes-ribbon</artifactId>
 			<version>0.2.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>4.9</version>
 		</dependency>
     </dependencies>
 
