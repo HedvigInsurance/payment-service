@@ -1,3 +1,12 @@
 spring:
   application:
     name: payment-service
+
+---
+spring:
+  profiles: test, development
+  cloud:
+    kubernetes:
+      enabled: false
+  autoconfigure:
+    exclude: org.springframework.cloud.kubernetes.KubernetesAutoConfiguration
