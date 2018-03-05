@@ -194,6 +194,7 @@ public class TrustlyServiceTest {
         params.setData(data);
         data.setNotificationId(withQuotes("0182309810381"));
         data.setMessageId(withQuotes(REQUEST_ID.toString()));
+
         final ResponseStatus responseStatus = testService.recieveNotification(notification);
 
         assertThat(responseStatus).isEqualTo(ResponseStatus.OK);

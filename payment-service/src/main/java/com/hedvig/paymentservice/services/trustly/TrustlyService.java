@@ -68,7 +68,7 @@ public class TrustlyService {
 
     }
 
-    public DirectDebitResponse startTrustlyOrder(String memberId, DirectDebitRequest request, UUID requestId) {
+    private DirectDebitResponse startTrustlyOrder(String memberId, DirectDebitRequest request, UUID requestId) {
         try {
             final Request trustlyRequest = createRequest(requestId, memberId, request);
             final Response response = api.sendRequest(trustlyRequest);
