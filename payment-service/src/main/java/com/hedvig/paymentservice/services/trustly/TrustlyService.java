@@ -143,7 +143,7 @@ public class TrustlyService {
             request.getMemberId(),
             hedvigOrderId.toString(),
             request.getAmount().toString(),
-            currencyUnitToTrustlyCurrency(request.getCurrencyType()),
+            currencyUnitToTrustlyCurrency(request.getAmount().getCurrency()),
             "Hedvig månadsavgift", // TODO Better copy
             request.getEmail()
         );

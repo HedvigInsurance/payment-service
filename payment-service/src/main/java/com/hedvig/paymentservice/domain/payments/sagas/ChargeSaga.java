@@ -34,13 +34,11 @@ public class ChargeSaga {
             e.getTransactionId(),
             e.getMemberId(),
             e.getAmount(),
-            e.getCurrency(),
             e.getAccountId()
         ));
         trustlyService.startPaymentOrder(new PaymentRequest(
             e.getMemberId(),
             e.getAmount(),
-            e.getCurrency(),
             e.getAccountId(),
             e.getEmail()
         ), hedvigOrderId);

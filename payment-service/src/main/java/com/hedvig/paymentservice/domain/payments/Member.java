@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.domain.payments;
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateTrustlyAccountCommand;
-import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
@@ -44,7 +43,6 @@ public class Member {
                 this.id,
                 cmd.getTransactionId(),
                 cmd.getAmount(),
-                cmd.getUnit(),
                 cmd.getTimestamp(),
                 "account id not set"
             ));
@@ -56,7 +54,6 @@ public class Member {
                 this.id,
                 cmd.getTransactionId(),
                 cmd.getAmount(),
-                cmd.getUnit(),
                 cmd.getTimestamp(),
                 "direct debit mandate not received in Trustly"
             ));
@@ -67,7 +64,6 @@ public class Member {
             this.id,
             cmd.getTransactionId(),
             cmd.getAmount(),
-            cmd.getUnit(),
             cmd.getTimestamp(),
             this.trustlyAccountId,
             cmd.getEmail()

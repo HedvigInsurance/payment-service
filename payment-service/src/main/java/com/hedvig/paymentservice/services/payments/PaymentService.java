@@ -25,7 +25,6 @@ public class PaymentService {
             request.getMemberId(),
             transactionId,
             request.getAmount(),
-            request.getCurrency(),
             Instant.now(),
             request.getEmail()
         ));

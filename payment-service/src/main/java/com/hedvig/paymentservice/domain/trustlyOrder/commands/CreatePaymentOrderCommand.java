@@ -1,7 +1,6 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
 import java.util.UUID;
-import javax.money.CurrencyUnit;
 import javax.money.MonetaryAmount;
 
 import org.axonframework.commandhandling.model.AggregateIdentifier;
@@ -16,6 +15,5 @@ public class CreatePaymentOrderCommand {
     UUID transactionId;
     String memberId;
     MonetaryAmount amount;
-    CurrencyUnit currency;
     String accountId;
 }

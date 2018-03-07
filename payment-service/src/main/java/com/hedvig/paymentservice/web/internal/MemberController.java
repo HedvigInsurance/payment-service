@@ -28,7 +28,6 @@ public class MemberController {
         val chargeMemberRequest = new ChargeMemberRequest(
             memberId,
             request.getAmount(),
-            request.getCurrency(),
             request.getEmail()
         );
         // TODO: Validate the response we get from here?
