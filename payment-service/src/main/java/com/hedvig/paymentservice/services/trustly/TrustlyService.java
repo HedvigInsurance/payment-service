@@ -13,13 +13,10 @@ import com.hedvig.paymentService.trustly.data.response.Error;
 import com.hedvig.paymentService.trustly.requestbuilders.Charge;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
@@ -29,27 +26,28 @@ import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
-import com.hedvig.paymentservice.web.dtos.PaymentResponse;
 import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.javamoney.moneta.CurrencyUnitBuilder;
+import org.javamoney.moneta.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import javax.money.CurrencyContextBuilder;
 import javax.money.CurrencyUnit;
+
 import lombok.val;
 
 @Component
@@ -201,7 +199,6 @@ public class TrustlyService {
 
         UUID requestId = UUID.fromString(notification.getParams().getData().getMessageId());
 
-        // gateway.sendAndWait(new NotificationReceivedCommand(requestId, notification));
         switch (notification.getMethod()) {
             case ACCOUNT:
             val accountData = (AccountNotificationData) notification.getParams().getData();
@@ -249,13 +246,14 @@ public class TrustlyService {
                     .toInstant();
                 val currency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
 
+                val amount = Money.of(new BigDecimal(creditData.getAmount()), currency);
+
                 gateway.sendAndWait(new CreditNotificationReceivedCommand(
                     requestId,
                     creditData.getNotificationId(),
                     creditData.getOrderId(),
                     creditData.getEndUserId(),
-                    creditData.getAmount(),
-                    creditData.getCurrency(),
+                    amount,
                     timestamp
                 ));
             } catch (ParseException ex) {

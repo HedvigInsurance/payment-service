@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.payments.sagas;
 
+import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
@@ -20,6 +21,8 @@ public class ChargeSaga {
     transient CommandGateway commandGateway;
     @Autowired
     transient TrustlyService trustlyService;
+    @Autowired
+    transient UUIDGenerator uuidGenerator;
 
 
     @StartSaga
@@ -27,6 +30,7 @@ public class ChargeSaga {
     @EndSaga
     public void on(ChargeCreatedEvent e) {
         val hedvigOrderId = (UUID) commandGateway.sendAndWait(new CreatePaymentOrderCommand(
+            uuidGenerator.generateRandom(),
             e.getTransactionId(),
             e.getMemberId(),
             e.getAmount(),

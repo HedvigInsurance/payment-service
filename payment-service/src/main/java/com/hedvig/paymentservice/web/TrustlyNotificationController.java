@@ -2,7 +2,6 @@ package com.hedvig.paymentservice.web;
 
 import com.google.gson.Gson;
 import com.hedvig.paymentService.trustly.NotificationHandler;
-import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.response.Response;
