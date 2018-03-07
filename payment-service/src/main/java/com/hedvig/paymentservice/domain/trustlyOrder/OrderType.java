@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
 public enum OrderType {
-    SELECT_ACCOUNT
+    SELECT_ACCOUNT,
+    CHARGE
 }
