@@ -4,10 +4,14 @@ import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateTrustlyAccountCommand;
 import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
@@ -80,22 +84,33 @@ public class Member {
 
     @CommandHandler
     public void cmd(ChargeCompletedCommand cmd) {
-        // apply(new ChargeEvent(
-        //     this.id,
-        //     cmd.getAmount(),
-        //     cmd.getCurrency(),
-        //     cmd.getTimestamp()
-        // ));
-    }
-
-    @CommandHandler
-    public void cmd(PayoutCompletedCommand cmd) {
-        apply(new PayoutEvent(
+        apply(new ChargeCompletedEvent(
             this.id,
+            cmd.getTransactionId(),
             cmd.getAmount(),
-            cmd.getCurrency(),
             cmd.getTimestamp()
         ));
+    }
+
+    @EventSourcingHandler
+    public void on(ChargeCompletedEvent e) {
+        val matchingTransactions = transactions
+            .stream()
+            .filter(t -> t.getTransactionId().equals(e.getTransactionId()))
+            .collect(Collectors.toList());
+        if (matchingTransactions.size() != 1) {
+            throw new RuntimeException(
+                String.format(
+                    "Unexpected number of matching transactions: %n, with transactionId: %s for memberId: %s",
+                    matchingTransactions.size(),
+                    e.getTransactionId().toString(),
+                    this.id
+                )
+            );
+        }
+
+        val transaction = matchingTransactions.get(0);
+        transaction.setTransactionStatus(TransactionStatus.COMPLETED);
     }
 
     @EventSourcingHandler

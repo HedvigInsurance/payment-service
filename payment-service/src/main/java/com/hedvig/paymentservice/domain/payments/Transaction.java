@@ -1,14 +1,16 @@
 package com.hedvig.paymentservice.domain.payments;
 
 import java.time.Instant;
+import java.util.UUID;
+
 import javax.money.CurrencyUnit;
 import javax.money.MonetaryAmount;
-
+import lombok.Data;
 import lombok.Value;
 
-@Value
+@Data
 public class Transaction {
-    String transactionId;
+    UUID transactionId;
 
     CurrencyUnit currency;
     MonetaryAmount amount;

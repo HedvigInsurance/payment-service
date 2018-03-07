@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
-import com.hedvig.paymentService.trustly.data.response.Result;
 import lombok.Value;
 import org.axonframework.commandhandling.TargetAggregateIdentifier;
 

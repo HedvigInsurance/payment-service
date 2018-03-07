@@ -1,20 +1,16 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
-import java.util.UUID;
 import lombok.Value;
 
 @Value
-public class AccountNotificationReceivedCommand {
-    UUID hedvigOrderId;
-    String notificationId;
-    String trustlyOrderId;
+public class UpdateAccountCommand {
     String accountId;
     String address;
     String bank;
     String city;
     String clearingHouse;
     String descriptor;
-    boolean directDebitMandateActivated;
+    Boolean directDebitMandate;
     String lastDigits;
     String name;
     String personId;

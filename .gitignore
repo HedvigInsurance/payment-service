@@ -23,3 +23,8 @@ hs_err_pid*
 */target/
 **.iml
 /payment-service/src/main/resources/application-development.yml
+
+.settings
+.classpath
+.project
+.vscode
