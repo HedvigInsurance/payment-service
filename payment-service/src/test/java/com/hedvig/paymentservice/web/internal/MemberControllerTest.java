@@ -1,5 +1,14 @@
 package com.hedvig.paymentservice.web.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hedvig.paymentService.trustly.SignedAPI;
+import com.hedvig.paymentService.trustly.data.response.Response;
+import com.hedvig.paymentService.trustly.data.response.Result;
+import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.javamoney.moneta.Money;
 import org.junit.Test;
@@ -13,39 +22,35 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import lombok.val;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.money.MonetaryAmount;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hedvig.paymentService.trustly.SignedAPI;
-import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
-import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateTrustlyAccountCommand;
-import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import java.util.HashMap;
-import com.hedvig.paymentService.trustly.data.response.Response;
-import com.hedvig.paymentService.trustly.data.response.Result;
+import java.util.UUID;
+
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @ContextConfiguration(classes = PaymentServiceTestConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 public class MemberControllerTest {
+    public static final UUID HEDVIG_ORDER_ID = UUID.fromString("b02d398a-22cf-11e8-beea-f34af954d478");
     @Autowired
+    private
     MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Autowired
+    private
     CommandGateway commandGateway;
 
     @MockBean
@@ -82,7 +87,21 @@ public class MemberControllerTest {
     @Test
     public void givenMemberWithDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnAccepted() throws Exception {
         commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
-        commandGateway.sendAndWait(new CreateTrustlyAccountCommand(MEMBER_ID, TRUSTLY_ACCOUNT_ID));
+        commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
+                MEMBER_ID,
+                HEDVIG_ORDER_ID,
+                TRUSTLY_ACCOUNT_ID,
+                TOLVANSSON_STREET,
+                TRUSTLY_ACCOUNT_BANK,
+                TOLVANSSON_CITY,
+                TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+                TRUSTLY_ACCOUNT_DESCRIPTOR,
+                TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
+                TRUSTLY_ACCOUNT_LAST_DIGITS,
+                TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
+                TOLVANSSON_SSN,
+                TOLVANSSON_ZIP
+                ));
 
         mockTrustlyApiResponse();
         val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);

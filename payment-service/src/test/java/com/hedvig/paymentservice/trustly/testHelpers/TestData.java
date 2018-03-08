@@ -2,16 +2,40 @@ package com.hedvig.paymentservice.trustly.testHelpers;
 
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 
+import java.util.UUID;
+
 public class TestData {
-    public static final String TRIGGER_ID = "7fece3ca-17d9-11e8-8c15-f36f3d1de091";
+    public static final String BOT_SERVICE_TRIGGER_ID = "7fece3ca-17d9-11e8-8c15-f36f3d1de091";
+    public static final String TRUSTLY_ORDER_ID = "12313213";
+    public static final String TRUSTLY_ACCOUNT_ID = "456456";
+    public static final String TRUSTLY_IFRAME_URL = "https://trustly.com/iframeurl...";
+    public static final String TRUSTLY_NOTIFICATION_ID = "1381313";
+
+    public static final String TRUSTLY_ACCOUNT_BANK = "Swedbank";
+    public static final String TRUSTLY_ACCOUNT_DESCRIPTOR = "**145678";
+    public static final String TRUSTLY_ACCOUNT_CLEARING_HOUSE = "SWEDEN";
+    public static final String TRUSTLY_ACCOUNT_LAST_DIGITS = "145678";
+
+    public static final String MEMBER_ID = "1337";
+
+    public static final UUID HEDVIG_ORDER_ID = UUID.randomUUID();
+    public static final String TOLVAN_FIRST_NAME = "Tolvan";
+    public static final String TOLVANSSON_LAST_NAME = "Tolvansson";
+    public static final String TOLVANSSON_SSN = "19121212-1212";
+    public static final String TOLVAN_EMAIL = "tolvan@somewhere.com";
+    public static final String TOLVANSSON_ZIP = "12121";
+    public static final String TOLVANSSON_STREET = "Testgatan 1";
+    public static final String TOLVANSSON_CITY = "Teststaden";
+
+    public static final boolean TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE = true;
 
     public static DirectDebitRequest createDirectDebitRequest() {
         return new DirectDebitRequest(
-            "Tolvan",
-                "Tolvansson",
-                "19121212-1212",
-                "tolvan@somewhere.com",
-                "1337",
-                TRIGGER_ID);
+                TOLVAN_FIRST_NAME,
+                TOLVANSSON_LAST_NAME,
+                TOLVANSSON_SSN,
+                TOLVAN_EMAIL,
+                MEMBER_ID,
+                BOT_SERVICE_TRIGGER_ID);
     }
 }

@@ -7,6 +7,7 @@ import com.hedvig.paymentService.trustly.data.notification.notificationdata.Acco
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
+import com.hedvig.paymentservice.trustly.testHelpers.TestData;
 import org.axonframework.test.aggregate.AggregateTestFixture;
 import org.axonframework.test.aggregate.FixtureConfiguration;
 import org.junit.Before;
@@ -20,17 +21,7 @@ import java.util.UUID;
 @RunWith(MockitoJUnitRunner.class)
 public class TrustlyOrderTest {
 
-    public static final String TRUSTLY_ORDER_ID = "12313213";
-    public static final String TRUSTLY_ACCOUNT_ID = "456456";
-    public static final String IFRAME_URL = "https://trustly.com/iframeurl...";
-    public static final String TRUSTLY_NOTIFICATION_ID = "1381313";
-    public static final String SWEDBANK = "Swedbank";
-    public static final String DESCRIPTIOR = "**145678";
-    public static final String SWEDEN = "SWEDEN";
-    public static final String LAST_DIGITS = "145678";
-    private static final String MEMBER_ID = "1337";
     private FixtureConfiguration<TrustlyOrder> fixture;
-    public static final UUID HEDVIG_ORDER_ID = UUID.randomUUID();
 
     @Before
     public void setUp() {
@@ -55,11 +46,11 @@ public class TrustlyOrderTest {
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent())
                 .when(
-                    new NotificationReceivedCommand(HEDVIG_ORDER_ID, accountNotification(TRUSTLY_NOTIFICATION_ID, null)))
+                    new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(TestData.TRUSTLY_NOTIFICATION_ID, null)))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(
-                    notificationReceivedEvent(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID),
-                    accountNotificationRecievedEvent(false, TRUSTLY_NOTIFICATION_ID),
+                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID),
+                    accountNotificationRecievedEvent(false, TestData.TRUSTLY_NOTIFICATION_ID),
                     orderCompletedEvent()
                 );
     }
@@ -71,14 +62,14 @@ public class TrustlyOrderTest {
         fixture.given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent(),
-                    notificationReceivedEvent(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID),
-                    accountNotificationRecievedEvent(false, TRUSTLY_NOTIFICATION_ID),
+                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID),
+                    accountNotificationRecievedEvent(false, TestData.TRUSTLY_NOTIFICATION_ID),
                     orderCompletedEvent())
                 .when(
-                        new NotificationReceivedCommand(HEDVIG_ORDER_ID, accountNotification(notificationId, true)))
+                        new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(notificationId, true)))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(
-                        notificationReceivedEvent(notificationId, TRUSTLY_ORDER_ID),
+                        notificationReceivedEvent(notificationId, TestData.TRUSTLY_ORDER_ID),
                         accountNotificationRecievedEvent(true, notificationId)
                 );
     }
@@ -90,37 +81,40 @@ public class TrustlyOrderTest {
                 .given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent(),
-                    notificationReceivedEvent(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID))
+                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID))
                 .when(
-                    new NotificationReceivedCommand(HEDVIG_ORDER_ID, accountNotification(TRUSTLY_NOTIFICATION_ID, false)))
+                    new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(TestData.TRUSTLY_NOTIFICATION_ID, false)))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents();
 
     }
 
     public OrderCompletedEvent orderCompletedEvent() {
-        return new OrderCompletedEvent(HEDVIG_ORDER_ID);
+        return new OrderCompletedEvent(TestData.HEDVIG_ORDER_ID);
     }
 
     public AccountNotificationReceivedEvent accountNotificationRecievedEvent(boolean directDebitMandate, String notificationId) {
-        return new AccountNotificationReceivedEvent(HEDVIG_ORDER_ID, notificationId,
-                TRUSTLY_ORDER_ID,
-                TRUSTLY_ACCOUNT_ID,
+        return new AccountNotificationReceivedEvent(
+                TestData.HEDVIG_ORDER_ID,
+                TestData.MEMBER_ID,
+                notificationId,
+                TestData.TRUSTLY_ORDER_ID,
+                TestData.TRUSTLY_ACCOUNT_ID,
                 null,
-                SWEDBANK,
+                TestData.TRUSTLY_ACCOUNT_BANK,
                 null,
-                SWEDEN,
-                DESCRIPTIOR,
+                TestData.TOLVANSSON_CITY,
+                TestData.TRUSTLY_ACCOUNT_CLEARING_HOUSE,
                 directDebitMandate,
-                LAST_DIGITS,
-                null,
+                TestData.TRUSTLY_ACCOUNT_DESCRIPTOR,
+                TestData.TRUSTLY_ACCOUNT_LAST_DIGITS,
                 null,
                 null
         );
     }
 
     public NotificationReceivedEvent notificationReceivedEvent(String notificationId, String trustlyOrderId) {
-        return new NotificationReceivedEvent(HEDVIG_ORDER_ID, notificationId, trustlyOrderId);
+        return new NotificationReceivedEvent(TestData.HEDVIG_ORDER_ID, notificationId, trustlyOrderId);
     }
 
     private Notification accountNotification(String trustlyNotificationId, Boolean directDebitMandate) {
@@ -132,18 +126,18 @@ public class TrustlyOrderTest {
         AccountNotificationData data = new AccountNotificationData();
         parameters.setData(data);
 
-        data.setOrderId(TRUSTLY_ORDER_ID);
-        data.setAccountId(TRUSTLY_ACCOUNT_ID);
-        data.setMessageId(HEDVIG_ORDER_ID.toString());
+        data.setOrderId(TestData.TRUSTLY_ORDER_ID);
+        data.setAccountId(TestData.TRUSTLY_ACCOUNT_ID);
+        data.setMessageId(TestData.HEDVIG_ORDER_ID.toString());
         data.setNotificationId(trustlyNotificationId);
         data.setVerified(true);
 
         final HashMap<String, Object> attributes = new HashMap<>();
 
-        attributes.put("descriptor", DESCRIPTIOR);
-        attributes.put("bank", SWEDBANK);
-        attributes.put("clearinghouse", SWEDEN);
-        attributes.put("lastdigits", LAST_DIGITS);
+        attributes.put("descriptor", TestData.TRUSTLY_ACCOUNT_DESCRIPTOR);
+        attributes.put("bank", TestData.TRUSTLY_ACCOUNT_BANK);
+        attributes.put("clearinghouse", TestData.TRUSTLY_ACCOUNT_CLEARING_HOUSE);
+        attributes.put("lastdigits", TestData.TRUSTLY_ACCOUNT_LAST_DIGITS);
         if(directDebitMandate != null) {
             attributes.put("directdebitmandate", directDebitMandate ? "1" : "0");
         }
@@ -153,18 +147,18 @@ public class TrustlyOrderTest {
     }
 
     private SelectAccountResponseReceivedEvent selectAccountResponseReceivedEvent() {
-        return new SelectAccountResponseReceivedEvent(HEDVIG_ORDER_ID, IFRAME_URL);
+        return new SelectAccountResponseReceivedEvent(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_IFRAME_URL);
     }
 
     private OrderAssignedTrustlyIdEvent orderAssignedTrustlyIdEvent() {
-        return new OrderAssignedTrustlyIdEvent(HEDVIG_ORDER_ID, TRUSTLY_ORDER_ID);
+        return new OrderAssignedTrustlyIdEvent(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_ORDER_ID);
     }
 
     private SelectAccountResponseReceivedCommand selectAccountCommand() {
-        return new SelectAccountResponseReceivedCommand(HEDVIG_ORDER_ID, IFRAME_URL, TRUSTLY_ORDER_ID);
+        return new SelectAccountResponseReceivedCommand(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_IFRAME_URL, TestData.TRUSTLY_ORDER_ID);
     }
 
     private OrderCreatedEvent orderCreatedEvent() {
-        return new OrderCreatedEvent(HEDVIG_ORDER_ID, MEMBER_ID);
+        return new OrderCreatedEvent(TestData.HEDVIG_ORDER_ID, TestData.MEMBER_ID);
     }
 }

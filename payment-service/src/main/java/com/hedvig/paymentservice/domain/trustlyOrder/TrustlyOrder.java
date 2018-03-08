@@ -1,13 +1,7 @@
 
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
@@ -65,6 +59,7 @@ public class TrustlyOrder {
     public void cmd(AccountNotificationReceivedCommand cmd) {
         apply(new AccountNotificationReceivedEvent(
             this.id,
+            this.memberId,
             cmd.getNotificationId(),
             cmd.getTrustlyOrderId(),
             cmd.getAccountId(),

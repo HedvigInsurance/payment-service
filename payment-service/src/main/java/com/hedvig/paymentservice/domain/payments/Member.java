@@ -3,16 +3,8 @@ package com.hedvig.paymentservice.domain.payments;
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
-import UpdateTrustlyAccountCommand;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.events.*;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
@@ -20,6 +12,10 @@ import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
 
@@ -30,10 +26,9 @@ public class Member {
     @AggregateIdentifier
     private String id;
 
-    private String trustlyAccountId;
-    private boolean directDebitActive;
 
-    private List<Transaction> transactions = new ArrayList<Transaction>();
+    private List<Transaction> transactions = new ArrayList<>();
+    private TrustlyAccount trustlyAccount;
 
     public Member() {}
 
@@ -44,7 +39,7 @@ public class Member {
 
     @CommandHandler
     public boolean cmd(CreateChargeCommand cmd) {
-        if (trustlyAccountId == null) {
+        if (trustlyAccount == null) {
             log.info("Cannot charge account - no account set up in Trustly");
             apply(new ChargeCreationFailedEvent(
                 this.id,
@@ -55,7 +50,7 @@ public class Member {
             ));
             return false;
         }
-        if (directDebitActive == false) {
+        if (trustlyAccount.isDirectDebitMandateActive() == false) {
             log.info("Cannot charge account - direct debit mandate not received in Trustly");
             apply(new ChargeCreationFailedEvent(
                 this.id,
@@ -72,7 +67,7 @@ public class Member {
             cmd.getTransactionId(),
             cmd.getAmount(),
             cmd.getTimestamp(),
-            this.trustlyAccountId,
+            this.trustlyAccount.getAccountId(),
             cmd.getEmail()
         ));
         return true;
@@ -81,9 +76,22 @@ public class Member {
     @CommandHandler
     public void cmd(UpdateTrustlyAccountCommand cmd) {
 
-        apply(new TrustlyAccountCreatedEvent(
-            this.id,
-            cmd.getTrustlyAccountId()
+        apply(
+            new TrustlyAccountCreatedEvent(
+                this.id,
+                cmd.getHedvigOrderId(),
+
+                cmd.getAccountId(),
+                cmd.getAddress(),
+                cmd.getBank(),
+                cmd.getCity(),
+                cmd.getClearingHouse(),
+                cmd.getDescriptor(),
+                cmd.isDirectDebitMandateActive(),
+                cmd.getLastDigits(),
+                cmd.getName(),
+                cmd.getPersonId(),
+                cmd.getZipCode()
         ));
     }
 
@@ -125,6 +133,11 @@ public class Member {
 
     @EventSourcingHandler
     public void on(TrustlyAccountCreatedEvent e) {
-        trustlyAccountId = e.getTrustlyAccountId();
+
+        val account = new TrustlyAccount(e.getTrustlyAccountId(), e.isDirectDebitMandateActivated());
+
+        this.trustlyAccount = account;
     }
+
+
 }
