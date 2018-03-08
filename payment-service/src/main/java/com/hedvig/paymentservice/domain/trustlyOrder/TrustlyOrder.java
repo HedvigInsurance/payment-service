@@ -139,6 +139,10 @@ public class TrustlyOrder {
     }
 
     @EventSourcingHandler
+    public void on(AccountNotificationReceivedCommand cmd) {
+    }
+
+    @EventSourcingHandler
     public void on(NotificationReceivedEvent e) {
         notifications.add(e.getNotificationId());
     }

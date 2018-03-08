@@ -30,8 +30,11 @@ public class MemberController {
             request.getAmount(),
             request.getEmail()
         );
-        // TODO: Validate the response we get from here?
-        paymentService.chargeMember(chargeMemberRequest);
+        val res = paymentService.chargeMember(chargeMemberRequest);
+
+        if (res == false) {
+            return ResponseEntity.status(403).body("");
+        }
 
         return ResponseEntity.accepted().body("");
     }

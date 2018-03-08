@@ -2,10 +2,12 @@ package com.hedvig.paymentservice.domain.payments;
 
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
+import UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +38,12 @@ public class Member {
     public Member() {}
 
     @CommandHandler
-    public void cmd(CreateChargeCommand cmd) {
+    public Member(CreateMemberCommand cmd) {
+        apply(new MemberCreatedEvent(cmd.getMemberId()));
+    }
+
+    @CommandHandler
+    public boolean cmd(CreateChargeCommand cmd) {
         if (trustlyAccountId == null) {
             log.info("Cannot charge account - no account set up in Trustly");
             apply(new ChargeCreationFailedEvent(
@@ -46,7 +53,7 @@ public class Member {
                 cmd.getTimestamp(),
                 "account id not set"
             ));
-            return;
+            return false;
         }
         if (directDebitActive == false) {
             log.info("Cannot charge account - direct debit mandate not received in Trustly");
@@ -57,7 +64,7 @@ public class Member {
                 cmd.getTimestamp(),
                 "direct debit mandate not received in Trustly"
             ));
-            return;
+            return false;
         }
 
         apply(new ChargeCreatedEvent(
@@ -68,10 +75,12 @@ public class Member {
             this.trustlyAccountId,
             cmd.getEmail()
         ));
+        return true;
     }
 
     @CommandHandler
-    public void cmd(CreateTrustlyAccountCommand cmd) {
+    public void cmd(UpdateTrustlyAccountCommand cmd) {
+
         apply(new TrustlyAccountCreatedEvent(
             this.id,
             cmd.getTrustlyAccountId()
@@ -86,6 +95,11 @@ public class Member {
             cmd.getAmount(),
             cmd.getTimestamp()
         ));
+    }
+
+    @EventSourcingHandler
+    public void on(MemberCreatedEvent e) {
+        this.id = e.getMemberId();
     }
 
     @EventSourcingHandler

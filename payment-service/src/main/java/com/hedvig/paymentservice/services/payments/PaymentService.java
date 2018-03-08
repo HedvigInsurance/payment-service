@@ -19,9 +19,9 @@ public class PaymentService {
         this.uuidGenerator = uuidGenerator;
     }
 
-    public void chargeMember(ChargeMemberRequest request) {
+    public boolean chargeMember(ChargeMemberRequest request) {
         val transactionId = uuidGenerator.generateRandom();
-        commandGateway.sendAndWait(new CreateChargeCommand(
+        return commandGateway.sendAndWait(new CreateChargeCommand(
             request.getMemberId(),
             transactionId,
             request.getAmount(),
