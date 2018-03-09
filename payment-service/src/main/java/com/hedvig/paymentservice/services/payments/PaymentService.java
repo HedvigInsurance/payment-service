@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.payments;
 
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import java.time.Instant;
 import lombok.val;
@@ -17,6 +18,10 @@ public class PaymentService {
     public PaymentService(CommandGateway commandGateway, UUIDGenerator uuidGenerator) {
         this.commandGateway = commandGateway;
         this.uuidGenerator = uuidGenerator;
+    }
+
+    public void createMember(String memberId) {
+        commandGateway.sendAndWait(new CreateMemberCommand(memberId));
     }
 
     public boolean chargeMember(ChargeMemberRequest request) {
