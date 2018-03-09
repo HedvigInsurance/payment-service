@@ -40,6 +40,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -139,18 +140,27 @@ public class TrustlyService {
     }
 
     private Request createPaymentRequest(UUID hedvigOrderId, PaymentRequest request) {
+        val formatter = new DecimalFormat("#0.00");
+        val amount = formatter.format(request.getAmount().getNumber().doubleValueExact());
         val build = new Charge.Build(
             request.getAccountId(),
             notificationUrl,
             request.getMemberId(),
             hedvigOrderId.toString(),
-            request.getAmount().toString(),
+            amount,
             currencyUnitToTrustlyCurrency(request.getAmount().getCurrency()),
             "Hedvig månadsavgift", // TODO Better copy
             request.getEmail()
         );
 
-        return build.getRequest();
+        log.info("amount.toString(): " + amount);
+        val ret = build.getRequest();
+
+        if (springEnvironment.acceptsProfiles("development")) {
+            ret.getParams().getData().getAttributes().put("HoldNotifications", "1");
+        }
+
+        return ret;
     }
 
     private Currency currencyUnitToTrustlyCurrency(CurrencyUnit unit) {
@@ -239,11 +249,15 @@ public class TrustlyService {
             ));
             break;
 
+            case PENDING:
+            // TODO: Should we log these as events on the aggregate? Do they add meaningful information?
+            break;
+
             case CREDIT:
             val creditData = (CreditData) notification.getParams().getData();
 
             try {
-                val timestamp = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSSSSZ")
+                val timestamp = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSSSSSZ")
                     .parse(creditData.getTimestamp())
                     .toInstant();
                 val currency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
