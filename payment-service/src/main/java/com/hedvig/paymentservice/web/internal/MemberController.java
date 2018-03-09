@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.web.internal;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,5 +38,12 @@ public class MemberController {
         }
 
         return ResponseEntity.accepted().body("");
+    }
+
+    @PostMapping(path = "{memberId}/create")
+    public ResponseEntity<?> createMember(@PathVariable String memberId) {
+        paymentService.createMember(memberId);
+
+        return ResponseEntity.ok().body(new HashMap<String, String>() {{put("memberId", memberId);}});
     }
 }
