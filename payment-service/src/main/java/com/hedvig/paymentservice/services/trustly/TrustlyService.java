@@ -18,6 +18,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificatio
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
@@ -102,6 +103,7 @@ public class TrustlyService {
             } else {
                 val error = response.getError();
                 log.error("Paymen order creation failed: {}, {}, {}", error.getName(), error.getCode(), error.getMessage());
+                gateway.sendAndWait(new PaymentErrorReceivedCommand(hedvigOrderId, error));
                 throw new RuntimeException("Got error from trustly");
             }
         } catch (TrustlyAPIException ex) {

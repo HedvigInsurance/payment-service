@@ -1,6 +1,7 @@
 
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
+import com.hedvig.paymentService.trustly.data.response.Error;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
 import org.axonframework.commandhandling.CommandHandler;
@@ -10,6 +11,8 @@ import org.axonframework.spring.stereotype.Aggregate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -28,6 +31,7 @@ public class TrustlyOrder {
     private String memberId;
     private UUID externalTransactionId;
     private TreeSet<String> notifications = new TreeSet<>();
+    private List<Error> errors = new ArrayList<Error>();
 
     public TrustlyOrder() {}
 
@@ -53,6 +57,11 @@ public class TrustlyOrder {
     public void cmd(PaymentResponseReceivedCommand cmd) {
         apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
         apply(new PaymentResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getUrl()));
+    }
+
+    @CommandHandler
+    public void cmd(PaymentErrorReceivedCommand cmd) {
+        apply(new PaymentErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
     }
 
     @CommandHandler
@@ -116,6 +125,12 @@ public class TrustlyOrder {
     @EventSourcingHandler
     public void on(PaymentResponseReceivedEvent e) {
         this.orderType = OrderType.CHARGE;
+    }
+
+    @EventSourcingHandler
+    public void on(PaymentErrorReceivedEvent e) {
+        this.orderType = OrderType.CHARGE;
+        this.errors.add(e.getError());
     }
 
     @EventSourcingHandler
