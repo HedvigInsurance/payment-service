@@ -19,7 +19,7 @@ public class TestData {
 
     public static final String MEMBER_ID = "1337";
 
-    public static final UUID HEDVIG_ORDER_ID = UUID.randomUUID();
+    public static final UUID HEDVIG_ORDER_ID = UUID.fromString("f1dd38f2-237f-11e8-8fc1-e74ced44b3e1");
     public static final String TOLVAN_FIRST_NAME = "Tolvan";
     public static final String TOLVANSSON_LAST_NAME = "Tolvansson";
     public static final String TOLVANSSON_SSN = "19121212-1212";

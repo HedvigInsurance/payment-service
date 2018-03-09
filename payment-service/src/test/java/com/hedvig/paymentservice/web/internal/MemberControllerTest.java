@@ -5,10 +5,12 @@ import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentResponseReceivedEvent;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -46,7 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 public class MemberControllerTest {
-    public static final UUID HEDVIG_ORDER_ID = UUID.fromString("b02d398a-22cf-11e8-beea-f34af954d478");
     @Autowired
     private
     MockMvc mockMvc;
@@ -62,6 +63,9 @@ public class MemberControllerTest {
 
     @MockBean
     private SignedAPI signedApi;
+
+    @MockBean
+    private UUIDGenerator uuidGenerator;
 
     private static final String EMAIL = "test@hedvig.com";
     private static final MonetaryAmount MONETARY_AMOUNT = Money.of(100, "SEK");
@@ -116,6 +120,9 @@ public class MemberControllerTest {
                 ));
 
         mockTrustlyApiResponse();
+        given(uuidGenerator.generateRandom())
+            .willReturn(HEDVIG_ORDER_ID);
+
         val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
 
         mockMvc
@@ -141,7 +148,7 @@ public class MemberControllerTest {
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        trustlyOrderEvents.forEach(e -> System.out.println(e.getPayload().toString()));
+        assertTrue(trustlyOrderEvents.get(3).getPayload() instanceof PaymentResponseReceivedEvent);
     }
 
     private void mockTrustlyApiResponse() {
