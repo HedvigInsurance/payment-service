@@ -7,9 +7,12 @@ import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.javamoney.moneta.Money;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,8 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.money.MonetaryAmount;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -50,21 +55,20 @@ public class MemberControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private
-    CommandGateway commandGateway;
+    private CommandGateway commandGateway;
+
+    @Autowired
+    private EventStore eventStore;
 
     @MockBean
     private SignedAPI signedApi;
 
-    private static final String MEMBER_ID = "1";
-    private static final String TRUSTLY_ACCOUNT_ID = "1";
     private static final String EMAIL = "test@hedvig.com";
     private static final MonetaryAmount MONETARY_AMOUNT = Money.of(100, "SEK");
     private static final String ORDER_ID = "123";
     private static final String PAYMENT_URL = "testurl";
 
     @Test
-    // TODO rename test
     public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden() throws Exception {
         commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
 
@@ -82,6 +86,14 @@ public class MemberControllerTest {
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
             .andExpect(status().is(403));
+
+        val memberEvents = eventStore
+            .readEvents(MEMBER_ID)
+            .asStream()
+            .collect(Collectors.toList());
+
+        assertTrue(memberEvents.get(1).getPayload() instanceof ChargeCreationFailedEvent);
+
     }
 
     @Test
@@ -118,6 +130,18 @@ public class MemberControllerTest {
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
             .andExpect(status().is(202));
+
+        val memberEvents = eventStore
+            .readEvents(MEMBER_ID)
+            .asStream()
+            .collect(Collectors.toList());
+        assertTrue(memberEvents.get(2).getPayload() instanceof ChargeCreatedEvent);
+
+        val trustlyOrderEvents = eventStore
+            .readEvents(HEDVIG_ORDER_ID.toString())
+            .asStream()
+            .collect(Collectors.toList());
+        trustlyOrderEvents.forEach(e -> System.out.println(e.getPayload().toString()));
     }
 
     private void mockTrustlyApiResponse() {
