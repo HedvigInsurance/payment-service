@@ -8,6 +8,7 @@ import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyConnectionExc
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationData;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountData;
 import com.hedvig.paymentService.trustly.data.response.Response;
@@ -181,19 +182,25 @@ public class TrustlyServiceTest {
         given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.of(trustlyOrder));
     }
 
-
-
-
     @Test
     public void test_Notification() {
 
         Notification notification = new Notification();
         final NotificationParameters params = new NotificationParameters();
         notification.setParams(params);
-        final NotificationData data = new NotificationData();
+        notification.setMethod(Method.ACCOUNT);
+        final NotificationData data = new AccountNotificationData();
         params.setData(data);
         data.setNotificationId(withQuotes("0182309810381"));
         data.setMessageId(withQuotes(REQUEST_ID.toString()));
+        final HashMap<String, Object> attributes = new HashMap<>();
+        data.setAttributes(attributes);
+
+        attributes.put("lastdigits", "847257");
+        attributes.put("clearinghouse", "SWEDEN");
+        attributes.put("bank", "Handelsbanken");
+        attributes.put("descriptor", "**847257");
+
 
         final ResponseStatus responseStatus = testService.recieveNotification(notification);
 
@@ -229,5 +236,4 @@ public class TrustlyServiceTest {
 
         return response;
     }
-
 }

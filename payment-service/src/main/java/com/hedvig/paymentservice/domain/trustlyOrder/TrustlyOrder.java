@@ -30,8 +30,9 @@ public class TrustlyOrder {
     private OrderState orderState;
     private String memberId;
     private UUID externalTransactionId;
-    private TreeSet<String> notifications = new TreeSet<>();
     private List<Error> errors = new ArrayList<Error>();
+    private TreeSet<String> handledNotifications = new TreeSet<>();
+
 
     public TrustlyOrder() {}
 
@@ -66,6 +67,11 @@ public class TrustlyOrder {
 
     @CommandHandler
     public void cmd(AccountNotificationReceivedCommand cmd) {
+
+        if(handledNotifications.contains(cmd.getNotificationId())) {
+            return;
+        }
+
         apply(new AccountNotificationReceivedEvent(
             this.id,
             this.memberId,
@@ -83,7 +89,7 @@ public class TrustlyOrder {
             cmd.getPersonId(),
             cmd.getZipCode()
         ));
-        apply(new OrderCompletedEvent(this.id));
+        markOrderComplete();
     }
 
     @CommandHandler
@@ -102,7 +108,14 @@ public class TrustlyOrder {
             cmd.getAmount(),
             cmd.getTimestamp()
         ));
-        apply(new OrderCompletedEvent(this.id));
+
+        markOrderComplete();
+    }
+
+    public void markOrderComplete() {
+        if(orderState == OrderState.CONFIRMED) {
+            apply(new OrderCompletedEvent(this.id));
+        }
     }
 
     @EventSourcingHandler
@@ -149,11 +162,12 @@ public class TrustlyOrder {
     }
 
     @EventSourcingHandler
-    public void on(AccountNotificationReceivedCommand cmd) {
+    public void on(AccountNotificationReceivedEvent e) {
+        handledNotifications.add(e.getNotificationId());
     }
 
     @EventSourcingHandler
     public void on(NotificationReceivedEvent e) {
-        notifications.add(e.getNotificationId());
+        handledNotifications.add(e.getNotificationId());
     }
 }

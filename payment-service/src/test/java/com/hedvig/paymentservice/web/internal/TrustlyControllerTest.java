@@ -2,9 +2,10 @@ package com.hedvig.paymentservice.web.internal;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
-import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
+import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.trustly.testHelpers.TestData;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SuppressWarnings("ALL")
 @RunWith(SpringRunner.class)
+@ContextConfiguration(classes = PaymentServiceTestConfiguration.class)
 @WebMvcTest(controllers = TrustlyController.class)
 public class TrustlyControllerTest {
 
