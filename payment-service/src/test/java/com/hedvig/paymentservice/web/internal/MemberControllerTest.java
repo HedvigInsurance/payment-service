@@ -98,7 +98,6 @@ public class MemberControllerTest {
             .collect(Collectors.toList());
 
         assertTrue(memberEvents.get(1).getPayload() instanceof ChargeCreationFailedEvent);
-
     }
 
     @Test
