@@ -4,7 +4,7 @@ import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
 import com.hedvig.paymentservice.trustly.testHelpers.TestData;
@@ -17,6 +17,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.HashMap;
 import java.util.UUID;
+
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TrustlyOrderTest {
@@ -46,12 +48,31 @@ public class TrustlyOrderTest {
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent())
                 .when(
-                    new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(TestData.TRUSTLY_NOTIFICATION_ID, null)))
+                        makeAccountNotificationReceivedCommand(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(
-                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID),
-                    accountNotificationRecievedEvent(false, TestData.TRUSTLY_NOTIFICATION_ID),
+                    //notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID),
+                    accountNotificationRecievedEvent(TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE, TRUSTLY_NOTIFICATION_ID),
                     orderCompletedEvent()
+                );
+    }
+
+    public AccountNotificationReceivedCommand makeAccountNotificationReceivedCommand(String trustlyNotificationId, boolean trustlyAccountDirectdebitFalse) {
+        return new AccountNotificationReceivedCommand(
+                HEDVIG_ORDER_ID,
+                trustlyNotificationId,
+                TRUSTLY_ORDER_ID,
+                TRUSTLY_ACCOUNT_ID,
+                TOLVANSSON_STREET,
+                TRUSTLY_ACCOUNT_BANK,
+                TOLVANSSON_CITY,
+                TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+                TRUSTLY_ACCOUNT_DESCRIPTOR,
+                trustlyAccountDirectdebitFalse,
+                TRUSTLY_ACCOUNT_LAST_DIGITS,
+                TOLVAN_FIRST_NAME,
+                TOLVANSSON_SSN,
+                TOLVANSSON_ZIP
                 );
     }
 
@@ -62,15 +83,14 @@ public class TrustlyOrderTest {
         fixture.given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent(),
-                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID),
-                    accountNotificationRecievedEvent(false, TestData.TRUSTLY_NOTIFICATION_ID),
+                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID),
+                    accountNotificationRecievedEvent(TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE, TestData.TRUSTLY_NOTIFICATION_ID),
                     orderCompletedEvent())
                 .when(
-                        new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(notificationId, true)))
+                        makeAccountNotificationReceivedCommand(notificationId, TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents(
-                        notificationReceivedEvent(notificationId, TestData.TRUSTLY_ORDER_ID),
-                        accountNotificationRecievedEvent(true, notificationId)
+                        accountNotificationRecievedEvent(TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE, notificationId)
                 );
     }
 
@@ -81,9 +101,9 @@ public class TrustlyOrderTest {
                 .given(
                     orderCreatedEvent(),
                     orderAssignedTrustlyIdEvent(),
-                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TestData.TRUSTLY_ORDER_ID))
+                    notificationReceivedEvent(TestData.TRUSTLY_NOTIFICATION_ID, TRUSTLY_ORDER_ID))
                 .when(
-                    new NotificationReceivedCommand(TestData.HEDVIG_ORDER_ID, accountNotification(TestData.TRUSTLY_NOTIFICATION_ID, false)))
+                    makeAccountNotificationReceivedCommand(TRUSTLY_NOTIFICATION_ID, TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE))
                 .expectSuccessfulHandlerExecution()
                 .expectEvents();
 
@@ -95,21 +115,21 @@ public class TrustlyOrderTest {
 
     public AccountNotificationReceivedEvent accountNotificationRecievedEvent(boolean directDebitMandate, String notificationId) {
         return new AccountNotificationReceivedEvent(
-                TestData.HEDVIG_ORDER_ID,
-                TestData.MEMBER_ID,
+                HEDVIG_ORDER_ID,
+                MEMBER_ID,
                 notificationId,
-                TestData.TRUSTLY_ORDER_ID,
-                TestData.TRUSTLY_ACCOUNT_ID,
-                null,
-                TestData.TRUSTLY_ACCOUNT_BANK,
-                null,
-                TestData.TOLVANSSON_CITY,
-                TestData.TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+                TRUSTLY_ORDER_ID,
+                TRUSTLY_ACCOUNT_ID,
+                TOLVANSSON_STREET,
+                TRUSTLY_ACCOUNT_BANK,
+                TOLVANSSON_CITY,
+                TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+                TRUSTLY_ACCOUNT_DESCRIPTOR,
                 directDebitMandate,
-                TestData.TRUSTLY_ACCOUNT_DESCRIPTOR,
-                TestData.TRUSTLY_ACCOUNT_LAST_DIGITS,
-                null,
-                null
+                TRUSTLY_ACCOUNT_LAST_DIGITS,
+                TOLVAN_FIRST_NAME,
+                TOLVANSSON_SSN,
+                TOLVANSSON_ZIP
         );
     }
 
@@ -126,7 +146,7 @@ public class TrustlyOrderTest {
         AccountNotificationData data = new AccountNotificationData();
         parameters.setData(data);
 
-        data.setOrderId(TestData.TRUSTLY_ORDER_ID);
+        data.setOrderId(TRUSTLY_ORDER_ID);
         data.setAccountId(TestData.TRUSTLY_ACCOUNT_ID);
         data.setMessageId(TestData.HEDVIG_ORDER_ID.toString());
         data.setNotificationId(trustlyNotificationId);
@@ -151,11 +171,11 @@ public class TrustlyOrderTest {
     }
 
     private OrderAssignedTrustlyIdEvent orderAssignedTrustlyIdEvent() {
-        return new OrderAssignedTrustlyIdEvent(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_ORDER_ID);
+        return new OrderAssignedTrustlyIdEvent(TestData.HEDVIG_ORDER_ID, TRUSTLY_ORDER_ID);
     }
 
     private SelectAccountResponseReceivedCommand selectAccountCommand() {
-        return new SelectAccountResponseReceivedCommand(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_IFRAME_URL, TestData.TRUSTLY_ORDER_ID);
+        return new SelectAccountResponseReceivedCommand(TestData.HEDVIG_ORDER_ID, TestData.TRUSTLY_IFRAME_URL, TRUSTLY_ORDER_ID);
     }
 
     private OrderCreatedEvent orderCreatedEvent() {

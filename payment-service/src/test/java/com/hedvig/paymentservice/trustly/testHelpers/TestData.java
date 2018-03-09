@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.trustly.testHelpers;
 
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ public class TestData {
     public static final String TOLVANSSON_CITY = "Teststaden";
 
     public static final boolean TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE = true;
+    public static final boolean TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE = true;
 
     public static final String TRANSACTION_ID = "0788882e-22da-11e8-b209-0f7ece059a6d";
     public static final Instant TRANSACTION_TIMESTAMP = Instant.ofEpochMilli(1482710400);
