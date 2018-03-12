@@ -1,21 +1,21 @@
 package com.hedvig.paymentservice.web;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hedvig.paymentService.trustly.commons.Currency;
-import com.hedvig.paymentService.trustly.commons.Method;
-import com.hedvig.paymentService.trustly.data.notification.Notification;
-import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
+import com.google.gson.Gson;
+import com.hedvig.paymentService.trustly.NotificationHandler;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
 import javax.transaction.Transactional;
 import lombok.val;
 
-import org.junit.Ignore;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -26,6 +26,10 @@ import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+
+import java.util.UUID;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -38,22 +42,41 @@ public class TrustlyNotificationControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private Gson gson;
 
-    @Ignore("This test is not done yet")
+    @Autowired
+    private EventStore eventStore;
+
+    @Autowired
+    private CommandGateway commandGateway;
+
+    @MockBean
+    private NotificationHandler notificationHandler;
+
     @Test
     public void givenAConfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnOk() throws Exception {
+        commandGateway.sendAndWait(new CreatePaymentOrderCommand(
+            HEDVIG_ORDER_ID,
+            UUID.fromString(TRANSACTION_ID),
+            MEMBER_ID,
+            TRANSACTION_AMOUNT,
+            TRUSTLY_ACCOUNT_ID));
+        commandGateway.sendAndWait(new PaymentResponseReceivedCommand(
+            HEDVIG_ORDER_ID,
+            TRANSACTION_URL,
+            TRUSTLY_ORDER_ID
+        ));
 
         val request = createTrustlyCreditNotificationRequest();
-        System.out.println("Request is: " + objectMapper.writeValueAsString(request));
+        given(notificationHandler.handleNotification(any()))
+            .willReturn(request);
 
         mockMvc
             .perform(
                 post("/hooks/trustly/notifications")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .content(gson.toJson(request))
             )
             .andExpect(status().isOk());
-
     }
 }

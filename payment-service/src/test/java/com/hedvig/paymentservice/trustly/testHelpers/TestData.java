@@ -8,8 +8,11 @@ import com.hedvig.paymentService.trustly.data.notification.notificationdata.Cred
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 
+import org.javamoney.moneta.Money;
+
 import java.time.Instant;
 import java.util.UUID;
+import javax.money.MonetaryAmount;
 import lombok.val;
 
 public class TestData {
@@ -40,6 +43,8 @@ public class TestData {
 
     public static final String TRANSACTION_ID = "0788882e-22da-11e8-b209-0f7ece059a6d";
     public static final Instant TRANSACTION_TIMESTAMP = Instant.ofEpochMilli(1482710400);
+    public static final MonetaryAmount TRANSACTION_AMOUNT = Money.of(100, "SEK");
+    public static final String TRANSACTION_URL = "http://www.example.com";
 
     public static DirectDebitRequest createDirectDebitRequest() {
         return new DirectDebitRequest(
@@ -72,18 +77,21 @@ public class TestData {
     public static Notification createTrustlyCreditNotificationRequest() {
 
         val data = new CreditData();
-        data.setTimestamp("2010-01-20 14:42:04.675645+01");
         data.setAmount("100.00");
         data.setCurrency(Currency.SEK);
-        data.setOrderId(TRUSTLY_ORDER_ID);
         data.setEndUserId(MEMBER_ID);
+        data.setTimestamp("2010-01-20 14:42:04.675645+01");
         data.setNotificationId(TRUSTLY_NOTIFICATION_ID);
         data.setMessageId(HEDVIG_ORDER_ID.toString());
+        data.setOrderId(TRUSTLY_ORDER_ID);
         val params = new NotificationParameters();
         params.setData(data);
+        params.setSignature("");
+        params.setUUID(TRUSTLY_NOTIFICATION_ID);
         val request = new Notification();
         request.setMethod(Method.CREDIT);
         request.setParams(params);
+        request.setVersion(1.1);
 
         return request;
     }

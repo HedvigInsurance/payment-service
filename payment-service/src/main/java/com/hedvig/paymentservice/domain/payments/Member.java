@@ -107,7 +107,18 @@ public class Member {
 
     @EventSourcingHandler
     public void on(MemberCreatedEvent e) {
-        this.id = e.getMemberId();
+        id = e.getMemberId();
+    }
+
+    @EventSourcingHandler
+    public void on (ChargeCreatedEvent e) {
+        transactions.add(new Transaction(
+            e.getTransactionId(),
+            e.getAmount(),
+            e.getTimestamp(),
+            TransactionType.CHARGE,
+            TransactionStatus.INITIATED
+        ));
     }
 
     @EventSourcingHandler

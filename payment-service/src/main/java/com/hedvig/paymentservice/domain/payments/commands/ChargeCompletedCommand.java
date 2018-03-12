@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
 
-import org.axonframework.commandhandling.model.AggregateIdentifier;
 
 import lombok.Value;
+import org.axonframework.commandhandling.TargetAggregateIdentifier;
 
 @Value
 public class ChargeCompletedCommand {
-    @AggregateIdentifier
+    @TargetAggregateIdentifier
     String memberId;
 
     UUID transactionId;

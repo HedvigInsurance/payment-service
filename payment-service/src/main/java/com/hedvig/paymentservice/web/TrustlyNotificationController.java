@@ -20,22 +20,23 @@ public class TrustlyNotificationController {
 
     private final Logger log = LoggerFactory.getLogger(TrustlyNotificationController.class);
     private final TrustlyService trustlyService;
+    private final NotificationHandler notificationHandler;
 
-    public TrustlyNotificationController(TrustlyService trustlyService) {
+    public TrustlyNotificationController(TrustlyService trustlyService, NotificationHandler notificationHandler) {
         this.trustlyService = trustlyService;
+        this.notificationHandler = notificationHandler;
     }
 
     @PostMapping(value = "notifications", produces = "application/json")
     public ResponseEntity<?> notifications(@RequestBody String requestBody) {
 
-        NotificationHandler handler = new NotificationHandler();
-        final Notification notification = handler.handleNotification(requestBody);
+        final Notification notification = notificationHandler.handleNotification(requestBody);
 
         log.info("Notification received from trustly: {}", requestBody);
 
         final ResponseStatus responseStatus = trustlyService.recieveNotification(notification);
 
-        final Response response = handler.prepareNotificationResponse(notification.getMethod(), notification.getUUID(), responseStatus);
+        final Response response = notificationHandler.prepareNotificationResponse(notification.getMethod(), notification.getUUID(), responseStatus);
 
         final Gson gson = new Gson();
         return ResponseEntity.ok(gson.toJson(response));

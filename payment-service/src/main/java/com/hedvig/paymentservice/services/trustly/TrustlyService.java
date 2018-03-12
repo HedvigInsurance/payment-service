@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.services.trustly;
 
-
 import com.google.gson.Gson;
 import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
@@ -41,8 +40,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -153,7 +152,6 @@ public class TrustlyService {
             request.getEmail()
         );
 
-        log.info("amount.toString(): " + amount);
         val ret = build.getRequest();
 
         if (springEnvironment.acceptsProfiles("development")) {
@@ -256,25 +254,23 @@ public class TrustlyService {
             case CREDIT:
             val creditData = (CreditData) notification.getParams().getData();
 
-            try {
-                val timestamp = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSSSSSZ")
-                    .parse(creditData.getTimestamp())
-                    .toInstant();
-                val currency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
+            val timestamp = OffsetDateTime
+                .parse(
+                    creditData.getTimestamp(),
+                    DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSx"))
+                .toInstant();
+            val currency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
 
-                val amount = Money.of(new BigDecimal(creditData.getAmount()), currency);
+            val amount = Money.of(new BigDecimal(creditData.getAmount()), currency);
 
-                gateway.sendAndWait(new CreditNotificationReceivedCommand(
-                    requestId,
-                    creditData.getNotificationId(),
-                    creditData.getOrderId(),
-                    creditData.getEndUserId(),
-                    amount,
-                    timestamp
-                ));
-            } catch (ParseException ex) {
-                log.error("Failed to parse timestamp", ex);
-            }
+            gateway.sendAndWait(new CreditNotificationReceivedCommand(
+                requestId,
+                creditData.getNotificationId(),
+                creditData.getOrderId(),
+                creditData.getEndUserId(),
+                amount,
+                timestamp
+            ));
 
             break;
 
