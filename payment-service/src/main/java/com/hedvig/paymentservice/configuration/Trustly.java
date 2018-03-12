@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.configuration;
 
 
+import com.hedvig.paymentService.trustly.NotificationHandler;
 import com.hedvig.paymentService.trustly.SignedAPI;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -41,4 +42,8 @@ class Trustly {
         return api;
     }
 
+    @Bean
+    NotificationHandler createNotificationHandler() {
+        return new NotificationHandler();
+    }
 }
