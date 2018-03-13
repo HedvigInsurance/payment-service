@@ -42,6 +42,9 @@ public enum Method {
     @SerializedName("AccountLedger")
     ACCOUNT_LEDGER("AccountLedger"),
 
+    @SerializedName("AccountPayout")
+    ACCOUNT_PAYOUT("AccountPayout"),
+
     @SerializedName("ViewAutomaticSettlementDetailsCSV")
     VIEW_AUTOMATIC_SETTLEMENT_DETAILS_CSV("ViewAutomaticSettlementDetailsCSV"),
 

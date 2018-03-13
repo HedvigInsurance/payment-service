@@ -5,7 +5,9 @@ import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,6 +45,22 @@ public class MemberController {
             return ResponseEntity.status(403).body("");
         }
 
+        return ResponseEntity.accepted().body("");
+    }
+
+    @PostMapping(path = "{memberId}/payout")
+    public ResponseEntity<?> payoutMember(@PathVariable String memberId, @RequestBody PayoutRequest request) {
+        val payoutMemberRequest = new PayoutMemberRequest(
+            memberId,
+            request.getAmount(),
+            request.getAddress(),
+            request.getCountryCode(),
+            request.getDateOfBirth(),
+            request.getFirstName(),
+            request.getLastName()
+        );
+
+        val res = paymentService.payoutMember(payoutMemberRequest);
         return ResponseEntity.accepted().body("");
     }
 

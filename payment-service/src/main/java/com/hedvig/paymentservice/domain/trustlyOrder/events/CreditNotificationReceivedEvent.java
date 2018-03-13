@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.events;
 
 
+import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import java.time.Instant;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
@@ -16,4 +17,5 @@ public class CreditNotificationReceivedEvent {
     String memberId;
     MonetaryAmount amount;
     Instant timestamp;
+    OrderType orderType;
 }
