@@ -1,10 +1,14 @@
 package com.hedvig.paymentservice.web.internal;
 
+import com.hedvig.paymentService.trustly.data.response.Response;
+import com.hedvig.paymentservice.query.member.entities.Member;
+import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import java.util.HashMap;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,9 +22,11 @@ import lombok.val;
 public class MemberController {
 
     private final PaymentService paymentService;
+    private final MemberRepository memberRepository;
 
-    public MemberController(PaymentService paymentService) {
+    public MemberController(PaymentService paymentService, MemberRepository memberRepository) {
         this.paymentService = paymentService;
+        this.memberRepository = memberRepository;
     }
 
     @PostMapping(path = "{memberId}/charge")
@@ -45,5 +51,14 @@ public class MemberController {
         paymentService.createMember(memberId);
 
         return ResponseEntity.ok().body(new HashMap<String, String>() {{put("memberId", memberId);}});
+    }
+
+    @GetMapping(path = "{memberId}/transactions")
+    public ResponseEntity<Member> getTransactionsByMember(@PathVariable String memberId) {
+        val member = memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new RuntimeException("Could not find member"));
+
+        return ResponseEntity.ok().body(member);
     }
 }

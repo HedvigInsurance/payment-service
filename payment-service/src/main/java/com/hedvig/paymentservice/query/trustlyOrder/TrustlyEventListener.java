@@ -11,11 +11,11 @@ import org.axonframework.eventhandling.EventHandler;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EventListener {
+public class TrustlyEventListener {
 
     private final TrustlyOrderRepository orderRepository;
 
-    public EventListener(TrustlyOrderRepository orderRepository) {
+    public TrustlyEventListener(TrustlyOrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
