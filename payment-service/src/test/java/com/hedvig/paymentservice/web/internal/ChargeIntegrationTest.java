@@ -17,7 +17,6 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.eventstore.EventStore;
-import org.javamoney.moneta.Money;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.money.MonetaryAmount;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -48,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class MemberControllerTest {
+public class ChargeIntegrationTest {
     @Autowired
     private
     MockMvc mockMvc;
@@ -69,15 +67,13 @@ public class MemberControllerTest {
     private UUIDGenerator uuidGenerator;
 
     private static final String EMAIL = "test@hedvig.com";
-    private static final MonetaryAmount MONETARY_AMOUNT = Money.of(100, "SEK");
-    private static final String ORDER_ID = "123";
     private static final String PAYMENT_URL = "testurl";
 
     @Test
     public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden() throws Exception {
         commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -123,7 +119,7 @@ public class MemberControllerTest {
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -174,7 +170,7 @@ public class MemberControllerTest {
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -204,7 +200,7 @@ public class MemberControllerTest {
 
     private void mockTrustlyApiResponse(boolean shouldSucceed) {
         val trustlyResultData = new HashMap<String, Object>();
-        trustlyResultData.put("orderid", ORDER_ID);
+        trustlyResultData.put("orderid", TRUSTLY_ORDER_ID);
         trustlyResultData.put("url", PAYMENT_URL);
         val trustlyResult = new Result();
         trustlyResult.setData(trustlyResultData);

@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.query.member.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -18,7 +19,7 @@ public class Member {
     String id;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Transaction> transactions;
+    List<Transaction> transactions = new ArrayList<Transaction>();
 
     String trustlyAccountNumber;
     Boolean directDebitMandateActive;

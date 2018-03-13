@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.web.internal;
 
-import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
@@ -61,6 +60,9 @@ public class MemberController {
         );
 
         val res = paymentService.payoutMember(payoutMemberRequest);
+        if (res == false) {
+            return ResponseEntity.status(403).body("");
+        }
         return ResponseEntity.accepted().body("");
     }
 
