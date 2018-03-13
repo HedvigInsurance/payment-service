@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.domain.trustlyOrder.commands;
+package com.hedvig.paymentservice.domain.payments.commands;
 
 import lombok.Value;
 import org.axonframework.commandhandling.TargetAggregateIdentifier;
@@ -6,19 +6,19 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier;
 import java.util.UUID;
 
 @Value
-public class AccountNotificationReceivedCommand {
+public class UpdateTrustlyAccountCommand {
     @TargetAggregateIdentifier
+    String memberId;
+
     UUID hedvigOrderId;
 
-    String notificationId;
-    String trustlyOrderId;
     String accountId;
     String address;
     String bank;
     String city;
     String clearingHouse;
     String descriptor;
-    boolean directDebitMandateActivated;
+    boolean directDebitMandateActive;
     String lastDigits;
     String name;
     String personId;

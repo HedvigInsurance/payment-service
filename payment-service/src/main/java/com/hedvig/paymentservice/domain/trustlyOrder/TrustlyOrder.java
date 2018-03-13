@@ -1,21 +1,18 @@
 
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
-import com.hedvig.paymentService.trustly.data.notification.NotificationData;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.NotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
+import com.hedvig.paymentService.trustly.data.response.Error;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
-import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -32,7 +29,10 @@ public class TrustlyOrder {
     private OrderType orderType;
     private OrderState orderState;
     private String memberId;
-    private TreeSet<String> notifications = new TreeSet<>();
+    private UUID externalTransactionId;
+    private List<Error> errors = new ArrayList<Error>();
+    private TreeSet<String> handledNotifications = new TreeSet<>();
+
 
     public TrustlyOrder() {}
 
@@ -43,72 +43,91 @@ public class TrustlyOrder {
     }
 
     @CommandHandler
+    public TrustlyOrder(CreatePaymentOrderCommand cmd) {
+        apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
+        apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId()));
+    }
+
+    @CommandHandler
     public void cmd(SelectAccountResponseReceivedCommand cmd) {
         apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
         apply(new SelectAccountResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getIframeUrl()));
     }
 
     @CommandHandler
-    public void cmd(NotificationReceivedCommand cmd) {
+    public void cmd(PaymentResponseReceivedCommand cmd) {
+        apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
+        apply(new PaymentResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getUrl()));
+    }
 
-        final NotificationData data = cmd.getNotification().getParams().getData();
+    @CommandHandler
+    public void cmd(PaymentErrorReceivedCommand cmd) {
+        apply(new PaymentErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
+    }
 
-        if(notifications.contains(data.getNotificationId())) {
+    @CommandHandler
+    public void cmd(AccountNotificationReceivedCommand cmd) {
+
+        if(handledNotifications.contains(cmd.getNotificationId())) {
             return;
         }
 
-
-        apply(new NotificationReceivedEvent(this.id, data.getNotificationId(), data.getOrderId()));
-        switch (cmd.getNotification().getMethod()) {
-            case ACCOUNT:
-                try{
-                    handleAccountNotificaiton(data);
-                }catch (Exception e) {
-                    final String logMessage = String.format("Caugth exception handling trustly account notification with orderId: %s", data.getOrderId());
-                    log.error(logMessage, e);
-                }
-
-                if(orderState == OrderState.CONFIRMED) {
-
-                    apply(new OrderCompletedEvent(this.id));
-                }
-                break;
-            case CANCEL:
-                apply(new OrderCanceledEvent(this.id));
-                break;
-        }
+        apply(new AccountNotificationReceivedEvent(
+            this.id,
+            this.memberId,
+            cmd.getNotificationId(),
+            cmd.getTrustlyOrderId(),
+            cmd.getAccountId(),
+            cmd.getAddress(),
+            cmd.getBank(),
+            cmd.getCity(),
+            cmd.getClearingHouse(),
+            cmd.getDescriptor(),
+            cmd.isDirectDebitMandateActivated(),
+            cmd.getLastDigits(),
+            cmd.getName(),
+            cmd.getPersonId(),
+            cmd.getZipCode()
+        ));
+        markOrderComplete();
     }
 
-    private void handleAccountNotificaiton(NotificationData data) {
-        AccountNotificationData accountData = (AccountNotificationData) data;
-        final Map<String, Object> attributes = accountData.getAttributes();
-        String directDebitMandate = (String) attributes.getOrDefault("directdebitmandate", "0");
-        String lastDigits = (String) attributes.get("lastdigits");
-        String clearingHouse = (String) attributes.get("clearinghouse");
-        String bank = (String) attributes.get("bank");
-        String descriptor = (String) attributes.get("descriptor");
-        String personId = (String) attributes.get("personid");
-        String name = (String) attributes.get("name");
-        String address = (String) attributes.get("address");
-        String zipCode = (String) attributes.get("zipcode");
-        String city = (String) attributes.get("city");
+    @CommandHandler
+    public void cmd(CancelNotificationReceivedCommand cmd) {
+        apply(new OrderCanceledEvent(this.id));
+    }
 
-        String accountId = accountData.getAccountId();
-        apply(new AccountNotificationReceivedEvent(
-                this.id,
-                data.getNotificationId(),
-                data.getOrderId(),
-                accountId,
-                address,
-                bank,
-                city,
-                clearingHouse,
-                descriptor,
-                directDebitMandate.equals("1"),
-                lastDigits,
-                name,
-                personId,
-                zipCode));
+    @CommandHandler
+    public void cmd(PendingNotificationReceivedCommand cmd) {
+        apply(new PendingNotificationReceivedEvent(
+            cmd.getHedvigOrderId(),
+            cmd.getNotificationId(),
+            cmd.getTrustlyOrderId(),
+            cmd.getAmount(),
+            cmd.getMemberId(),
+            cmd.getTimestamp()
+        ));
+    }
+
+    @CommandHandler
+    public void cmd(CreditNotificationReceivedCommand cmd) {
+        apply(new CreditNotificationReceivedEvent(
+            this.id,
+            this.externalTransactionId,
+            cmd.getNotificationId(),
+            cmd.getTrustlyOrderId(),
+            cmd.getMemberId(),
+            cmd.getAmount(),
+            cmd.getTimestamp()
+        ));
+
+        markOrderComplete();
+    }
+
+    public void markOrderComplete() {
+        if(orderState == OrderState.CONFIRMED) {
+            apply(new OrderCompletedEvent(this.id));
+        }
     }
 
     @EventSourcingHandler
@@ -129,6 +148,17 @@ public class TrustlyOrder {
     }
 
     @EventSourcingHandler
+    public void on(PaymentResponseReceivedEvent e) {
+        this.orderType = OrderType.CHARGE;
+    }
+
+    @EventSourcingHandler
+    public void on(PaymentErrorReceivedEvent e) {
+        this.orderType = OrderType.CHARGE;
+        this.errors.add(e.getError());
+    }
+
+    @EventSourcingHandler
     public void on(OrderCompletedEvent e) {
         this.orderState = OrderState.COMPLETE;
     }
@@ -138,9 +168,18 @@ public class TrustlyOrder {
         this.orderState = OrderState.CANCELED;
     }
 
-    @EventHandler
-    public void on(NotificationReceivedEvent e) {
-        notifications.add(e.getNotificationId());
+    @EventSourcingHandler
+    public void on(ExternalTransactionIdAssignedEvent e) {
+        this.externalTransactionId = e.getTransactionId();
     }
 
+    @EventSourcingHandler
+    public void on(AccountNotificationReceivedEvent e) {
+        handledNotifications.add(e.getNotificationId());
+    }
+
+    @EventSourcingHandler
+    public void on(NotificationReceivedEvent e) {
+        handledNotifications.add(e.getNotificationId());
+    }
 }

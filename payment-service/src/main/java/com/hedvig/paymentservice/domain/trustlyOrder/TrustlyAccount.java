@@ -1,8 +1,7 @@
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateAccountCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.UpdateAccountCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.TrustlyAccountUpdatedEvent;
 import org.axonframework.commandhandling.CommandHandler;
@@ -32,25 +31,23 @@ public class TrustlyAccount {
     }
 
     @CommandHandler
-    public void on(AccountNotificationReceivedCommand cmd) {
-        log.debug("Got account notification received command!");
+    public void on(UpdateAccountCommand cmd) {
+        log.debug("Got UpdateAccountCommand");
 
-        final AccountNotificationReceivedEvent event = cmd.getEvent();
-        final TrustlyAccountUpdatedEvent trustlyAccountUpdatedEvent = new TrustlyAccountUpdatedEvent(
+        // TODO: Actually handle this event
+        apply(new TrustlyAccountUpdatedEvent(
                 cmd.getAccountId(),
-                event.getAddress(),
-                event.getBank(),
-                event.getCity(),
-                event.getClearingHouse(),
-                event.getDescriptor(),
-                event.getDirectDebitMandate(),
-                event.getLastDigits(),
-                event.getName(),
-                event.getPersonId(),
-                event.getZipCode()
-        );
-
-        apply(trustlyAccountUpdatedEvent);
+                cmd.getAddress(),
+                cmd.getBank(),
+                cmd.getCity(),
+                cmd.getClearingHouse(),
+                cmd.getDescriptor(),
+                cmd.getDirectDebitMandate(),
+                cmd.getLastDigits(),
+                cmd.getName(),
+                cmd.getPersonId(),
+                cmd.getZipCode()
+        ));
     }
 
 

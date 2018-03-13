@@ -1,18 +1,17 @@
-package com.hedvig.paymentservice.domain.trustlyOrder.commands;
+package com.hedvig.paymentservice.domain.payments.events;
 
 import lombok.Value;
-import org.axonframework.commandhandling.TargetAggregateIdentifier;
+import org.axonframework.commandhandling.model.AggregateIdentifier;
 
 import java.util.UUID;
 
-@Value
-public class AccountNotificationReceivedCommand {
-    @TargetAggregateIdentifier
+@Value()
+public class TrustlyAccountCreatedEvent {
+    @AggregateIdentifier
+    String memberId;
     UUID hedvigOrderId;
 
-    String notificationId;
-    String trustlyOrderId;
-    String accountId;
+    String trustlyAccountId;
     String address;
     String bank;
     String city;

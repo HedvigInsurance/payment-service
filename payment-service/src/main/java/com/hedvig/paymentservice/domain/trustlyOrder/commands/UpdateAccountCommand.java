@@ -1,24 +1,16 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
 import lombok.Value;
-import org.axonframework.commandhandling.TargetAggregateIdentifier;
-
-import java.util.UUID;
 
 @Value
-public class AccountNotificationReceivedCommand {
-    @TargetAggregateIdentifier
-    UUID hedvigOrderId;
-
-    String notificationId;
-    String trustlyOrderId;
+public class UpdateAccountCommand {
     String accountId;
     String address;
     String bank;
     String city;
     String clearingHouse;
     String descriptor;
-    boolean directDebitMandateActivated;
+    Boolean directDebitMandate;
     String lastDigits;
     String name;
     String personId;

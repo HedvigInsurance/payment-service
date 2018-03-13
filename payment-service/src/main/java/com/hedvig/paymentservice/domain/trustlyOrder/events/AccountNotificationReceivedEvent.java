@@ -8,6 +8,7 @@ import java.util.UUID;
 public class AccountNotificationReceivedEvent {
 
     UUID hedvigOrderId;
+    String memberId;
 
     String notificationId;
     String trustlyOrderId;

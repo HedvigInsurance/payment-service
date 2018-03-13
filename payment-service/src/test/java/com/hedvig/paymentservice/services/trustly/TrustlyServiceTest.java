@@ -8,6 +8,7 @@ import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyConnectionExc
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationData;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountData;
 import com.hedvig.paymentService.trustly.data.response.Response;
@@ -15,8 +16,8 @@ import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
@@ -35,7 +36,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRIGGER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.BOT_SERVICE_TRIGGER_ID;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.createDirectDebitRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -132,8 +133,8 @@ public class TrustlyServiceTest {
         testService.requestDirectDebitAccount(createDirectDebitRequest());
 
         SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
-        assertThat(requestData.getAttributes().get("SuccessURL")).isEqualTo(withQuotes(SUCCESS_URL + "&triggerId=" +TRIGGER_ID));
-        assertThat(requestData.getAttributes().get("FailURL")).isEqualTo(withQuotes(FAIL_URL +  "&triggerId=" +TRIGGER_ID));
+        assertThat(requestData.getAttributes().get("SuccessURL")).isEqualTo(withQuotes(SUCCESS_URL + "&triggerId=" + BOT_SERVICE_TRIGGER_ID));
+        assertThat(requestData.getAttributes().get("FailURL")).isEqualTo(withQuotes(FAIL_URL +  "&triggerId=" + BOT_SERVICE_TRIGGER_ID));
         assertThat(requestData.getEndUserID()).isEqualTo(withQuotes(MEMBER_ID));
 
     }
@@ -181,19 +182,25 @@ public class TrustlyServiceTest {
         given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.of(trustlyOrder));
     }
 
-
-
-
     @Test
     public void test_Notification() {
 
         Notification notification = new Notification();
         final NotificationParameters params = new NotificationParameters();
         notification.setParams(params);
-        final NotificationData data = new NotificationData();
+        notification.setMethod(Method.ACCOUNT);
+        final NotificationData data = new AccountNotificationData();
         params.setData(data);
         data.setNotificationId(withQuotes("0182309810381"));
         data.setMessageId(withQuotes(REQUEST_ID.toString()));
+        final HashMap<String, Object> attributes = new HashMap<>();
+        data.setAttributes(attributes);
+
+        attributes.put("lastdigits", "847257");
+        attributes.put("clearinghouse", "SWEDEN");
+        attributes.put("bank", "Handelsbanken");
+        attributes.put("descriptor", "**847257");
+
 
         final ResponseStatus responseStatus = testService.recieveNotification(notification);
 
@@ -229,5 +236,4 @@ public class TrustlyServiceTest {
 
         return response;
     }
-
 }
