@@ -98,6 +98,18 @@ public class TrustlyOrder {
     }
 
     @CommandHandler
+    public void cmd(PendingNotificationReceivedCommand cmd) {
+        apply(new PendingNotificationReceivedEvent(
+            cmd.getHedvigOrderId(),
+            cmd.getNotificationId(),
+            cmd.getTrustlyOrderId(),
+            cmd.getAmount(),
+            cmd.getMemberId(),
+            cmd.getTimestamp()
+        ));
+    }
+
+    @CommandHandler
     public void cmd(CreditNotificationReceivedCommand cmd) {
         apply(new CreditNotificationReceivedEvent(
             this.id,

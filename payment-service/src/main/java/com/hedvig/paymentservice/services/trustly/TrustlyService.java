@@ -8,11 +8,13 @@ import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CancelNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.PendingNotificationData;
 import com.hedvig.paymentService.trustly.data.response.Error;
 import com.hedvig.paymentService.trustly.requestbuilders.Charge;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
@@ -54,6 +56,7 @@ import lombok.val;
 @Component
 public class TrustlyService {
 
+    private static final DateTimeFormatter trustlyTimestampFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSx");
     private final String notificationUrl;
     public static final String COUNTRY = "SE";
     private final Logger log = LoggerFactory.getLogger(TrustlyService.class);
@@ -248,28 +251,46 @@ public class TrustlyService {
             break;
 
             case PENDING:
-            // TODO: Should we log these as events on the aggregate? Do they add meaningful information?
+            val pendingData = (PendingNotificationData) notification.getParams().getData();
+
+            val pendingCurrency = trustlyCurrencyToCurrencyUnit(pendingData.getCurrency());
+            val pendingAmount = Money.of(new BigDecimal(pendingData.getAmount()), pendingCurrency);
+
+            val pendingTimestamp = OffsetDateTime
+                .parse(
+                    pendingData.getTimestamp(),
+                    trustlyTimestampFormat)
+                .toInstant();
+
+            gateway.sendAndWait(new PendingNotificationReceivedCommand(
+                requestId,
+                pendingData.getNotificationId(),
+                pendingData.getOrderId(),
+                pendingAmount,
+                pendingData.getEndUserId(),
+                pendingTimestamp
+            ));
             break;
 
             case CREDIT:
             val creditData = (CreditData) notification.getParams().getData();
 
-            val timestamp = OffsetDateTime
+            val creditTimestamp = OffsetDateTime
                 .parse(
                     creditData.getTimestamp(),
-                    DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSx"))
+                    trustlyTimestampFormat)
                 .toInstant();
-            val currency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
+            val creditedCurrency = trustlyCurrencyToCurrencyUnit(creditData.getCurrency());
 
-            val amount = Money.of(new BigDecimal(creditData.getAmount()), currency);
+            val creditedAmount = Money.of(new BigDecimal(creditData.getAmount()), creditedCurrency);
 
             gateway.sendAndWait(new CreditNotificationReceivedCommand(
                 requestId,
                 creditData.getNotificationId(),
                 creditData.getOrderId(),
                 creditData.getEndUserId(),
-                amount,
-                timestamp
+                creditedAmount,
+                creditTimestamp
             ));
 
             break;
