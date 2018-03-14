@@ -129,7 +129,7 @@ public class TrustlyService {
                 val orderId = (String) data.get("orderid");
                 log.info("Payout order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}", orderId, hedvigOrderId);
 
-                gateway.sendAndWait(new PayoutResponseReceivedCommand(hedvigOrderId, orderId));
+                gateway.sendAndWait(new PayoutResponseReceivedCommand(hedvigOrderId, orderId, request.getAmount()));
             } else {
                 val error = response.getError();
                 log.error("Payout order creation failed: {} {}, {}", error.getName(), error.getCode(), error.getMessage());

@@ -22,6 +22,7 @@ public class PayoutCompleteSaga {
         commandGateway.sendAndWait(new PayoutCompletedCommand(
             e.getMemberId(),
             e.getTransactionId(),
+            e.getAmount(),
             Instant.now()
         ));
     }

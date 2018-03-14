@@ -69,7 +69,7 @@ public class TrustlyOrder {
     @CommandHandler
     public void cmd(PayoutResponseReceivedCommand cmd) {
         apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
-        apply(new PayoutResponseReceivedEvent(cmd.getHedvigOrderId(), memberId, externalTransactionId));
+        apply(new PayoutResponseReceivedEvent(cmd.getHedvigOrderId(), memberId, cmd.getAmount(), externalTransactionId));
     }
 
     @CommandHandler
