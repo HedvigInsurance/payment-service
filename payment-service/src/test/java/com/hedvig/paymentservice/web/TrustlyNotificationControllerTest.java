@@ -5,6 +5,7 @@ import com.hedvig.paymentService.trustly.NotificationHandler;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
 import javax.transaction.Transactional;
 import lombok.val;
 
@@ -23,13 +24,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -78,5 +82,17 @@ public class TrustlyNotificationControllerTest {
                 .content(gson.toJson(request))
             )
             .andExpect(status().isOk());
+
+        val orderEvents = eventStore
+            .readEvents(HEDVIG_ORDER_ID.toString())
+            .asStream()
+            .collect(Collectors.toList());
+        assertThat(
+            orderEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof OrderCompletedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
     }
 }
