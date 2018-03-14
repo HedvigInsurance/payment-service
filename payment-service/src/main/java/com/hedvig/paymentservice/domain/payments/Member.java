@@ -129,6 +129,10 @@ public class Member {
 
     @CommandHandler
     public void cmd(ChargeCompletedCommand cmd) {
+        val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
+        if (transaction.getAmount().equals(cmd.getAmount()) == false) {
+            log.error("CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}", transaction.getAmount().toString(), cmd.getAmount().toString(), transaction.getTransactionId().toString());
+        }
         apply(new ChargeCompletedEvent(
             this.id,
             cmd.getTransactionId(),
@@ -139,6 +143,10 @@ public class Member {
 
     @CommandHandler
     public void cmd(PayoutCompletedCommand cmd) {
+        val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
+        if (transaction.getAmount().equals(cmd.getAmount()) == false) {
+            log.error("CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}", transaction.getAmount().toString(), cmd.getAmount().toString(), transaction.getTransactionId().toString());
+        }
         apply(new PayoutCompletedEvent(
             id,
             cmd.getTransactionId(),
