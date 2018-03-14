@@ -31,7 +31,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.empty;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -90,7 +92,13 @@ public class PayoutIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        assertTrue(memberEvents.get(1).getPayload() instanceof PayoutCreationFailedEvent);
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PayoutCreationFailedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
     }
 
     @Test
@@ -137,9 +145,81 @@ public class PayoutIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        memberEvents.forEach(e -> System.out.println(e.getPayloadType().toString()));
-        assertTrue(memberEvents.get(2).getPayload() instanceof PayoutCreatedEvent);
-        assertTrue(memberEvents.get(3).getPayload() instanceof PayoutCompletedEvent);
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PayoutCreatedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PayoutCompletedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
+    }
+
+
+    @Test
+    public void givenMemberWithTrustlyAccount_WhenCreatingPayoutAndTrustlyReturnsError_ThenShouldReturnAccepted() throws Exception {
+        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
+                MEMBER_ID,
+                HEDVIG_ORDER_ID,
+                TRUSTLY_ACCOUNT_ID,
+                TOLVANSSON_STREET,
+                TRUSTLY_ACCOUNT_BANK,
+                TOLVANSSON_CITY,
+                TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+                TRUSTLY_ACCOUNT_DESCRIPTOR,
+                TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
+                TRUSTLY_ACCOUNT_LAST_DIGITS,
+                TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
+                TOLVANSSON_SSN,
+                TOLVANSSON_ZIP
+        ));
+
+        val payoutRequest = new PayoutRequest(
+            TRANSACTION_AMOUNT,
+            TOLVANSSON_STREET,
+            COUNTRY_CODE,
+            TOLVANSSON_DATE_OF_BIRTH,
+            TOLVAN_FIRST_NAME,
+            TOLVANSSON_LAST_NAME
+        );
+
+        mockTrustlyApiResponse(false);
+        given(uuidGenerator.generateRandom())
+            .willReturn(HEDVIG_ORDER_ID);
+
+        mockMvc
+            .perform(
+                post(String.format("/_/members/%s/payout", MEMBER_ID))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(payoutRequest)))
+            .andExpect(status().is(202));
+
+        val memberEvents = eventStore
+            .readEvents(MEMBER_ID)
+            .asStream()
+            .collect(Collectors.toList());
+
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PayoutCreatedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PayoutCompletedEvent)
+                .collect(Collectors.toList()),
+            empty()
+        );
     }
 
     private void mockTrustlyApiResponse(boolean shouldSucceed) {

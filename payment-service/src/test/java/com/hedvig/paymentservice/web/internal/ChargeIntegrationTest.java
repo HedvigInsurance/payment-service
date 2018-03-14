@@ -34,7 +34,9 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.empty;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -93,7 +95,13 @@ public class ChargeIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        assertTrue(memberEvents.get(1).getPayload() instanceof ChargeCreationFailedEvent);
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof ChargeCreationFailedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
     }
 
     @Test
@@ -138,13 +146,24 @@ public class ChargeIntegrationTest {
             .readEvents(MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(memberEvents.get(2).getPayload() instanceof ChargeCreatedEvent);
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof ChargeCreatedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
 
         val trustlyOrderEvents = eventStore
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(trustlyOrderEvents.get(3).getPayload() instanceof PaymentResponseReceivedEvent);
+        assertThat(
+            trustlyOrderEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PaymentResponseReceivedEvent)
+                .collect(Collectors.toList()),
+            not(empty()));
     }
 
     @Test
@@ -189,13 +208,24 @@ public class ChargeIntegrationTest {
             .readEvents(MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(memberEvents.get(2).getPayload() instanceof ChargeCreatedEvent);
+        assertThat(
+            memberEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof ChargeCreatedEvent)
+                .collect(Collectors.toList()),
+            not(empty()));
 
         val trustlyOrderEvents = eventStore
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(trustlyOrderEvents.get(2).getPayload() instanceof PaymentErrorReceivedEvent);
+        assertThat(
+            trustlyOrderEvents
+                .stream()
+                .filter(e -> e.getPayload() instanceof PaymentErrorReceivedEvent)
+                .collect(Collectors.toList()),
+            not(empty())
+        );
     }
 
     private void mockTrustlyApiResponse(boolean shouldSucceed) {
