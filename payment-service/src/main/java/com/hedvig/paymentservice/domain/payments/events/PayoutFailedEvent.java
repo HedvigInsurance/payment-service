@@ -1,17 +1,12 @@
-package com.hedvig.paymentservice.domain.payments.commands;
+package com.hedvig.paymentservice.domain.payments.events;
 
 import java.time.Instant;
 import java.util.UUID;
-
 import javax.money.MonetaryAmount;
-
-import org.axonframework.commandhandling.TargetAggregateIdentifier;
-
 import lombok.Value;
 
 @Value
-public class PayoutCompletedCommand {
-    @TargetAggregateIdentifier
+public class PayoutFailedEvent {
     String memberId;
 
     UUID transactionId;

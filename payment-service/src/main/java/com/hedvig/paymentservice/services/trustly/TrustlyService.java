@@ -10,10 +10,13 @@ import com.hedvig.paymentService.trustly.data.notification.notificationdata.Canc
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.PendingNotificationData;
 import com.hedvig.paymentService.trustly.data.response.Error;
+import com.hedvig.paymentService.trustly.requestbuilders.AccountPayout;
 import com.hedvig.paymentService.trustly.requestbuilders.Charge;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
@@ -27,6 +30,7 @@ import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
+import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.data.request.Request;
@@ -114,6 +118,29 @@ public class TrustlyService {
         }
     }
 
+    public void startPayoutOrder(PayoutRequest request, UUID hedvigOrderId) {
+        try {
+            val trustlyRequest = createPayoutRequest(hedvigOrderId, request);
+            val response = api.sendRequest(trustlyRequest);
+
+            if (response.successfulResult()) {
+                val data = response.getResult().getData();
+
+                val orderId = (String) data.get("orderid");
+                log.info("Payout order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}", orderId, hedvigOrderId);
+
+                gateway.sendAndWait(new PayoutResponseReceivedCommand(hedvigOrderId, orderId, request.getAmount()));
+            } else {
+                val error = response.getError();
+                log.error("Payout order creation failed: {} {}, {}", error.getName(), error.getCode(), error.getMessage());
+                gateway.sendAndWait(new PayoutErrorReceivedCommand(hedvigOrderId, error));
+                throw new RuntimeException("Got error from trustly");
+            }
+        } catch (TrustlyAPIException ex) {
+            throw new RuntimeException("Failed calling trustly.", ex);
+        }
+    }
+
     private DirectDebitResponse startTrustlyOrder(String memberId, DirectDebitRequest request, UUID requestId) {
         try {
             final Request trustlyRequest = createRequest(requestId, memberId, request);
@@ -159,6 +186,34 @@ public class TrustlyService {
 
         if (springEnvironment.acceptsProfiles("development")) {
             ret.getParams().getData().getAttributes().put("HoldNotifications", "1");
+        }
+
+        return ret;
+    }
+
+    private Request createPayoutRequest(UUID hedvigOrderId, PayoutRequest request) {
+        val formatter = new DecimalFormat("#0.00");
+        val amount = formatter.format(request.getAmount().getNumber().doubleValueExact());
+        val dateOfBirth = request.getDateOfBirth().format(DateTimeFormatter.ofPattern("uuuu-MM-dd"));
+        val build = new AccountPayout.Build(
+            request.getAccountId(),
+            notificationUrl,
+            request.getMemberId(),
+            hedvigOrderId.toString(),
+            amount,
+            currencyUnitToTrustlyCurrency(request.getAmount().getCurrency()),
+            request.getAddress(),
+            request.getCountryCode(),
+            dateOfBirth,
+            request.getFirstName(),
+            request.getLastName(),
+            "PERSON"
+        );
+
+        val ret = build.getRequest();
+
+        if (springEnvironment.acceptsProfiles("development")) {
+            ret.getParams().getData().getAttributes().put("HoldNotifications", 1);
         }
 
         return ret;
@@ -313,7 +368,7 @@ public class TrustlyService {
         return ResponseStatus.OK;
     }
 
-    public CurrencyUnit trustlyCurrencyToCurrencyUnit(Currency c) {
+    private CurrencyUnit trustlyCurrencyToCurrencyUnit(Currency c) {
         val currencyContext = CurrencyContextBuilder
             .of("TrustlyService")
             .build();

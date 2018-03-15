@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.sagas;
 
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
+import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.CreditNotificationReceivedEvent;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -19,11 +20,24 @@ public class CreditSaga {
     @SagaEventHandler(associationProperty = "hedvigOrderId")
     @EndSaga
     public void on(CreditNotificationReceivedEvent e) {
-        commandGateway.sendAndWait(new ChargeCompletedCommand(
-            e.getMemberId(),
-            e.getTransactionId(),
-            e.getAmount(),
-            e.getTimestamp()
-        ));
+        switch (e.getOrderType()) {
+            case CHARGE:
+            commandGateway.sendAndWait(new ChargeCompletedCommand(
+                e.getMemberId(),
+                e.getTransactionId(),
+                e.getAmount(),
+                e.getTimestamp()
+            ));
+            break;
+            case ACCOUNT_PAYOUT:
+            commandGateway.sendAndWait(new PayoutFailedCommand(
+                e.getMemberId(),
+                e.getTransactionId(),
+                e.getAmount(),
+                e.getTimestamp()
+            ));
+            default:
+            throw new RuntimeException("Cannot handle " + e.getClass().getName() + " with " + e.getOrderType().getClass().getName() + ": " + e.getOrderType().toString());
+        }
     }
 }

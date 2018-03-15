@@ -17,7 +17,6 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.eventstore.EventStore;
-import org.javamoney.moneta.Money;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +30,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.money.MonetaryAmount;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static org.junit.Assert.assertTrue;
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -48,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class MemberControllerTest {
+public class ChargeIntegrationTest {
     @Autowired
     private
     MockMvc mockMvc;
@@ -69,15 +68,13 @@ public class MemberControllerTest {
     private UUIDGenerator uuidGenerator;
 
     private static final String EMAIL = "test@hedvig.com";
-    private static final MonetaryAmount MONETARY_AMOUNT = Money.of(100, "SEK");
-    private static final String ORDER_ID = "123";
     private static final String PAYMENT_URL = "testurl";
 
     @Test
     public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden() throws Exception {
         commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -90,14 +87,14 @@ public class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(403));
+            .andExpect(status().isForbidden());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 
-        assertTrue(memberEvents.get(1).getPayload() instanceof ChargeCreationFailedEvent);
+        assertThat(memberEvents, hasEvent(ChargeCreationFailedEvent.class));
     }
 
     @Test
@@ -119,11 +116,11 @@ public class MemberControllerTest {
                 TOLVANSSON_ZIP
                 ));
 
-        mockTrustlyApiResponse(true);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -136,19 +133,19 @@ public class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(memberEvents.get(2).getPayload() instanceof ChargeCreatedEvent);
+        assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));
 
         val trustlyOrderEvents = eventStore
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(trustlyOrderEvents.get(3).getPayload() instanceof PaymentResponseReceivedEvent);
+        assertThat(trustlyOrderEvents, hasEvent(PaymentResponseReceivedEvent.class));
     }
 
     @Test
@@ -170,11 +167,11 @@ public class MemberControllerTest {
                 TOLVANSSON_ZIP
                 ));
 
-        mockTrustlyApiResponse(false);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(MONETARY_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
 
         mockMvc
             .perform(
@@ -187,29 +184,29 @@ public class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(memberEvents.get(2).getPayload() instanceof ChargeCreatedEvent);
+        assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));
 
         val trustlyOrderEvents = eventStore
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        assertTrue(trustlyOrderEvents.get(2).getPayload() instanceof PaymentErrorReceivedEvent);
+        assertThat(trustlyOrderEvents, hasEvent(PaymentErrorReceivedEvent.class));
     }
 
-    private void mockTrustlyApiResponse(boolean shouldSucceed) {
+    private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {
         val trustlyResultData = new HashMap<String, Object>();
-        trustlyResultData.put("orderid", ORDER_ID);
+        trustlyResultData.put("orderid", TRUSTLY_ORDER_ID);
         trustlyResultData.put("url", PAYMENT_URL);
         val trustlyResult = new Result();
         trustlyResult.setData(trustlyResultData);
         val trustlyApiResponse = new Response();
-        if (shouldSucceed) {
+        if (result == TrustlyApiResponseResult.SHOULD_SUCCEED) {
             trustlyApiResponse.setResult(trustlyResult);
         } else {
             val error = new Error();
@@ -222,5 +219,10 @@ public class MemberControllerTest {
             )
         )
         .willReturn(trustlyApiResponse);
+    }
+
+    private enum TrustlyApiResponseResult {
+        SHOULD_SUCCEED,
+        SHOULD_FAIL
     }
 }

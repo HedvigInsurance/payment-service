@@ -10,12 +10,10 @@ import javax.persistence.Id;
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Transaction {
     @Id
     UUID id;

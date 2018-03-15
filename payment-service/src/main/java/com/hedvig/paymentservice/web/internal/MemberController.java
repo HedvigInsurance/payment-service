@@ -1,12 +1,15 @@
 package com.hedvig.paymentservice.web.internal;
 
-import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.HashMap;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,9 +43,28 @@ public class MemberController {
         val res = paymentService.chargeMember(chargeMemberRequest);
 
         if (res == false) {
-            return ResponseEntity.status(403).body("");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
         }
 
+        return ResponseEntity.accepted().body("");
+    }
+
+    @PostMapping(path = "{memberId}/payout")
+    public ResponseEntity<?> payoutMember(@PathVariable String memberId, @RequestBody PayoutRequest request) {
+        val payoutMemberRequest = new PayoutMemberRequest(
+            memberId,
+            request.getAmount(),
+            request.getAddress(),
+            request.getCountryCode(),
+            request.getDateOfBirth(),
+            request.getFirstName(),
+            request.getLastName()
+        );
+
+        val res = paymentService.payoutMember(payoutMemberRequest);
+        if (res == false) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
+        }
         return ResponseEntity.accepted().body("");
     }
 
@@ -50,7 +72,9 @@ public class MemberController {
     public ResponseEntity<?> createMember(@PathVariable String memberId) {
         paymentService.createMember(memberId);
 
-        return ResponseEntity.ok().body(new HashMap<String, String>() {{put("memberId", memberId);}});
+        val res = new HashMap<String, String>();
+        res.put("memberId", memberId);
+        return ResponseEntity.ok().body(res);
     }
 
     @GetMapping(path = "{memberId}/transactions")

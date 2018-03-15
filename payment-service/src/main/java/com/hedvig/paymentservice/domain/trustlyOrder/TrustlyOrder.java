@@ -49,6 +49,12 @@ public class TrustlyOrder {
     }
 
     @CommandHandler
+    public TrustlyOrder(CreatePayoutOrderCommand cmd) {
+        apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
+        apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId()));
+    }
+
+    @CommandHandler
     public void cmd(SelectAccountResponseReceivedCommand cmd) {
         apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
         apply(new SelectAccountResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getIframeUrl()));
@@ -61,14 +67,25 @@ public class TrustlyOrder {
     }
 
     @CommandHandler
+    public void cmd(PayoutResponseReceivedCommand cmd) {
+        apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
+        apply(new PayoutResponseReceivedEvent(cmd.getHedvigOrderId(), memberId, cmd.getAmount(), externalTransactionId));
+    }
+
+    @CommandHandler
     public void cmd(PaymentErrorReceivedCommand cmd) {
         apply(new PaymentErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
     }
 
     @CommandHandler
+    public void cmd(PayoutErrorReceivedCommand cmd) {
+        apply(new PayoutErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
+    }
+
+    @CommandHandler
     public void cmd(AccountNotificationReceivedCommand cmd) {
 
-        if(handledNotifications.contains(cmd.getNotificationId())) {
+        if (handledNotifications.contains(cmd.getNotificationId())) {
             return;
         }
 
@@ -118,7 +135,8 @@ public class TrustlyOrder {
             cmd.getTrustlyOrderId(),
             cmd.getMemberId(),
             cmd.getAmount(),
-            cmd.getTimestamp()
+            cmd.getTimestamp(),
+            this.orderType
         ));
 
         markOrderComplete();
@@ -150,6 +168,11 @@ public class TrustlyOrder {
     @EventSourcingHandler
     public void on(PaymentResponseReceivedEvent e) {
         this.orderType = OrderType.CHARGE;
+    }
+
+    @EventSourcingHandler
+    public void on(PayoutResponseReceivedEvent e) {
+        orderType = OrderType.ACCOUNT_PAYOUT;
     }
 
     @EventSourcingHandler

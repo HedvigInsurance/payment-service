@@ -36,8 +36,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.BOT_SERVICE_TRIGGER_ID;
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.createDirectDebitRequest;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -99,7 +98,7 @@ public class TrustlyServiceTest {
         given(signedAPI.sendRequest(any())).willReturn(trustlyResponse);
 
         final DirectDebitResponse directDebitResponse =
-                testService.requestDirectDebitAccount(createDirectDebitRequest());
+                testService.requestDirectDebitAccount(makeDirectDebitRequest());
 
         assertThat(directDebitResponse.getUrl()).isEqualTo(TRUSTLY_IFRAME_URL);
 
@@ -116,7 +115,7 @@ public class TrustlyServiceTest {
         final Response trustlyResponse = createResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
         given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-        testService.requestDirectDebitAccount(createDirectDebitRequest());
+        testService.requestDirectDebitAccount(makeDirectDebitRequest());
 
         SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
         assertThat(requestData.getMessageID()).isEqualTo(withQuotes(REQUEST_ID.toString()));
@@ -130,7 +129,7 @@ public class TrustlyServiceTest {
         final Response trustlyResponse = createResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
         given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-        testService.requestDirectDebitAccount(createDirectDebitRequest());
+        testService.requestDirectDebitAccount(makeDirectDebitRequest());
 
         SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
         assertThat(requestData.getAttributes().get("SuccessURL")).isEqualTo(withQuotes(SUCCESS_URL + "&triggerId=" + BOT_SERVICE_TRIGGER_ID));
@@ -144,7 +143,7 @@ public class TrustlyServiceTest {
         final Response trustlyResponse = createResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
         given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-        testService.requestDirectDebitAccount(createDirectDebitRequest());
+        testService.requestDirectDebitAccount(makeDirectDebitRequest());
 
         SelectAccountData requestData = (SelectAccountData) requestCaptor.getValue().getParams().getData();
         assertThat(requestData.getNotificationURL()).isEqualTo(withQuotes(NOTIFICATION_URL));
@@ -159,7 +158,7 @@ public class TrustlyServiceTest {
         given(signedAPI.sendRequest(requestCaptor.capture())).willThrow(exception);
 
         thrown.expect(RuntimeException.class);
-        testService.requestDirectDebitAccount(createDirectDebitRequest());
+        testService.requestDirectDebitAccount(makeDirectDebitRequest());
 
         verify(gateway, atLeastOnce()).sendAndWait(new SelectAccountRequestFailedCommand(REQUEST_ID, EXCEPTION_MESSAGE));
 

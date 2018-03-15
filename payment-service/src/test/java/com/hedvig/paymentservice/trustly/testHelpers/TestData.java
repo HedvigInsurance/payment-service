@@ -11,6 +11,7 @@ import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import org.javamoney.moneta.Money;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
 import lombok.val;
@@ -33,6 +34,7 @@ public class TestData {
     public static final String TOLVAN_FIRST_NAME = "Tolvan";
     public static final String TOLVANSSON_LAST_NAME = "Tolvansson";
     public static final String TOLVANSSON_SSN = "19121212-1212";
+    public static final LocalDate TOLVANSSON_DATE_OF_BIRTH = LocalDate.of(2012, 12, 12);
     public static final String TOLVAN_EMAIL = "tolvan@somewhere.com";
     public static final String TOLVANSSON_ZIP = "12121";
     public static final String TOLVANSSON_STREET = "Testgatan 1";
@@ -45,8 +47,9 @@ public class TestData {
     public static final Instant TRANSACTION_TIMESTAMP = Instant.ofEpochMilli(1482710400);
     public static final MonetaryAmount TRANSACTION_AMOUNT = Money.of(100, "SEK");
     public static final String TRANSACTION_URL = "http://www.example.com";
+    public static final String COUNTRY_CODE = "SE";
 
-    public static DirectDebitRequest createDirectDebitRequest() {
+    public static DirectDebitRequest makeDirectDebitRequest() {
         return new DirectDebitRequest(
                 TOLVAN_FIRST_NAME,
                 TOLVANSSON_LAST_NAME,
@@ -56,7 +59,7 @@ public class TestData {
                 BOT_SERVICE_TRIGGER_ID);
     }
 
-    public static TrustlyAccountCreatedEvent createTrustlyAccountCreatedEvent() {
+    public static TrustlyAccountCreatedEvent makeTrustlyAccountCreatedEvent() {
         return new TrustlyAccountCreatedEvent(
             MEMBER_ID,
             HEDVIG_ORDER_ID,
@@ -74,7 +77,7 @@ public class TestData {
         );
     }
 
-    public static Notification createTrustlyCreditNotificationRequest() {
+    public static Notification makeTrustlyCreditNotificationRequest() {
 
         val data = new CreditData();
         data.setAmount("100.00");
