@@ -25,13 +25,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -73,7 +71,7 @@ public class TrustlyNotificationControllerTest {
         ));
 
         val request = makeTrustlyCreditNotificationRequest();
-        given(notificationHandler.handleNotification(any()))
+        given(notificationHandler.handleNotification(org.mockito.Matchers.any()))
             .willReturn(request);
 
         mockMvc
@@ -88,13 +86,7 @@ public class TrustlyNotificationControllerTest {
             .readEvents(HEDVIG_ORDER_ID.toString())
             .asStream()
             .collect(Collectors.toList());
-        assertThat(
-            orderEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof OrderCompletedEvent)
-                .collect(Collectors.toList()),
-            not(empty())
-        );
+        assertThat(orderEvents, hasEvent(OrderCompletedEvent.class));
     }
 
     @Test
@@ -109,7 +101,7 @@ public class TrustlyNotificationControllerTest {
         ));
 
         val request = makeTrustlyCreditNotificationRequest();
-        given(notificationHandler.handleNotification(any()))
+        given(notificationHandler.handleNotification(org.mockito.Matchers.any()))
             .willReturn(request);
 
         mockMvc

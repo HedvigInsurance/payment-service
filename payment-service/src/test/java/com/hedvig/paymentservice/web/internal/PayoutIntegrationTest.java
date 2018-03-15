@@ -31,9 +31,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.empty;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -92,13 +92,7 @@ public class PayoutIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        assertThat(
-            memberEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof PayoutCreationFailedEvent)
-                .collect(Collectors.toList()),
-            not(empty())
-        );
+        assertThat(memberEvents, hasEvent(PayoutCreationFailedEvent.class));
     }
 
     @Test
@@ -145,20 +139,8 @@ public class PayoutIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        assertThat(
-            memberEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof PayoutCreatedEvent)
-                .collect(Collectors.toList()),
-            not(empty())
-        );
-        assertThat(
-            memberEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof PayoutCompletedEvent)
-                .collect(Collectors.toList()),
-            not(empty())
-        );
+        assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
+        assertThat(memberEvents, hasEvent(PayoutCompletedEvent.class));
     }
 
 
@@ -206,20 +188,8 @@ public class PayoutIntegrationTest {
             .asStream()
             .collect(Collectors.toList());
 
-        assertThat(
-            memberEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof PayoutCreatedEvent)
-                .collect(Collectors.toList()),
-            not(empty())
-        );
-        assertThat(
-            memberEvents
-                .stream()
-                .filter(e -> e.getPayload() instanceof PayoutCompletedEvent)
-                .collect(Collectors.toList()),
-            empty()
-        );
+        assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
+        assertThat(memberEvents, not(hasEvent(PayoutCompletedEvent.class)));
     }
 
     private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {

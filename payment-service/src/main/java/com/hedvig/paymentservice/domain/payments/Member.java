@@ -132,6 +132,7 @@ public class Member {
         val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
         if (transaction.getAmount().equals(cmd.getAmount()) == false) {
             log.error("CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}", transaction.getAmount().toString(), cmd.getAmount().toString(), transaction.getTransactionId().toString());
+            throw new RuntimeException("Transaction amount mismatch");
         }
         apply(new ChargeCompletedEvent(
             this.id,
@@ -146,6 +147,7 @@ public class Member {
         val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
         if (transaction.getAmount().equals(cmd.getAmount()) == false) {
             log.error("CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}", transaction.getAmount().toString(), cmd.getAmount().toString(), transaction.getTransactionId().toString());
+            throw new RuntimeException("Transaction amount mismatch");
         }
         apply(new PayoutCompletedEvent(
             id,

@@ -8,6 +8,8 @@ import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.HashMap;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +43,7 @@ public class MemberController {
         val res = paymentService.chargeMember(chargeMemberRequest);
 
         if (res == false) {
-            return ResponseEntity.status(403).body("");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
         }
 
         return ResponseEntity.accepted().body("");
@@ -61,7 +63,7 @@ public class MemberController {
 
         val res = paymentService.payoutMember(payoutMemberRequest);
         if (res == false) {
-            return ResponseEntity.status(403).body("");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
         }
         return ResponseEntity.accepted().body("");
     }
