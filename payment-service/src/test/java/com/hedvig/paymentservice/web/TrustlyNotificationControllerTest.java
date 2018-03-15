@@ -30,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -71,7 +72,7 @@ public class TrustlyNotificationControllerTest {
         ));
 
         val request = makeTrustlyCreditNotificationRequest();
-        given(notificationHandler.handleNotification(org.mockito.Matchers.any()))
+        given(notificationHandler.handleNotification(any()))
             .willReturn(request);
 
         mockMvc
@@ -101,7 +102,7 @@ public class TrustlyNotificationControllerTest {
         ));
 
         val request = makeTrustlyCreditNotificationRequest();
-        given(notificationHandler.handleNotification(org.mockito.Matchers.any()))
+        given(notificationHandler.handleNotification(any()))
             .willReturn(request);
 
         mockMvc
