@@ -62,7 +62,7 @@ public class TrustlyControllerTest {
     @Test
     public void post_registerDirectDebitCallsTrustlyService() throws Exception {
 
-        DirectDebitRequest requestData = TestData.createDirectDebitRequest();
+        DirectDebitRequest requestData = TestData.makeDirectDebitRequest();
 
         given(trustlyService.requestDirectDebitAccount(any())).willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL, ORDER_ID.toString()));
 
@@ -77,7 +77,7 @@ public class TrustlyControllerTest {
     @Test
     public void post_returns404_if_memberNotFound() throws Exception {
 
-        DirectDebitRequest requestData = TestData.createDirectDebitRequest();
+        DirectDebitRequest requestData = TestData.makeDirectDebitRequest();
 
         given(trustlyService.requestDirectDebitAccount(any())).willThrow(OrderNotFoundException.class);
 

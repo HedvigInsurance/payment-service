@@ -49,7 +49,7 @@ public class TestData {
     public static final String TRANSACTION_URL = "http://www.example.com";
     public static final String COUNTRY_CODE = "SE";
 
-    public static DirectDebitRequest createDirectDebitRequest() {
+    public static DirectDebitRequest makeDirectDebitRequest() {
         return new DirectDebitRequest(
                 TOLVAN_FIRST_NAME,
                 TOLVANSSON_LAST_NAME,
@@ -59,7 +59,7 @@ public class TestData {
                 BOT_SERVICE_TRIGGER_ID);
     }
 
-    public static TrustlyAccountCreatedEvent createTrustlyAccountCreatedEvent() {
+    public static TrustlyAccountCreatedEvent makeTrustlyAccountCreatedEvent() {
         return new TrustlyAccountCreatedEvent(
             MEMBER_ID,
             HEDVIG_ORDER_ID,
@@ -77,7 +77,7 @@ public class TestData {
         );
     }
 
-    public static Notification createTrustlyCreditNotificationRequest() {
+    public static Notification makeTrustlyCreditNotificationRequest() {
 
         val data = new CreditData();
         data.setAmount("100.00");

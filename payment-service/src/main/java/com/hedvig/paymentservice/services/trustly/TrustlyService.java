@@ -368,7 +368,7 @@ public class TrustlyService {
         return ResponseStatus.OK;
     }
 
-    public CurrencyUnit trustlyCurrencyToCurrencyUnit(Currency c) {
+    private CurrencyUnit trustlyCurrencyToCurrencyUnit(Currency c) {
         val currencyContext = CurrencyContextBuilder
             .of("TrustlyService")
             .build();

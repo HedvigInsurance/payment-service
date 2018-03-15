@@ -85,7 +85,7 @@ public class TrustlyOrder {
     @CommandHandler
     public void cmd(AccountNotificationReceivedCommand cmd) {
 
-        if(handledNotifications.contains(cmd.getNotificationId())) {
+        if (handledNotifications.contains(cmd.getNotificationId())) {
             return;
         }
 

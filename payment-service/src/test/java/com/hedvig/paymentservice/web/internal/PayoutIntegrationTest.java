@@ -85,7 +85,7 @@ public class PayoutIntegrationTest {
                 post(String.format("/_/members/%s/payout", MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
-            .andExpect(status().is(403));
+            .andExpect(status().isForbidden());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -129,7 +129,7 @@ public class PayoutIntegrationTest {
             TOLVANSSON_LAST_NAME
         );
 
-        mockTrustlyApiResponse(true);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
@@ -138,7 +138,7 @@ public class PayoutIntegrationTest {
                 post(String.format("/_/members/%s/payout", MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -190,7 +190,7 @@ public class PayoutIntegrationTest {
             TOLVANSSON_LAST_NAME
         );
 
-        mockTrustlyApiResponse(false);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
@@ -199,7 +199,7 @@ public class PayoutIntegrationTest {
                 post(String.format("/_/members/%s/payout", MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -222,7 +222,7 @@ public class PayoutIntegrationTest {
         );
     }
 
-    private void mockTrustlyApiResponse(boolean shouldSucceed) {
+    private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {
         val trustlyResultData = new HashMap<String, Object>();
         trustlyResultData.put("orderid", TRUSTLY_ORDER_ID);
 
@@ -230,7 +230,7 @@ public class PayoutIntegrationTest {
         trustlyResult.setData(trustlyResultData);
         val trustlyApiResponse = new Response();
 
-        if (shouldSucceed) {
+        if (result == TrustlyApiResponseResult.SHOULD_SUCCEED) {
             trustlyApiResponse.setResult(trustlyResult);
         } else {
             val error = new Error();
@@ -241,4 +241,8 @@ public class PayoutIntegrationTest {
             .willReturn(trustlyApiResponse);
     }
 
+    private enum TrustlyApiResponseResult {
+        SHOULD_SUCCEED,
+        SHOULD_FAIL
+    }
 }

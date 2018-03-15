@@ -11,6 +11,7 @@ import lombok.val;
 
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.eventstore.EventStore;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class TrustlyNotificationControllerTest {
             TRUSTLY_ORDER_ID
         ));
 
-        val request = createTrustlyCreditNotificationRequest();
+        val request = makeTrustlyCreditNotificationRequest();
         given(notificationHandler.handleNotification(any()))
             .willReturn(request);
 
@@ -94,5 +95,29 @@ public class TrustlyNotificationControllerTest {
                 .collect(Collectors.toList()),
             not(empty())
         );
+    }
+
+    @Test
+    @Ignore("Test not complete yet")
+    public void givenAnUnconfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnSomething() throws Exception {
+        commandGateway.sendAndWait(new CreatePaymentOrderCommand(
+            HEDVIG_ORDER_ID,
+            UUID.fromString(TRANSACTION_ID),
+            MEMBER_ID,
+            TRANSACTION_AMOUNT,
+            TRUSTLY_ACCOUNT_ID
+        ));
+
+        val request = makeTrustlyCreditNotificationRequest();
+        given(notificationHandler.handleNotification(any()))
+            .willReturn(request);
+
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(request))
+            )
+            .andExpect(status().is5xxServerError());
     }
 }

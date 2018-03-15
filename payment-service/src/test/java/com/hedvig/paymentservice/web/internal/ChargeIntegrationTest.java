@@ -88,7 +88,7 @@ public class ChargeIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(403));
+            .andExpect(status().isForbidden());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -123,7 +123,7 @@ public class ChargeIntegrationTest {
                 TOLVANSSON_ZIP
                 ));
 
-        mockTrustlyApiResponse(true);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
@@ -140,7 +140,7 @@ public class ChargeIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -185,7 +185,7 @@ public class ChargeIntegrationTest {
                 TOLVANSSON_ZIP
                 ));
 
-        mockTrustlyApiResponse(false);
+        mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
@@ -202,7 +202,7 @@ public class ChargeIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(chargeRequest))
             )
-            .andExpect(status().is(202));
+            .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
             .readEvents(MEMBER_ID)
@@ -228,14 +228,14 @@ public class ChargeIntegrationTest {
         );
     }
 
-    private void mockTrustlyApiResponse(boolean shouldSucceed) {
+    private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {
         val trustlyResultData = new HashMap<String, Object>();
         trustlyResultData.put("orderid", TRUSTLY_ORDER_ID);
         trustlyResultData.put("url", PAYMENT_URL);
         val trustlyResult = new Result();
         trustlyResult.setData(trustlyResultData);
         val trustlyApiResponse = new Response();
-        if (shouldSucceed) {
+        if (result == TrustlyApiResponseResult.SHOULD_SUCCEED) {
             trustlyApiResponse.setResult(trustlyResult);
         } else {
             val error = new Error();
@@ -248,5 +248,10 @@ public class ChargeIntegrationTest {
             )
         )
         .willReturn(trustlyApiResponse);
+    }
+
+    private enum TrustlyApiResponseResult {
+        SHOULD_SUCCEED,
+        SHOULD_FAIL
     }
 }
