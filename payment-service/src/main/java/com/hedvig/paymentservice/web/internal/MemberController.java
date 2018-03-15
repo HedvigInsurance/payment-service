@@ -72,7 +72,9 @@ public class MemberController {
     public ResponseEntity<?> createMember(@PathVariable String memberId) {
         paymentService.createMember(memberId);
 
-        return ResponseEntity.ok().body(new HashMap<String, String>() {{put("memberId", memberId);}});
+        val res = new HashMap<String, String>();
+        res.put("memberId", memberId);
+        return ResponseEntity.ok().body(res);
     }
 
     @GetMapping(path = "{memberId}/transactions")
