@@ -36,6 +36,7 @@ public class CreditSaga {
                 e.getAmount(),
                 e.getTimestamp()
             ));
+            break;
             default:
             throw new RuntimeException("Cannot handle " + e.getClass().getName() + " with " + e.getOrderType().getClass().getName() + ": " + e.getOrderType().toString());
         }
