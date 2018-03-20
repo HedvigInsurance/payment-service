@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.web.internal;
 
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
@@ -84,5 +85,14 @@ public class MemberController {
             .orElseThrow(() -> new RuntimeException("Could not find member"));
 
         return ResponseEntity.ok().body(member);
+    }
+
+
+    @PostMapping(path = "{memberId}/updateTrustlyAccount")
+    public ResponseEntity<?> updateTrustlyAccount(@RequestBody UpdateTrustlyAccountCommand cmd) {
+
+        paymentService.sendCommand(cmd);
+
+        return ResponseEntity.ok(cmd.getMemberId());
     }
 }

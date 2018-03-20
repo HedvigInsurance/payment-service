@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 
@@ -51,5 +52,9 @@ public class PaymentService {
             request.getLastName(),
             Instant.now()
         ));
+    }
+
+    public void sendCommand(UpdateTrustlyAccountCommand cmd) {
+        commandGateway.sendAndWait(cmd);
     }
 }
