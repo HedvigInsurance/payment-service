@@ -4,6 +4,7 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
@@ -12,6 +13,7 @@ import org.javamoney.moneta.Money;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
 import lombok.val;
@@ -94,6 +96,39 @@ public class TestData {
         val request = new Notification();
         request.setMethod(Method.CREDIT);
         request.setParams(params);
+        request.setVersion(1.1);
+
+        return request;
+    }
+
+    public static Notification makeTrustlyAccountNotificationRequest() {
+        val attributes = new HashMap<String, Object>();
+        attributes.put("directdebitmandate", "1");
+        attributes.put("lastdigits", TRUSTLY_ACCOUNT_LAST_DIGITS);
+        attributes.put("clearinghouse", TRUSTLY_ACCOUNT_CLEARING_HOUSE);
+        attributes.put("bank", TRUSTLY_ACCOUNT_BANK);
+        attributes.put("descriptor", TRUSTLY_ACCOUNT_DESCRIPTOR);
+        attributes.put("personid", TOLVANSSON_SSN);
+        attributes.put("name", TOLVAN_FIRST_NAME + TOLVANSSON_LAST_NAME);
+        attributes.put("address", TOLVANSSON_STREET);
+        attributes.put("zipcode", TOLVANSSON_ZIP);
+        attributes.put("city", TOLVANSSON_CITY);
+
+        val data = new AccountNotificationData();
+        data.setAccountId(TRUSTLY_ACCOUNT_ID);
+        data.setNotificationId(TRUSTLY_NOTIFICATION_ID);
+        data.setOrderId(TRUSTLY_ORDER_ID);
+        data.setMessageId(HEDVIG_ORDER_ID.toString());
+        data.setAttributes(attributes);
+
+        val parameters = new NotificationParameters();
+        parameters.setData(data);
+        parameters.setSignature("");
+        parameters.setUUID(TRUSTLY_NOTIFICATION_ID);
+
+        val request = new Notification();
+        request.setMethod(Method.ACCOUNT);
+        request.setParams(parameters);
         request.setVersion(1.1);
 
         return request;
