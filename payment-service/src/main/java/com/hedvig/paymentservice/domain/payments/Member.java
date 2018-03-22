@@ -237,6 +237,4 @@ public class Member {
 
         return matchingTransactions.get(0);
     }
-
-
 }

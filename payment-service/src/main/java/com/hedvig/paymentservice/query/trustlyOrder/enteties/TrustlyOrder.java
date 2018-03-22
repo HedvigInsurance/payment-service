@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 @Entity
@@ -31,7 +32,7 @@ public class TrustlyOrder {
     String iframeUrl;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<TrustlyNotification> notifications = new TreeSet<>();
+    Set<TrustlyNotification> notifications = new HashSet<>();
 
     public void addNotification(TrustlyNotification notification) {
         notifications.add(notification);
