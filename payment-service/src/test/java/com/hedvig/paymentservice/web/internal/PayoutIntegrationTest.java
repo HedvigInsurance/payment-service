@@ -1,7 +1,5 @@
 package com.hedvig.paymentservice.web.internal;
 
-import javax.transaction.Transactional;
-import lombok.val;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.data.response.Error;
@@ -15,7 +13,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
-
+import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.junit.Test;
@@ -30,17 +28,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import javax.transaction.Transactional;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.HashMap;
-import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -69,7 +68,7 @@ public class PayoutIntegrationTest {
 
     @Test
     public void givenMemberWithoutTrustlyAccount_WhenCreatingPayout_ThenShouldReturnForbidden() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
         val payoutRequest = new PayoutRequest(
             TRANSACTION_AMOUNT,
@@ -82,13 +81,13 @@ public class PayoutIntegrationTest {
 
         mockMvc
             .perform(
-                post(String.format("/_/members/%s/payout", MEMBER_ID))
+                post(String.format("/_/members/%s/payout", TOLVANSSON_MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
             .andExpect(status().isForbidden());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 
@@ -97,9 +96,9 @@ public class PayoutIntegrationTest {
 
     @Test
     public void givenMemberWithTrustlyAccount_WhenCreatingPayoutAndTrustlyReturnsSuccess_ThenShouldReturnAccepted() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
         commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
-                MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
                 HEDVIG_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
                 TOLVANSSON_STREET,
@@ -129,13 +128,13 @@ public class PayoutIntegrationTest {
 
         mockMvc
             .perform(
-                post(String.format("/_/members/%s/payout", MEMBER_ID))
+                post(String.format("/_/members/%s/payout", TOLVANSSON_MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
             .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 
@@ -146,9 +145,9 @@ public class PayoutIntegrationTest {
 
     @Test
     public void givenMemberWithTrustlyAccount_WhenCreatingPayoutAndTrustlyReturnsError_ThenShouldReturnAccepted() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
         commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
-                MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
                 HEDVIG_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
                 TOLVANSSON_STREET,
@@ -178,13 +177,13 @@ public class PayoutIntegrationTest {
 
         mockMvc
             .perform(
-                post(String.format("/_/members/%s/payout", MEMBER_ID))
+                post(String.format("/_/members/%s/payout", TOLVANSSON_MEMBER_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(payoutRequest)))
             .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 

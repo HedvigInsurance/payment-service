@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequestMapping("/_/trustlyOrder/")
 public class TrustlyController {
 
-    final TrustlyService service;
+    private final TrustlyService service;
 
     public TrustlyController(TrustlyService service) {
         this.service = service;

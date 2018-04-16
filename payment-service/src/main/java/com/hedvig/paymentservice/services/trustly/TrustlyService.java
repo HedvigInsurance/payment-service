@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.services.trustly;
 
 import com.google.gson.Gson;
+import com.hedvig.paymentService.trustly.SignedAPI;
 import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.commons.exceptions.TrustlyAPIException;
@@ -9,32 +10,24 @@ import com.hedvig.paymentService.trustly.data.notification.notificationdata.Acco
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CancelNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.PendingNotificationData;
+import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.response.Error;
+import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.requestbuilders.AccountPayout;
 import com.hedvig.paymentService.trustly.requestbuilders.Charge;
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount;
 import com.hedvig.paymentservice.common.UUIDGenerator;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
+import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
-import com.hedvig.paymentService.trustly.SignedAPI;
-import com.hedvig.paymentService.trustly.data.request.Request;
-import com.hedvig.paymentService.trustly.data.response.Response;
+import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.javamoney.moneta.CurrencyUnitBuilder;
 import org.javamoney.moneta.Money;
@@ -44,6 +37,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import javax.money.CurrencyContextBuilder;
+import javax.money.CurrencyUnit;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
@@ -51,11 +46,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.money.CurrencyContextBuilder;
-import javax.money.CurrencyUnit;
-
-import lombok.val;
 
 @Component
 public class TrustlyService {
@@ -191,6 +181,10 @@ public class TrustlyService {
         return ret;
     }
 
+    private String createMemberEmail(String memberId) {
+        return Helpers.createTrustlyInboxfromMemberId(memberId);
+    }
+
     private Request createPayoutRequest(UUID hedvigOrderId, PayoutRequest request) {
         val formatter = new DecimalFormat("#0.00");
         val amount = formatter.format(request.getAmount().getNumber().doubleValueExact());
@@ -235,7 +229,7 @@ public class TrustlyService {
         build.firstName(request.getFirstName());
         build.lastName(request.getLastName());
         build.country(COUNTRY);
-        build.email(request.getEmail());
+        build.email(createMemberEmail(request.getMemberId()));
         build.locale("sv_SE");
         build.nationalIdentificationNumber(request.getSsn());
         build.successURL(appendTriggerId(successUrl, request.getTriggerId()));

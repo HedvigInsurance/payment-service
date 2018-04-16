@@ -116,7 +116,7 @@ public class TrustlyOrderTest {
     public AccountNotificationReceivedEvent accountNotificationRecievedEvent(boolean directDebitMandate, String notificationId) {
         return new AccountNotificationReceivedEvent(
                 HEDVIG_ORDER_ID,
-                MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
                 notificationId,
                 TRUSTLY_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
@@ -179,6 +179,6 @@ public class TrustlyOrderTest {
     }
 
     private OrderCreatedEvent orderCreatedEvent() {
-        return new OrderCreatedEvent(TestData.HEDVIG_ORDER_ID, TestData.MEMBER_ID);
+        return new OrderCreatedEvent(TestData.HEDVIG_ORDER_ID, TestData.TOLVANSSON_MEMBER_ID);
     }
 }

@@ -5,13 +5,14 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
-
-import java.time.Instant;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 public class PaymentService {
@@ -35,7 +36,7 @@ public class PaymentService {
             transactionId,
             request.getAmount(),
             Instant.now(),
-            request.getEmail()
+            Helpers.createTrustlyInboxfromMemberId(request.getMemberId())
         ));
     }
 

@@ -11,9 +11,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrder
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
-import javax.transaction.Transactional;
 import lombok.val;
-
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.eventstore.EventStore;
 import org.junit.Ignore;
@@ -29,16 +27,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-
+import javax.transaction.Transactional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -67,7 +66,7 @@ public class TrustlyNotificationControllerTest {
         commandGateway.sendAndWait(new CreatePaymentOrderCommand(
             HEDVIG_ORDER_ID,
             UUID.fromString(TRANSACTION_ID),
-            MEMBER_ID,
+            TOLVANSSON_MEMBER_ID,
             TRANSACTION_AMOUNT,
             TRUSTLY_ACCOUNT_ID));
         commandGateway.sendAndWait(new PaymentResponseReceivedCommand(
@@ -101,7 +100,7 @@ public class TrustlyNotificationControllerTest {
         commandGateway.sendAndWait(new CreatePaymentOrderCommand(
             HEDVIG_ORDER_ID,
             UUID.fromString(TRANSACTION_ID),
-            MEMBER_ID,
+            TOLVANSSON_MEMBER_ID,
             TRANSACTION_AMOUNT,
             TRUSTLY_ACCOUNT_ID
         ));
@@ -122,7 +121,7 @@ public class TrustlyNotificationControllerTest {
     @Test
     public void givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember() throws Exception {
         commandGateway.sendAndWait(new CreateOrderCommand(
-            MEMBER_ID,
+            TOLVANSSON_MEMBER_ID,
             HEDVIG_ORDER_ID
         ));
         commandGateway.sendAndWait(new SelectAccountResponseReceivedCommand(
@@ -144,7 +143,7 @@ public class TrustlyNotificationControllerTest {
             .andExpect(status().isOk());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 
@@ -154,9 +153,9 @@ public class TrustlyNotificationControllerTest {
 
     @Test
     public void givenAConfirmedTrustlyOrderAndAnExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldNotCreateMember() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
         commandGateway.sendAndWait(new CreateOrderCommand(
-            MEMBER_ID,
+            TOLVANSSON_MEMBER_ID,
             HEDVIG_ORDER_ID
         ));
         commandGateway.sendAndWait(new SelectAccountResponseReceivedCommand(
@@ -178,7 +177,7 @@ public class TrustlyNotificationControllerTest {
             .andExpect(status().isOk());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 

@@ -33,8 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
+import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
-import static com.hedvig.paymentservice.domain.DomainTestUtilities.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -72,16 +72,16 @@ public class ChargeIntegrationTest {
 
     @Test
     public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
-        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
 
         mockMvc
             .perform(
                 post(
                     String.format(
                         "/_/members/%s/charge",
-                        MEMBER_ID
+                            TOLVANSSON_MEMBER_ID
                     )
                 )
                 .contentType(MediaType.APPLICATION_JSON)
@@ -90,7 +90,7 @@ public class ChargeIntegrationTest {
             .andExpect(status().isForbidden());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
 
@@ -99,9 +99,9 @@ public class ChargeIntegrationTest {
 
     @Test
     public void givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsSuccess_ThenShouldReturnAccepted() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
         commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
-                MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
                 HEDVIG_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
                 TOLVANSSON_STREET,
@@ -120,14 +120,14 @@ public class ChargeIntegrationTest {
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
 
         mockMvc
             .perform(
                 post(
                     String.format(
                         "/_/members/%s/charge",
-                        MEMBER_ID
+                            TOLVANSSON_MEMBER_ID
                     )
                 )
                 .contentType(MediaType.APPLICATION_JSON)
@@ -136,7 +136,7 @@ public class ChargeIntegrationTest {
             .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
         assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));
@@ -150,9 +150,9 @@ public class ChargeIntegrationTest {
 
     @Test
     public void givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsError_ThenShouldReturnAccepted() throws Exception {
-        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
         commandGateway.sendAndWait(new UpdateTrustlyAccountCommand(
-                MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
                 HEDVIG_ORDER_ID,
                 TRUSTLY_ACCOUNT_ID,
                 TOLVANSSON_STREET,
@@ -171,14 +171,14 @@ public class ChargeIntegrationTest {
         given(uuidGenerator.generateRandom())
             .willReturn(HEDVIG_ORDER_ID);
 
-        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, EMAIL);
+        val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
 
         mockMvc
             .perform(
                 post(
                     String.format(
                         "/_/members/%s/charge",
-                        MEMBER_ID
+                            TOLVANSSON_MEMBER_ID
                     )
                 )
                 .contentType(MediaType.APPLICATION_JSON)
@@ -187,7 +187,7 @@ public class ChargeIntegrationTest {
             .andExpect(status().isAccepted());
 
         val memberEvents = eventStore
-            .readEvents(MEMBER_ID)
+            .readEvents(TOLVANSSON_MEMBER_ID)
             .asStream()
             .collect(Collectors.toList());
         assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));

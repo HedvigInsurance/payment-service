@@ -1,12 +1,11 @@
 package com.hedvig.paymentservice.services.payments.dto;
 
-import javax.money.MonetaryAmount;
-
 import lombok.Value;
+
+import javax.money.MonetaryAmount;
 
 @Value
 public class ChargeMemberRequest {
     String memberId;
     MonetaryAmount amount;
-    String email;
 }

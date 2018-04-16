@@ -8,15 +8,17 @@ import com.hedvig.paymentService.trustly.data.notification.notificationdata.Acco
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
-
+import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
+import lombok.val;
+import org.javamoney.moneta.FastMoney;
 import org.javamoney.moneta.Money;
 
+import javax.money.Monetary;
+import javax.money.MonetaryAmount;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.UUID;
-import javax.money.MonetaryAmount;
-import lombok.val;
 
 public class TestData {
     public static final String BOT_SERVICE_TRIGGER_ID = "7fece3ca-17d9-11e8-8c15-f36f3d1de091";
@@ -30,14 +32,14 @@ public class TestData {
     public static final String TRUSTLY_ACCOUNT_CLEARING_HOUSE = "SWEDEN";
     public static final String TRUSTLY_ACCOUNT_LAST_DIGITS = "145678";
 
-    public static final String MEMBER_ID = "1337";
+    public static final String TOLVANSSON_MEMBER_ID = "1337";
 
     public static final UUID HEDVIG_ORDER_ID = UUID.fromString("f1dd38f2-237f-11e8-8fc1-e74ced44b3e1");
     public static final String TOLVAN_FIRST_NAME = "Tolvan";
     public static final String TOLVANSSON_LAST_NAME = "Tolvansson";
     public static final String TOLVANSSON_SSN = "19121212-1212";
     public static final LocalDate TOLVANSSON_DATE_OF_BIRTH = LocalDate.of(2012, 12, 12);
-    public static final String TOLVAN_EMAIL = "tolvan@somewhere.com";
+    public static final String TOLVANSSON_EMAIL = "tolvan@somewhere.com";
     public static final String TOLVANSSON_ZIP = "12121";
     public static final String TOLVANSSON_STREET = "Testgatan 1";
     public static final String TOLVANSSON_CITY = "Teststaden";
@@ -56,14 +58,24 @@ public class TestData {
                 TOLVAN_FIRST_NAME,
                 TOLVANSSON_LAST_NAME,
                 TOLVANSSON_SSN,
-                TOLVAN_EMAIL,
-                MEMBER_ID,
+                TOLVANSSON_EMAIL,
+                TOLVANSSON_MEMBER_ID,
                 BOT_SERVICE_TRIGGER_ID);
+    }
+
+    public static PaymentRequest makePaymentRequest() {
+        val amount = FastMoney.of(123, Monetary.getCurrency("SEK"));
+
+        return new PaymentRequest(
+                TOLVANSSON_MEMBER_ID,
+                amount,
+                "1234567",
+                TOLVANSSON_EMAIL);
     }
 
     public static TrustlyAccountCreatedEvent makeTrustlyAccountCreatedEvent() {
         return new TrustlyAccountCreatedEvent(
-            MEMBER_ID,
+                TOLVANSSON_MEMBER_ID,
             HEDVIG_ORDER_ID,
             TRUSTLY_ACCOUNT_ID,
             TOLVANSSON_STREET,
@@ -84,7 +96,7 @@ public class TestData {
         val data = new CreditData();
         data.setAmount("100.00");
         data.setCurrency(Currency.SEK);
-        data.setEndUserId(MEMBER_ID);
+        data.setEndUserId(TOLVANSSON_MEMBER_ID);
         data.setTimestamp("2010-01-20 14:42:04.675645+01");
         data.setNotificationId(TRUSTLY_NOTIFICATION_ID);
         data.setMessageId(HEDVIG_ORDER_ID.toString());
