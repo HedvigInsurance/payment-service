@@ -207,7 +207,8 @@ public class TrustlyService {
             dateOfBirth,
             request.getFirstName(),
             request.getLastName(),
-            "PERSON"
+            "PERSON",
+            "Hedvig"
         );
 
         val ret = build.getRequest();

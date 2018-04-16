@@ -41,7 +41,8 @@ public class AccountPayout {
             final String dateOfBirth,
             final String firstName,
             final String lastName,
-            final String partyType
+            final String partyType,
+            final String shopperStatement
         ) {
             data.setAccountID(accountID);
             data.setNotificationURL(notificationURL);
@@ -56,6 +57,7 @@ public class AccountPayout {
             attributes.put("Firstname", firstName);
             attributes.put("Lastname", lastName);
             attributes.put("PartyType", partyType);
+            attributes.put("ShopperStatement", shopperStatement);
         }
 
         public Request getRequest() {
