@@ -3,8 +3,13 @@ package com.hedvig.paymentservice.web;
 import com.google.gson.Gson;
 import com.hedvig.paymentService.trustly.NotificationHandler;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
+import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
 import javax.transaction.Transactional;
 import lombok.val;
@@ -112,5 +117,71 @@ public class TrustlyNotificationControllerTest {
                 .content(gson.toJson(request))
             )
             .andExpect(status().is5xxServerError());
+    }
+
+    @Test
+    public void givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember() throws Exception {
+        commandGateway.sendAndWait(new CreateOrderCommand(
+            MEMBER_ID,
+            HEDVIG_ORDER_ID
+        ));
+        commandGateway.sendAndWait(new SelectAccountResponseReceivedCommand(
+            HEDVIG_ORDER_ID,
+            TRUSTLY_IFRAME_URL,
+            TRUSTLY_ORDER_ID
+        ));
+
+        val request = makeTrustlyAccountNotificationRequest();
+        given(notificationHandler.handleNotification(any()))
+            .willReturn(request);
+
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(request))
+            )
+            .andExpect(status().isOk());
+
+        val memberEvents = eventStore
+            .readEvents(MEMBER_ID)
+            .asStream()
+            .collect(Collectors.toList());
+
+        assertThat(memberEvents, hasEvent(MemberCreatedEvent.class));
+        assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
+    }
+
+    @Test
+    public void givenAConfirmedTrustlyOrderAndAnExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldNotCreateMember() throws Exception {
+        commandGateway.sendAndWait(new CreateMemberCommand(MEMBER_ID));
+        commandGateway.sendAndWait(new CreateOrderCommand(
+            MEMBER_ID,
+            HEDVIG_ORDER_ID
+        ));
+        commandGateway.sendAndWait(new SelectAccountResponseReceivedCommand(
+            HEDVIG_ORDER_ID,
+            TRUSTLY_IFRAME_URL,
+            TRUSTLY_ORDER_ID
+        ));
+
+        val request = makeTrustlyAccountNotificationRequest();
+        given(notificationHandler.handleNotification(any()))
+            .willReturn(request);
+
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(gson.toJson(request))
+            )
+            .andExpect(status().isOk());
+
+        val memberEvents = eventStore
+            .readEvents(MEMBER_ID)
+            .asStream()
+            .collect(Collectors.toList());
+
+        assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
     }
 }
