@@ -58,7 +58,6 @@ public class TestData {
                 TOLVAN_FIRST_NAME,
                 TOLVANSSON_LAST_NAME,
                 TOLVANSSON_SSN,
-                TOLVANSSON_EMAIL,
                 TOLVANSSON_MEMBER_ID,
                 BOT_SERVICE_TRIGGER_ID);
     }
