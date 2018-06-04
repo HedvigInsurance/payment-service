@@ -2,12 +2,7 @@ package com.hedvig.paymentservice.query.member;
 
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.*;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
@@ -51,8 +46,20 @@ public class MemberEventListener {
         transaction.setTransactionStatus(TransactionStatus.INITIATED);
 
         val transactions = member.getTransactions();
-        transactions.add(transaction);
+        transactions.put(transaction.getId() ,transaction);
         memberRepository.save(member);
+    }
+
+    @EventHandler
+    public void on(ChargeFailedEvent e) {
+        val member = memberRepository
+                .findById(e.getMemberId())
+                .orElseThrow(() -> new RuntimeException("Could not find member"));
+        val transactions = member.getTransactions();
+        val transaction = transactions.get(e.getTransactionId());
+        transaction.setTransactionStatus(TransactionStatus.FAILED);
+        memberRepository.save(member);
+
     }
 
     @EventHandler
@@ -69,7 +76,7 @@ public class MemberEventListener {
         transaction.setTransactionStatus(TransactionStatus.INITIATED);
 
         val transactions = member.getTransactions();
-        transactions.add(transaction);
+        transactions.put(e.getTransactionId(), transaction);
         memberRepository.save(member);
     }
 
@@ -82,17 +89,9 @@ public class MemberEventListener {
             return;
         }
         val member = maybeMember.get();
-        val matchingTransactions = member
-            .getTransactions()
-            .stream()
-            .filter(t -> t.getId().equals(e.getTransactionId()))
-            .collect(Collectors.toList());
-        if (matchingTransactions.size() != 1) {
-            log.error("Unexpected number of transactions");
-            return;
-        }
 
-        val transaction = matchingTransactions.get(0);
+        val transaction = member.getTransactions().get(e.getTransactionId());
+
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         memberRepository.save(member);
     }
@@ -105,19 +104,10 @@ public class MemberEventListener {
             log.error("Could not find member");
             return;
         }
-        val member = maybeMember.get();
-        val matchingTransactions = member
-            .getTransactions()
-            .stream()
-            .filter(t -> t.getId().equals(e.getTransactionId()))
-            .collect(Collectors.toList());
 
-        if (matchingTransactions.size() != 1) {
-            log.error("Unexpected number of transactions");
-            return;
-        }
 
-        val transaction = matchingTransactions.get(0);
+        final Member member = maybeMember.get();
+        val transaction = member.getTransaction(e.getTransactionId());
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         memberRepository.save(member);
     }
@@ -131,18 +121,8 @@ public class MemberEventListener {
             return;
         }
         val member = maybeMember.get();
-        val matchingTransactions = member
-            .getTransactions()
-            .stream()
-            .filter(t -> t.getId().equals(e.getTransactionId()))
-            .collect(Collectors.toList());
 
-        if (matchingTransactions.size() != 1) {
-            log.error("Unexpected number of transactions");
-            return;
-        }
-
-        val transaction = matchingTransactions.get(0);
+        val transaction = member.getTransaction(e.getTransactionId());
         transaction.setTransactionStatus(TransactionStatus.FAILED);
         memberRepository.save(member);
     }

@@ -1,12 +1,6 @@
 package com.hedvig.paymentservice.domain.payments;
 
-import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
-import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.commands.*;
 import com.hedvig.paymentservice.domain.payments.events.*;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
@@ -143,6 +137,16 @@ public class Member {
     }
 
     @CommandHandler
+    public void cmd(ChargeFailedCommand cmd) {
+        val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
+        if (transaction == null) {
+            final String s = String.format("Could not find matching transaction for ChargeFailedCommand with memberId: %s and transactionId: %s", id, cmd.getTransactionId());
+            throw new RuntimeException(s);
+        }
+        apply(new ChargeFailedEvent(this.id, cmd.getTransactionId()));
+    }
+
+    @CommandHandler
     public void cmd(PayoutCompletedCommand cmd) {
         val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
         if (transaction.getAmount().equals(cmd.getAmount()) == false) {
@@ -197,6 +201,12 @@ public class Member {
     public void on(ChargeCompletedEvent e) {
         val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+    }
+
+    @EventSourcingHandler
+    public void on(ChargeFailedEvent w) {
+        val transaction = getSingleTransaction(transactions, w.getTransactionId(), id);
+        transaction.setTransactionStatus(TransactionStatus.FAILED);
     }
 
     @EventSourcingHandler
