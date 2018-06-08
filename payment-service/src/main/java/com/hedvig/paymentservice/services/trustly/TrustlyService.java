@@ -43,6 +43,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,7 +52,16 @@ import java.util.UUID;
 @Component
 public class TrustlyService {
 
-    private static final DateTimeFormatter trustlyTimestampFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSx");
+    private static final DateTimeFormatter trustlyTimestampFormat = getDateTimeFormatter();
+
+    static DateTimeFormatter getDateTimeFormatter() {
+        return new DateTimeFormatterBuilder()
+                .appendPattern("uuuu-MM-dd HH:mm:ss")
+                .appendFraction(ChronoField.MICRO_OF_SECOND, 0, 6, true)
+                .appendOffset("+HH", "+00")
+                .toFormatter();
+    }
+
     private final String notificationUrl;
     public static final String COUNTRY = "SE";
     private final Logger log = LoggerFactory.getLogger(TrustlyService.class);
