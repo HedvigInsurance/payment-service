@@ -94,7 +94,7 @@ public class MemberController {
     //Returns a boolean with the direct debit status for a specific member.
     @GetMapping(path ="{memberId}/checkDirectDebitStatus")
     public ResponseEntity<Boolean> checkDirectDebitByMemberId(@PathVariable String memberId){
-        Optional<Boolean> isConnected = memberRepository.findByIdAndByDirectDebitMandateActiveTrue(memberId);
+        Optional<Boolean> isConnected = memberRepository.findByIdAndDirectDebitMandateActiveTrue(memberId);
 
         if (isConnected.isPresent()){
             return ResponseEntity.ok(isConnected.get());
