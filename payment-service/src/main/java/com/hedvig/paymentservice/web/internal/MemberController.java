@@ -91,7 +91,7 @@ public class MemberController {
     }
 
     @GetMapping(path ="{memberId}/checkDirectDebitStatus")
-    public ResponseEntity<Boolean> checkDirectDebit(@PathVariable String memberId){
+    public ResponseEntity<Boolean> checkDirectDebitByMemberId(@PathVariable String memberId){
         val isConnected = memberRepository.findByDirectDebitMandateActiveTrue(memberId);
 
         if (isConnected.isPresent()){
