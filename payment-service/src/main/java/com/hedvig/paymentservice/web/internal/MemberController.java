@@ -3,12 +3,13 @@ package com.hedvig.paymentservice.web.internal;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
-import com.hedvig.paymentservice.services.members.MemberService;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
+import java.util.List;
+import java.util.Optional;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -90,13 +91,23 @@ public class MemberController {
         return ResponseEntity.ok(cmd.getMemberId());
     }
 
+    //Returns a boolean with the direct debit status for a specific member.
     @GetMapping(path ="{memberId}/checkDirectDebitStatus")
     public ResponseEntity<Boolean> checkDirectDebitByMemberId(@PathVariable String memberId){
-        val isConnected = memberRepository.findByDirectDebitMandateActiveTrue(memberId);
+        Optional<Boolean> isConnected = memberRepository.findByIdAndByDirectDebitMandateActiveTrue(memberId);
 
         if (isConnected.isPresent()){
             return ResponseEntity.ok(isConnected.get());
         }
         return ResponseEntity.notFound().build();
+    }
+
+    //Returns an array of memberIds with the corresponding status of direct debit.
+    @GetMapping(path = "/directDebitList")
+    public ResponseEntity<?> checkDirectDebitByStatus(@RequestParam(name = "active") Boolean isStatusActive){
+
+        List<Member> listOfMembers = memberRepository.findByDirectDebitMandateActive(isStatusActive);
+
+        return ResponseEntity.ok(listOfMembers.stream().map(Member::getId).toArray());
     }
 }
