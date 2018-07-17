@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.web.internal;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
+import com.hedvig.paymentservice.services.members.MemberService;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
@@ -21,7 +22,7 @@ public class MemberController {
 
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
-
+    a
     public MemberController(PaymentService paymentService, MemberRepository memberRepository) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
@@ -87,5 +88,15 @@ public class MemberController {
         paymentService.sendCommand(cmd);
 
         return ResponseEntity.ok(cmd.getMemberId());
+    }
+
+    @GetMapping(path ="{memberId}/checkDirectDebitStatus")
+    public ResponseEntity<Boolean> checkDirectDebit(@PathVariable String memberId){
+        val isConnected = memberRepository.findByDirectDebitMandateActiveTrue(memberId);
+
+        if (isConnected.isPresent()){
+            return ResponseEntity.ok(isConnected.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 }
