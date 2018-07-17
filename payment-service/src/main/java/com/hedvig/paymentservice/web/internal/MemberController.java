@@ -22,7 +22,7 @@ public class MemberController {
 
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
-    a
+
     public MemberController(PaymentService paymentService, MemberRepository memberRepository) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
