@@ -30,3 +30,5 @@ hs_err_pid*
 .project
 .vscode
 .sts4-cache
+.factorypath
+.java-version

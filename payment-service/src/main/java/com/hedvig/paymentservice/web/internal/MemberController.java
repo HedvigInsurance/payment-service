@@ -7,16 +7,21 @@ import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.val;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 
+@Slf4j
 @RestController
 @RequestMapping(path = "/_/members/")
 public class MemberController {
@@ -91,23 +96,19 @@ public class MemberController {
         return ResponseEntity.ok(cmd.getMemberId());
     }
 
-    //Returns a boolean with the direct debit status for a specific member.
-    @GetMapping(path ="{memberId}/checkDirectDebitStatus")
-    public ResponseEntity<Boolean> checkDirectDebitByMemberId(@PathVariable String memberId){
-        Optional<Boolean> isConnected = memberRepository.findByIdAndDirectDebitMandateActiveTrue(memberId);
+    @GetMapping(path = "/directDebitStatus/[{memberIds}]")
+    public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(@PathVariable("memberIds") List<String> memberIds) {
+        val members = memberRepository
+            .findAllByIdIn(memberIds)
+            .stream()
+            .map(m -> new DirectDebitStatusDTO(m.getId(), m.getDirectDebitMandateActive()))
+            .collect(Collectors.toList());
 
-        if (isConnected.isPresent()){
-            return ResponseEntity.ok(isConnected.get());
+        if (memberIds.size() != members.size()) {
+            log.info("List size mismatch: memberIds.size = {}, members.size = {}", memberIds.size(), members.size());
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
-    }
 
-    //Returns an array of memberIds with the corresponding status of direct debit.
-    @GetMapping(path = "/directDebitList")
-    public ResponseEntity<?> checkDirectDebitByStatus(@RequestParam(name = "active") Boolean isStatusActive){
-
-        List<Member> listOfMembers = memberRepository.findByDirectDebitMandateActive(isStatusActive);
-
-        return ResponseEntity.ok(listOfMembers.stream().map(Member::getId).toArray());
+        return ResponseEntity.ok(members);
     }
 }

@@ -8,7 +8,6 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.val;
 import org.axonframework.eventhandling.EventHandler;
 import org.slf4j.Logger;

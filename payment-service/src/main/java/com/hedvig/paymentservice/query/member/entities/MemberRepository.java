@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MemberRepository extends CrudRepository<Member, String> {
     Optional<Member> findById(String id);
-    Optional<Boolean> findByIdAndDirectDebitMandateActiveTrue(String id);
-    List<Member> findByDirectDebitMandateActive(Boolean isActive);
+    List<Member> findAllByIdIn(List<String> ids);
 }
