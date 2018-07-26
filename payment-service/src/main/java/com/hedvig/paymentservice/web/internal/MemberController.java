@@ -10,11 +10,14 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.tomcat.util.digester.ArrayStack;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,89 +29,105 @@ import java.util.HashMap;
 @RequestMapping(path = "/_/members/")
 public class MemberController {
 
-    private final PaymentService paymentService;
-    private final MemberRepository memberRepository;
+  private final PaymentService paymentService;
+  private final MemberRepository memberRepository;
 
-    public MemberController(PaymentService paymentService, MemberRepository memberRepository) {
-        this.paymentService = paymentService;
-        this.memberRepository = memberRepository;
+  public MemberController(PaymentService paymentService, MemberRepository memberRepository) {
+    this.paymentService = paymentService;
+    this.memberRepository = memberRepository;
+  }
+
+  @PostMapping(path = "{memberId}/charge")
+  public ResponseEntity<?> chargeMember(
+      @PathVariable String memberId, @RequestBody ChargeRequest request) {
+
+    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount());
+    val res = paymentService.chargeMember(chargeMemberRequest);
+
+    if (res == false) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
     }
 
-    @PostMapping(path = "{memberId}/charge")
-    public ResponseEntity<?> chargeMember(@PathVariable String memberId, @RequestBody ChargeRequest request) {
+    return ResponseEntity.accepted().body("");
+  }
 
-        val chargeMemberRequest = new ChargeMemberRequest(
-            memberId,
-            request.getAmount()
-        );
-        val res = paymentService.chargeMember(chargeMemberRequest);
-
-        if (res == false) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
-        }
-
-        return ResponseEntity.accepted().body("");
-    }
-
-    @PostMapping(path = "{memberId}/payout")
-    public ResponseEntity<?> payoutMember(@PathVariable String memberId, @RequestBody PayoutRequest request) {
-        val payoutMemberRequest = new PayoutMemberRequest(
+  @PostMapping(path = "{memberId}/payout")
+  public ResponseEntity<?> payoutMember(
+      @PathVariable String memberId, @RequestBody PayoutRequest request) {
+    val payoutMemberRequest =
+        new PayoutMemberRequest(
             memberId,
             request.getAmount(),
             request.getAddress(),
             request.getCountryCode(),
             request.getDateOfBirth(),
             request.getFirstName(),
-            request.getLastName()
-        );
+            request.getLastName());
 
-        val res = paymentService.payoutMember(payoutMemberRequest);
-        if (res == false) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
-        }
-        return ResponseEntity.accepted().body("");
+    val res = paymentService.payoutMember(payoutMemberRequest);
+    if (res == false) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
     }
+    return ResponseEntity.accepted().body("");
+  }
 
-    @PostMapping(path = "{memberId}/create")
-    public ResponseEntity<?> createMember(@PathVariable String memberId) {
-        paymentService.createMember(memberId);
+  @PostMapping(path = "{memberId}/create")
+  public ResponseEntity<?> createMember(@PathVariable String memberId) {
+    paymentService.createMember(memberId);
 
-        val res = new HashMap<String, String>();
-        res.put("memberId", memberId);
-        return ResponseEntity.ok().body(res);
-    }
+    val res = new HashMap<String, String>();
+    res.put("memberId", memberId);
+    return ResponseEntity.ok().body(res);
+  }
 
-    @GetMapping(path = "{memberId}/transactions")
-    public ResponseEntity<Member> getTransactionsByMember(@PathVariable String memberId) {
-        val member = memberRepository
+  @GetMapping(path = "{memberId}/transactions")
+  public ResponseEntity<Member> getTransactionsByMember(@PathVariable String memberId) {
+    val member =
+        memberRepository
             .findById(memberId)
             .orElseThrow(() -> new RuntimeException("Could not find member"));
 
-        return ResponseEntity.ok().body(member);
-    }
+    return ResponseEntity.ok().body(member);
+  }
 
+  @PostMapping(path = "{memberId}/updateTrustlyAccount")
+  public ResponseEntity<?> updateTrustlyAccount(@RequestBody UpdateTrustlyAccountCommand cmd) {
 
-    @PostMapping(path = "{memberId}/updateTrustlyAccount")
-    public ResponseEntity<?> updateTrustlyAccount(@RequestBody UpdateTrustlyAccountCommand cmd) {
+    paymentService.sendCommand(cmd);
 
-        paymentService.sendCommand(cmd);
+    return ResponseEntity.ok(cmd.getMemberId());
+  }
 
-        return ResponseEntity.ok(cmd.getMemberId());
-    }
+  @GetMapping(path = "/directDebitStatus/[{memberIds}]")
+  public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(
+      @PathVariable("memberIds") List<String> memberIds) {
 
-    @GetMapping(path = "/directDebitStatus/[{memberIds}]")
-    public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(@PathVariable("memberIds") List<String> memberIds) {
-        val members = memberRepository
+    val members =
+        memberRepository
             .findAllByIdIn(memberIds)
             .stream()
             .map(m -> new DirectDebitStatusDTO(m.getId(), m.getDirectDebitMandateActive()))
             .collect(Collectors.toList());
 
-        if (memberIds.size() != members.size()) {
-            log.info("List size mismatch: memberIds.size = {}, members.size = {}", memberIds.size(), members.size());
-            return ResponseEntity.notFound().build();
-        }
+    if (memberIds.size() != members.size()) {
+      log.info(
+          "List size mismatch: memberIds.size = {}, members.size = {} The rest of the member ids with be replaced with false!",
+          memberIds.size(),
+          members.size());
 
-        return ResponseEntity.ok(members);
+      val membersWithPaymentStatus =
+          members.stream().map(DirectDebitStatusDTO::getMemberId).collect(Collectors.toList());
+
+      memberIds
+          .stream()
+          .filter(x -> !membersWithPaymentStatus.contains(x))
+          .collect(Collectors.toList());
+
+      for (String id : memberIds){
+        members.add(new DirectDebitStatusDTO(id, false));
+      }
     }
+
+    return ResponseEntity.ok(members);
+  }
 }
