@@ -82,10 +82,12 @@ public class MemberController {
 
   @GetMapping(path = "{memberId}/transactions")
   public ResponseEntity<Member> getTransactionsByMember(@PathVariable String memberId) {
+
     val member =
         memberRepository
             .findById(memberId)
-            .orElseThrow(() -> new RuntimeException("Could not find member"));
+            .orElse(new Member()); // Return an empty Member Object if the member does not exist
+    // The empty object will not break back-office
 
     return ResponseEntity.ok().body(member);
   }
@@ -123,7 +125,7 @@ public class MemberController {
           .filter(x -> !membersWithPaymentStatus.contains(x))
           .collect(Collectors.toList());
 
-      for (String id : memberIds){
+      for (String id : memberIds) {
         members.add(new DirectDebitStatusDTO(id, false));
       }
     }
