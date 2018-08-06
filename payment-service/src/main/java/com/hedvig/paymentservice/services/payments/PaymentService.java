@@ -8,41 +8,41 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCo
 import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
+import java.time.Instant;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-
 @Service
 public class PaymentService {
 
-    private final CommandGateway commandGateway;
-    private final UUIDGenerator uuidGenerator;
+  private final CommandGateway commandGateway;
+  private final UUIDGenerator uuidGenerator;
 
-    public PaymentService(CommandGateway commandGateway, UUIDGenerator uuidGenerator) {
-        this.commandGateway = commandGateway;
-        this.uuidGenerator = uuidGenerator;
-    }
+  public PaymentService(CommandGateway commandGateway, UUIDGenerator uuidGenerator) {
+    this.commandGateway = commandGateway;
+    this.uuidGenerator = uuidGenerator;
+  }
 
-    public void createMember(String memberId) {
-        commandGateway.sendAndWait(new CreateMemberCommand(memberId));
-    }
+  public void createMember(String memberId) {
+    commandGateway.sendAndWait(new CreateMemberCommand(memberId));
+  }
 
-    public boolean chargeMember(ChargeMemberRequest request) {
-        val transactionId = uuidGenerator.generateRandom();
-        return commandGateway.sendAndWait(new CreateChargeCommand(
+  public boolean chargeMember(ChargeMemberRequest request) {
+    val transactionId = uuidGenerator.generateRandom();
+    return commandGateway.sendAndWait(
+        new CreateChargeCommand(
             request.getMemberId(),
             transactionId,
             request.getAmount(),
             Instant.now(),
-            Helpers.createTrustlyInboxfromMemberId(request.getMemberId())
-        ));
-    }
+            Helpers.createTrustlyInboxfromMemberId(request.getMemberId())));
+  }
 
-    public boolean payoutMember(PayoutMemberRequest request) {
-        val transactionId = uuidGenerator.generateRandom();
-        return commandGateway.sendAndWait(new CreatePayoutCommand(
+  public boolean payoutMember(PayoutMemberRequest request) {
+    val transactionId = uuidGenerator.generateRandom();
+    return commandGateway.sendAndWait(
+        new CreatePayoutCommand(
             request.getMemberId(),
             transactionId,
             request.getAmount(),
@@ -51,11 +51,10 @@ public class PaymentService {
             request.getDateOfBirth(),
             request.getFirstName(),
             request.getLastName(),
-            Instant.now()
-        ));
-    }
+            Instant.now()));
+  }
 
-    public void sendCommand(UpdateTrustlyAccountCommand cmd) {
-        commandGateway.sendAndWait(cmd);
-    }
+  public void sendCommand(UpdateTrustlyAccountCommand cmd) {
+    commandGateway.sendAndWait(cmd);
+  }
 }

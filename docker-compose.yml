@@ -3,9 +3,9 @@ services:
     database:
         image: postgres:10.3-alpine
         ports:
-            - "5432:5432"
+        - "5432:5432"
         volumes:
-            - db:/var/lib/postgresql
+        - db:/var/lib/postgresql
 
 volumes:
     db:

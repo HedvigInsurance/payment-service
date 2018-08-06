@@ -27,68 +27,68 @@ package com.hedvig.paymentService.trustly.commons;
 import com.google.gson.annotations.SerializedName;
 
 public enum Method {
-    @SerializedName("Deposit")
-    DEPOSIT("Deposit"),
+  @SerializedName("Deposit")
+  DEPOSIT("Deposit"),
 
-    @SerializedName("Withdraw")
-    WITHDRAW("Withdraw"),
+  @SerializedName("Withdraw")
+  WITHDRAW("Withdraw"),
 
-    @SerializedName("ApproveWithdrawal")
-    APPROVE_WITHDRAWAL("ApproveWithdrawal"),
+  @SerializedName("ApproveWithdrawal")
+  APPROVE_WITHDRAWAL("ApproveWithdrawal"),
 
-    @SerializedName("DenyWithdrawal")
-    DENY_WITHDRAWAL("DenyWithdrawal"),
+  @SerializedName("DenyWithdrawal")
+  DENY_WITHDRAWAL("DenyWithdrawal"),
 
-    @SerializedName("AccountLedger")
-    ACCOUNT_LEDGER("AccountLedger"),
+  @SerializedName("AccountLedger")
+  ACCOUNT_LEDGER("AccountLedger"),
 
-    @SerializedName("AccountPayout")
-    ACCOUNT_PAYOUT("AccountPayout"),
+  @SerializedName("AccountPayout")
+  ACCOUNT_PAYOUT("AccountPayout"),
 
-    @SerializedName("ViewAutomaticSettlementDetailsCSV")
-    VIEW_AUTOMATIC_SETTLEMENT_DETAILS_CSV("ViewAutomaticSettlementDetailsCSV"),
+  @SerializedName("ViewAutomaticSettlementDetailsCSV")
+  VIEW_AUTOMATIC_SETTLEMENT_DETAILS_CSV("ViewAutomaticSettlementDetailsCSV"),
 
-    @SerializedName("Balance")
-    BALANCE("Balance"),
+  @SerializedName("Balance")
+  BALANCE("Balance"),
 
-    @SerializedName("GetWithdrawals")
-    GET_WITHDRAWALS("GetWithdrawals"),
+  @SerializedName("GetWithdrawals")
+  GET_WITHDRAWALS("GetWithdrawals"),
 
-    @SerializedName("Refund")
-    REFUND("Refund"),
+  @SerializedName("Refund")
+  REFUND("Refund"),
 
-    @SerializedName("credit")
-    CREDIT("credit"),
+  @SerializedName("credit")
+  CREDIT("credit"),
 
-    @SerializedName("debit")
-    DEBIT("debit"),
+  @SerializedName("debit")
+  DEBIT("debit"),
 
-    @SerializedName("pending")
-    PENDING("pending"),
+  @SerializedName("pending")
+  PENDING("pending"),
 
-    @SerializedName("cancel")
-    CANCEL("cancel"),
+  @SerializedName("cancel")
+  CANCEL("cancel"),
 
-    @SerializedName("account")
-    ACCOUNT("account"),
+  @SerializedName("account")
+  ACCOUNT("account"),
 
-    @SerializedName("Charge")
-    CHARGE("Charge"),
+  @SerializedName("Charge")
+  CHARGE("Charge"),
 
-    @SerializedName("SelectAccount")
-    SELECT_ACCOUNT("SelectAccount");
+  @SerializedName("SelectAccount")
+  SELECT_ACCOUNT("SelectAccount");
 
-    private final String jsonName;
+  private final String jsonName;
 
-    Method(final String s) {
-        jsonName = s;
-    }
+  Method(final String s) {
+    jsonName = s;
+  }
 
-    public boolean equalsName(final String otherName) {
-        return otherName != null && jsonName.equals(otherName);
-    }
+  public boolean equalsName(final String otherName) {
+    return otherName != null && jsonName.equals(otherName);
+  }
 
-    public String toString() {
-        return jsonName;
-    }
+  public String toString() {
+    return jsonName;
+  }
 }

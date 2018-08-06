@@ -28,23 +28,24 @@ import com.google.gson.annotations.SerializedName;
 import com.hedvig.paymentService.trustly.data.notification.NotificationData;
 
 public class CancelNotificationData extends NotificationData {
-    @SerializedName("enduserid")
-    private String endUserId;
-    private String timestamp;
+  @SerializedName("enduserid")
+  private String endUserId;
 
-    public String getEndUserId() {
-        return endUserId;
-    }
+  private String timestamp;
 
-    public void setEndUserId(final String endUserId) {
-        this.endUserId = endUserId;
-    }
+  public String getEndUserId() {
+    return endUserId;
+  }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
+  public void setEndUserId(final String endUserId) {
+    this.endUserId = endUserId;
+  }
 
-    public void setTimestamp(final String timestamp) {
-        this.timestamp = timestamp;
-    }
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(final String timestamp) {
+    this.timestamp = timestamp;
+  }
 }

@@ -29,34 +29,36 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class AccountLedgerData extends RequestData {
-    @SerializedName("FromDate")
-    private String fromDate;
-    @SerializedName("ToDate")
-    private String toDate;
-    @SerializedName("Currency")
-    private Currency currency;
+  @SerializedName("FromDate")
+  private String fromDate;
 
-    public String getFromDate() {
-        return fromDate;
-    }
+  @SerializedName("ToDate")
+  private String toDate;
 
-    public void setFromDate(final String fromDate) {
-        this.fromDate = fromDate;
-    }
+  @SerializedName("Currency")
+  private Currency currency;
 
-    public String getToDate() {
-        return toDate;
-    }
+  public String getFromDate() {
+    return fromDate;
+  }
 
-    public void setToDate(final String toDate) {
-        this.toDate = toDate;
-    }
+  public void setFromDate(final String fromDate) {
+    this.fromDate = fromDate;
+  }
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  public String getToDate() {
+    return toDate;
+  }
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  public void setToDate(final String toDate) {
+    this.toDate = toDate;
+  }
+
+  public Currency getCurrency() {
+    return currency;
+  }
+
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 }

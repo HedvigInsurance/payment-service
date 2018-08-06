@@ -6,7 +6,5 @@ import javax.persistence.Id;
 @Entity
 public class TrustlyAccount {
 
-    @Id
-    public String trustlyAccountId;
-
+  @Id public String trustlyAccountId;
 }

@@ -27,35 +27,35 @@ package com.hedvig.paymentService.trustly.data.notification;
 import com.hedvig.paymentService.trustly.commons.Method;
 
 public class Notification {
-    private Method method;
-    private NotificationParameters params;
-    private double version = 1.1;
+  private Method method;
+  private NotificationParameters params;
+  private double version = 1.1;
 
-    public double getVersion() {
-        return version;
-    }
+  public double getVersion() {
+    return version;
+  }
 
-    public void setVersion(final double version) {
-        this.version = version;
-    }
+  public void setVersion(final double version) {
+    this.version = version;
+  }
 
-    public Method getMethod() {
-        return method;
-    }
+  public Method getMethod() {
+    return method;
+  }
 
-    public void setMethod(final Method method) {
-        this.method = method;
-    }
+  public void setMethod(final Method method) {
+    this.method = method;
+  }
 
-    public NotificationParameters getParams() {
-        return params;
-    }
+  public NotificationParameters getParams() {
+    return params;
+  }
 
-    public void setParams(final NotificationParameters params) {
-        this.params = params;
-    }
+  public void setParams(final NotificationParameters params) {
+    this.params = params;
+  }
 
-    public String getUUID() {
-        return params.getUUID();
-    }
+  public String getUUID() {
+    return params.getUUID();
+  }
 }

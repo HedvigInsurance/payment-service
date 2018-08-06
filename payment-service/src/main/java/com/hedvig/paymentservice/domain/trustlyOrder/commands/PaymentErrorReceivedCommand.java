@@ -1,17 +1,13 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
-import java.util.UUID;
-
 import com.hedvig.paymentService.trustly.data.response.Error;
-
-import org.axonframework.commandhandling.TargetAggregateIdentifier;
-
+import java.util.UUID;
 import lombok.Value;
+import org.axonframework.commandhandling.TargetAggregateIdentifier;
 
 @Value
 public class PaymentErrorReceivedCommand {
-    @TargetAggregateIdentifier
-    UUID hedvigOrderId;
+  @TargetAggregateIdentifier UUID hedvigOrderId;
 
-    Error error;
+  Error error;
 }

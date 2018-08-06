@@ -1,17 +1,17 @@
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
-            <fieldNames>
-                <requestHeaders>request_headers</requestHeaders>
-                <responseHeaders>response_headers</responseHeaders>
-            </fieldNames>
-            <lowerCaseHeaderNames>true</lowerCaseHeaderNames>
-            <requestHeaderFilter class="com.hedvig.common.LogstashRequestHeaderFilter">
-                <exclude>Authorization</exclude>
-                <exclude>Cookie</exclude>
-            </requestHeaderFilter>
-        </encoder>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashAccessEncoder">
+      <fieldNames>
+        <requestHeaders>request_headers</requestHeaders>
+        <responseHeaders>response_headers</responseHeaders>
+      </fieldNames>
+      <lowerCaseHeaderNames>true</lowerCaseHeaderNames>
+      <requestHeaderFilter class="com.hedvig.common.LogstashRequestHeaderFilter">
+        <exclude>Authorization</exclude>
+        <exclude>Cookie</exclude>
+      </requestHeaderFilter>
+    </encoder>
 
-    </appender>
-    <appender-ref ref="CONSOLE" />
+  </appender>
+  <appender-ref ref="CONSOLE"/>
 </configuration>

@@ -27,34 +27,36 @@ package com.hedvig.paymentService.trustly.data.request;
 import com.google.gson.annotations.SerializedName;
 
 public class RequestParameters {
-    @SerializedName("Signature")
-    private String signature;
-    @SerializedName("UUID")
-    private String uuid;
-    @SerializedName("Data")
-    private RequestData data;
+  @SerializedName("Signature")
+  private String signature;
 
-    public RequestData getData() {
-        return data;
-    }
+  @SerializedName("UUID")
+  private String uuid;
 
-    public void setData(final RequestData data) {
-        this.data = data;
-    }
+  @SerializedName("Data")
+  private RequestData data;
 
-    public String getSignature() {
-        return signature;
-    }
+  public RequestData getData() {
+    return data;
+  }
 
-    public void setSignature(final String signature) {
-        this.signature = signature;
-    }
+  public void setData(final RequestData data) {
+    this.data = data;
+  }
 
-    String getUUID() {
-        return uuid;
-    }
+  public String getSignature() {
+    return signature;
+  }
 
-    public void setUUID(final String uuid) {
-        this.uuid = uuid;
-    }
+  public void setSignature(final String signature) {
+    this.signature = signature;
+  }
+
+  String getUUID() {
+    return uuid;
+  }
+
+  public void setUUID(final String uuid) {
+    this.uuid = uuid;
+  }
 }

@@ -24,55 +24,54 @@
 
 package com.hedvig.paymentService.trustly.requestbuilders;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.data.response.Response;
+import com.hedvig.paymentService.trustly.data.response.Result;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Creates a new notification response ready to be sent to Trustly API.
- * The constructor contains the required fields of a notification response.
+ * Creates a new notification response ready to be sent to Trustly API. The constructor contains the
+ * required fields of a notification response.
  *
- * Builder let you add additional information if any is available for the given response.
+ * <p>Builder let you add additional information if any is available for the given response.
  *
- * The API specifics of the response can be found on https://trustly.com/en/developer/
+ * <p>The API specifics of the response can be found on https://trustly.com/en/developer/
  *
- * Example use for a default notification response:
- * Response response = new NotificationResponse.Build(method, uuid, responseStatus).getResponse();
+ * <p>Example use for a default notification response: Response response = new
+ * NotificationResponse.Build(method, uuid, responseStatus).getResponse();
  */
 public class NotificationResponse {
-    private final Response response = new Response();
+  private final Response response = new Response();
 
-    private NotificationResponse(final Build builder) {
-        final Result result = new Result();
-        result.setUuid(builder.uuid);
-        result.setData(builder.data);
-        result.setMethod(builder.method);
+  private NotificationResponse(final Build builder) {
+    final Result result = new Result();
+    result.setUuid(builder.uuid);
+    result.setData(builder.data);
+    result.setMethod(builder.method);
 
-        response.setResult(result);
-        response.setVersion("1.1");
+    response.setResult(result);
+    response.setVersion("1.1");
+  }
+
+  public Response getResponse() {
+    return response;
+  }
+
+  public static class Build {
+    private final Map<String, Object> data = new HashMap<>();
+    final String uuid;
+    final Method method;
+
+    public Build(final Method method, final String uuid, final ResponseStatus status) {
+      this.uuid = uuid;
+      this.method = method;
+      data.put("status", status);
     }
 
     public Response getResponse() {
-        return response;
+      return new NotificationResponse(this).getResponse();
     }
-
-    public static class Build {
-        private final Map<String, Object> data = new HashMap<>();
-        final String uuid;
-        final Method method;
-
-        public Build(final Method method, final String uuid, final ResponseStatus status) {
-            this.uuid = uuid;
-            this.method = method;
-            data.put("status", status);
-        }
-
-        public Response getResponse() {
-            return new NotificationResponse(this).getResponse();
-        }
-    }
+  }
 }

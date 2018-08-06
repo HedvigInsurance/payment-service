@@ -7,11 +7,11 @@ import lombok.Value;
 
 @Value
 public class PendingNotificationReceivedEvent {
-    UUID hedvigOrderId;
+  UUID hedvigOrderId;
 
-    String notificationId;
-    String trustlyOrderId;
-    MonetaryAmount amount;
-    String memberId;
-    Instant timestamp;
+  String notificationId;
+  String trustlyOrderId;
+  MonetaryAmount amount;
+  String memberId;
+  Instant timestamp;
 }

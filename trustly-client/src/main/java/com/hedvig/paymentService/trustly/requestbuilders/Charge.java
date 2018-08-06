@@ -24,60 +24,67 @@
 
 package com.hedvig.paymentService.trustly.requestbuilders;
 
+import com.hedvig.paymentService.trustly.commons.Currency;
+import com.hedvig.paymentService.trustly.commons.Method;
+import com.hedvig.paymentService.trustly.data.request.Request;
+import com.hedvig.paymentService.trustly.data.request.RequestParameters;
+import com.hedvig.paymentService.trustly.data.request.requestdata.ChargeData;
+import com.hedvig.paymentService.trustly.security.SignatureHandler;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.hedvig.paymentService.trustly.commons.Currency;
-import com.hedvig.paymentService.trustly.commons.Method;
-import com.hedvig.paymentService.trustly.data.request.RequestParameters;
-import com.hedvig.paymentService.trustly.security.SignatureHandler;
-import com.hedvig.paymentService.trustly.data.request.Request;
-import com.hedvig.paymentService.trustly.data.request.requestdata.ChargeData;
-
 /**
- * Creates a Charge request ready to be sent to Trustly API.
- * The constructor contains the required fields of a Charge request.
+ * Creates a Charge request ready to be sent to Trustly API. The constructor contains the required
+ * fields of a Charge request.
  *
- * The API specifics of the request can be found on https://trustly.com/en/developer/
+ * <p>The API specifics of the request can be found on https://trustly.com/en/developer/
  *
- * Example use for a default Charge request:
- * Request charge = new Charge.Build(notificationURL, endUserID, messageID, amount, currency, shopperStatement, email).getRequest();
+ * <p>Example use for a default Charge request: Request charge = new Charge.Build(notificationURL,
+ * endUserID, messageID, amount, currency, shopperStatement, email).getRequest();
  */
 public class Charge {
-    private final Request request = new Request();
+  private final Request request = new Request();
 
-    private Charge(final Build builder) {
-        final RequestParameters params = new RequestParameters();
-        params.setUUID(SignatureHandler.generateNewUUID());
-        params.setData(builder.data);
+  private Charge(final Build builder) {
+    final RequestParameters params = new RequestParameters();
+    params.setUUID(SignatureHandler.generateNewUUID());
+    params.setData(builder.data);
 
-        request.setMethod(Method.CHARGE);
-        request.setParams(params);
+    request.setMethod(Method.CHARGE);
+    request.setParams(params);
+  }
+
+  public Request getRequest() {
+    return request;
+  }
+
+  public static class Build {
+    private final ChargeData data = new ChargeData();
+    private final Map<String, Object> attributes = new TreeMap<>();
+
+    public Build(
+        final String accountID,
+        final String notificationURL,
+        final String endUserID,
+        final String messageID,
+        final String amount,
+        final Currency currency,
+        final String shopperStatement,
+        final String email) {
+      data.setAccountID(accountID);
+      data.setNotificationURL(notificationURL);
+      data.setEndUserID(endUserID);
+      data.setMessageID(messageID);
+      data.setAmount(amount);
+      data.setCurrency(currency);
+
+      attributes.put("ShopperStatement", shopperStatement);
+      attributes.put("Email", email);
+      data.setAttributes(attributes);
     }
 
     public Request getRequest() {
-        return request;
+      return new Charge(this).getRequest();
     }
-
-    public static class Build {
-        private final ChargeData data = new ChargeData();
-        private final Map<String, Object> attributes = new TreeMap<>();
-
-        public Build(final String accountID, final String notificationURL, final String endUserID, final String messageID, final String amount, final Currency currency, final String shopperStatement, final String email) {
-            data.setAccountID(accountID);
-            data.setNotificationURL(notificationURL);
-            data.setEndUserID(endUserID);
-            data.setMessageID(messageID);
-            data.setAmount(amount);
-            data.setCurrency(currency);
-
-            attributes.put("ShopperStatement", shopperStatement);
-            attributes.put("Email", email);
-            data.setAttributes(attributes);
-        }
-
-        public Request getRequest() {
-            return new Charge(this).getRequest();
-        }
-    }
+  }
 }

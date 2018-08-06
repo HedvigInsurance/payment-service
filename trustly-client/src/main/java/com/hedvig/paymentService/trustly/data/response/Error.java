@@ -25,40 +25,40 @@
 package com.hedvig.paymentService.trustly.data.response;
 
 public class Error {
-    private String name;
-    private int code;
-    private String message;
-    private ErrorBody error;
+  private String name;
+  private int code;
+  private String message;
+  private ErrorBody error;
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+  public void setName(final String name) {
+    this.name = name;
+  }
 
-    public int getCode() {
-        return code;
-    }
+  public int getCode() {
+    return code;
+  }
 
-    public void setCode(final int code) {
-        this.code = code;
-    }
+  public void setCode(final int code) {
+    this.code = code;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public void setMessage(final String message) {
-        this.message = message;
-    }
+  public void setMessage(final String message) {
+    this.message = message;
+  }
 
-    public ErrorBody getError() {
-        return error;
-    }
+  public ErrorBody getError() {
+    return error;
+  }
 
-    public void setError(final ErrorBody error) {
-        this.error = error;
-    }
+  public void setError(final ErrorBody error) {
+    this.error = error;
+  }
 }
