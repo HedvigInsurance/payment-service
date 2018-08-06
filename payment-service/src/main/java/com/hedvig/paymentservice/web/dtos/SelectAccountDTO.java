@@ -4,10 +4,10 @@ import lombok.Value;
 
 @Value
 public class SelectAccountDTO {
-    String firstName;
-    String lastName;
-    String ssn;
-    String email;
-    String memberId;
-    String requestId;
+  String firstName;
+  String lastName;
+  String ssn;
+  String email;
+  String memberId;
+  String requestId;
 }

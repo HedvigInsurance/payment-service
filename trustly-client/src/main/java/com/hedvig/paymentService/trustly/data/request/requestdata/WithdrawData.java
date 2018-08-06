@@ -29,44 +29,47 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class WithdrawData extends RequestData {
-    @SerializedName("NotificationURL")
-    private String notificationUrl;
-    @SerializedName("EndUserID")
-    private String enduserId;
-    @SerializedName("MessageID")
-    private String messageId;
-    @SerializedName("Currency")
-    private Currency currency;
+  @SerializedName("NotificationURL")
+  private String notificationUrl;
 
-    public String getNotificationURL() {
-        return notificationUrl;
-    }
+  @SerializedName("EndUserID")
+  private String enduserId;
 
-    public void setNotificationURL(final String notificationUrl) {
-        this.notificationUrl = notificationUrl;
-    }
+  @SerializedName("MessageID")
+  private String messageId;
 
-    public String getEndUserID() {
-        return enduserId;
-    }
+  @SerializedName("Currency")
+  private Currency currency;
 
-    public void setEndUserID(final String enduserId) {
-        this.enduserId = enduserId;
-    }
+  public String getNotificationURL() {
+    return notificationUrl;
+  }
 
-    public String getMessageID() {
-        return messageId;
-    }
+  public void setNotificationURL(final String notificationUrl) {
+    this.notificationUrl = notificationUrl;
+  }
 
-    public void setMessageID(final String messageId) {
-        this.messageId = messageId;
-    }
+  public String getEndUserID() {
+    return enduserId;
+  }
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  public void setEndUserID(final String enduserId) {
+    this.enduserId = enduserId;
+  }
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  public String getMessageID() {
+    return messageId;
+  }
+
+  public void setMessageID(final String messageId) {
+    this.messageId = messageId;
+  }
+
+  public Currency getCurrency() {
+    return currency;
+  }
+
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 }

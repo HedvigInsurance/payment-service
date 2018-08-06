@@ -4,9 +4,9 @@ import lombok.Value;
 
 @Value
 public class DirectDebitRequest {
-    String firstName;
-    String lastName;
-    String ssn;
-    String memberId;
-    String triggerId;
+  String firstName;
+  String lastName;
+  String ssn;
+  String memberId;
+  String triggerId;
 }

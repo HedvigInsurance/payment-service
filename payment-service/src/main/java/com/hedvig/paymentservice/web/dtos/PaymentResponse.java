@@ -4,5 +4,5 @@ import lombok.Value;
 
 @Value
 public class PaymentResponse {
-    public String orderId;
+  public String orderId;
 }

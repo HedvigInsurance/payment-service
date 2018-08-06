@@ -24,40 +24,41 @@
 
 package com.hedvig.paymentService.trustly.data.request;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.gson.annotations.SerializedName;
-
 public abstract class RequestData {
-    @SerializedName("Username")
-    private String username;
-    @SerializedName("Password")
-    private String password;
-    @SerializedName("Attributes")
-    private Map<String, Object> attributes = new TreeMap<>();
+  @SerializedName("Username")
+  private String username;
 
-    public void setUsername(final String username) {
-        this.username = username;
-    }
+  @SerializedName("Password")
+  private String password;
 
-    public String getUsername() {
-        return username;
-    }
+  @SerializedName("Attributes")
+  private Map<String, Object> attributes = new TreeMap<>();
 
-    public void setPassword(final String password) {
-        this.password = password;
-    }
+  public void setUsername(final String username) {
+    this.username = username;
+  }
 
-    public String getPassword() {
-        return password;
-    }
+  public String getUsername() {
+    return username;
+  }
 
-    public void setAttributes(final Map<String, Object> attributes) {
-        this.attributes = attributes;
-    }
+  public void setPassword(final String password) {
+    this.password = password;
+  }
 
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
+  public String getPassword() {
+    return password;
+  }
+
+  public void setAttributes(final Map<String, Object> attributes) {
+    this.attributes = attributes;
+  }
+
+  public Map<String, Object> getAttributes() {
+    return attributes;
+  }
 }

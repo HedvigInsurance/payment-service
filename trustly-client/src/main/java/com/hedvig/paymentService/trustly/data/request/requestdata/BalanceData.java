@@ -26,5 +26,4 @@ package com.hedvig.paymentService.trustly.data.request.requestdata;
 
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
-public class BalanceData extends RequestData {
-}
+public class BalanceData extends RequestData {}

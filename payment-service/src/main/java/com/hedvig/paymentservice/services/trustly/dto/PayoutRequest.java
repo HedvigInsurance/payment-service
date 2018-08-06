@@ -6,12 +6,12 @@ import lombok.Value;
 
 @Value
 public class PayoutRequest {
-    String memberId;
-    MonetaryAmount amount;
-    String accountId;
-    String address;
-    String countryCode;
-    LocalDate dateOfBirth;
-    String firstName;
-    String lastName;
+  String memberId;
+  MonetaryAmount amount;
+  String accountId;
+  String address;
+  String countryCode;
+  LocalDate dateOfBirth;
+  String firstName;
+  String lastName;
 }

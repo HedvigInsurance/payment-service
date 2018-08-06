@@ -27,49 +27,55 @@ package com.hedvig.paymentService.trustly.data.response;
 import com.google.gson.annotations.Expose;
 
 public class Response {
-    private String version;
-    private Result result;
-    @Expose(serialize = false)
-    private com.hedvig.paymentService.trustly.data.response.Error error;
+  private String version;
+  private Result result;
 
-    public String getVersion() {
-        return version;
-    }
+  @Expose(serialize = false)
+  private com.hedvig.paymentService.trustly.data.response.Error error;
 
-    public void setVersion(final String version) {
-        this.version = version;
-    }
+  public String getVersion() {
+    return version;
+  }
 
-    public Result getResult() {
-        return result;
-    }
+  public void setVersion(final String version) {
+    this.version = version;
+  }
 
-    public void setResult(final Result result) {
-        this.result = result;
-    }
+  public Result getResult() {
+    return result;
+  }
 
-    public com.hedvig.paymentService.trustly.data.response.Error getError() {
-        return error;
-    }
+  public void setResult(final Result result) {
+    this.result = result;
+  }
 
-    public void setError(final com.hedvig.paymentService.trustly.data.response.Error error) {
-        this.error = error;
-    }
+  public com.hedvig.paymentService.trustly.data.response.Error getError() {
+    return error;
+  }
 
-    public boolean successfulResult() {
-        return result != null && error == null;
-    }
+  public void setError(final com.hedvig.paymentService.trustly.data.response.Error error) {
+    this.error = error;
+  }
 
-    public String getUUID() {
-        return successfulResult() ? result.getUuid() : error.getError().getUuid();
-    }
+  public boolean successfulResult() {
+    return result != null && error == null;
+  }
 
-    public String getSignature() {
-        return successfulResult() ? result.getSignature() : error.getError().getSignature();
-    }
+  public String getUUID() {
+    return successfulResult() ? result.getUuid() : error.getError().getUuid();
+  }
 
-    @Override
-    public String toString() {
-        return "VERSION: " + version +  "\nERROR: " + error + "\nRESULT:\n" + (result != null ? result.toString(): "");
-    }
+  public String getSignature() {
+    return successfulResult() ? result.getSignature() : error.getError().getSignature();
+  }
+
+  @Override
+  public String toString() {
+    return "VERSION: "
+        + version
+        + "\nERROR: "
+        + error
+        + "\nRESULT:\n"
+        + (result != null ? result.toString() : "");
+  }
 }

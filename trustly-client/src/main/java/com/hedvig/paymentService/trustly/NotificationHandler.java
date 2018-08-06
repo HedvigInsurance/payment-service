@@ -26,71 +26,73 @@ package com.hedvig.paymentService.trustly;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.hedvig.paymentService.trustly.commons.exceptions.TrustlySignatureException;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.CancelNotificationData;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.DebitNotificationData;
 import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.commons.NotificationDeserializer;
 import com.hedvig.paymentService.trustly.commons.ResponseStatus;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
-import com.hedvig.paymentService.trustly.data.notification.notificationdata.PendingNotificationData;
+import com.hedvig.paymentService.trustly.commons.exceptions.TrustlySignatureException;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.CancelNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.DebitNotificationData;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.PendingNotificationData;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.requestbuilders.NotificationResponse.Build;
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
 
 public class NotificationHandler {
 
-    final SignatureHandler signatureHandler = SignatureHandler.getInstance();
+  final SignatureHandler signatureHandler = SignatureHandler.getInstance();
 
-    /**
-     * Deserializes and verifies incoming notification.
-     * @param notificationJson Notification sent from Trustly.
-     * @return Request object, a deserialized notification.
-     */
-    public Notification handleNotification(final String notificationJson) {
-        final NotificationDeserializer deserializer = new NotificationDeserializer();
+  /**
+   * Deserializes and verifies incoming notification.
+   *
+   * @param notificationJson Notification sent from Trustly.
+   * @return Request object, a deserialized notification.
+   */
+  public Notification handleNotification(final String notificationJson) {
+    final NotificationDeserializer deserializer = new NotificationDeserializer();
 
-        deserializer.registerDataType(Method.CREDIT.toString(), CreditData.class);
-        deserializer.registerDataType(Method.ACCOUNT.toString(), AccountNotificationData.class);
-        deserializer.registerDataType(Method.CANCEL.toString(), CancelNotificationData.class);
-        deserializer.registerDataType(Method.DEBIT.toString(), DebitNotificationData.class);
-        deserializer.registerDataType(Method.PENDING.toString(), PendingNotificationData.class);
+    deserializer.registerDataType(Method.CREDIT.toString(), CreditData.class);
+    deserializer.registerDataType(Method.ACCOUNT.toString(), AccountNotificationData.class);
+    deserializer.registerDataType(Method.CANCEL.toString(), CancelNotificationData.class);
+    deserializer.registerDataType(Method.DEBIT.toString(), DebitNotificationData.class);
+    deserializer.registerDataType(Method.PENDING.toString(), PendingNotificationData.class);
 
-        final Gson gson = new GsonBuilder().registerTypeAdapter(Notification.class, deserializer)
-                                     .create();
+    final Gson gson =
+        new GsonBuilder().registerTypeAdapter(Notification.class, deserializer).create();
 
-        final Notification notification = gson.fromJson(notificationJson, Notification.class);
+    final Notification notification = gson.fromJson(notificationJson, Notification.class);
 
-        verifyNotification(notification);
+    verifyNotification(notification);
 
-        return notification;
+    return notification;
+  }
+
+  private void verifyNotification(final Notification notification) {
+    if (!signatureHandler.verifyNotificationSignature(notification)) {
+      throw new TrustlySignatureException("Incoming data signature is not valid");
     }
+  }
 
-    private void verifyNotification(final Notification notification) {
-        if (!signatureHandler.verifyNotificationSignature(notification)) {
-            throw new TrustlySignatureException("Incoming data signature is not valid");
-        }
-    }
+  /**
+   * Creates a response for an incoming notification.
+   *
+   * @param method method of the notification
+   * @param uuid UUID of the incoming notification
+   * @param status OK/FAIL
+   * @return Notification response
+   */
+  public Response prepareNotificationResponse(
+      final Method method, final String uuid, final ResponseStatus status) {
+    final Response response = new Build(method, uuid, status).getResponse();
 
-    /**
-     * Creates a response for an incoming notification.
-     * @param method method of the notification
-     * @param uuid UUID of the incoming notification
-     * @param status OK/FAIL
-     * @return Notification response
-     */
-    public Response prepareNotificationResponse(final Method method, final String uuid, final ResponseStatus status) {
-        final Response response = new Build(method, uuid, status)
-                .getResponse();
+    signatureHandler.signNotificationResponse(response);
 
-        signatureHandler.signNotificationResponse(response);
+    return response;
+  }
 
-        return response;
-    }
-
-    public String toJson(final Response response) {
-        return new Gson().toJson(response);
-    }
+  public String toJson(final Response response) {
+    return new Gson().toJson(response);
+  }
 }

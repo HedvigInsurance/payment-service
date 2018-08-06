@@ -7,9 +7,9 @@ import lombok.Value;
 
 @Value
 public class PayoutCreationFailedEvent {
-    String memberId;
+  String memberId;
 
-    UUID transactionId;
-    MonetaryAmount amount;
-    Instant timestamp;
+  UUID transactionId;
+  MonetaryAmount amount;
+  Instant timestamp;
 }

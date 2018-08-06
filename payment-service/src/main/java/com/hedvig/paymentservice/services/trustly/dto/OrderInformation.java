@@ -1,17 +1,15 @@
 package com.hedvig.paymentservice.services.trustly.dto;
 
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
-import lombok.Value;
-
 import java.util.UUID;
+import lombok.Value;
 
 @Value
 public class OrderInformation {
 
-    UUID id;
+  UUID id;
 
-    String iframeUrl;
+  String iframeUrl;
 
-    OrderState state;
-
+  OrderState state;
 }

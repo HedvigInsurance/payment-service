@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class PaymentServiceApplication {
 
-	@Bean
-	UUIDGenerator uuidGenerator() {
-		return new UUIDGeneratorImpl();
-	}
+  @Bean
+  UUIDGenerator uuidGenerator() {
+    return new UUIDGeneratorImpl();
+  }
 
-	public static void main(String[] args) {
-		SpringApplication.run(PaymentServiceApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(PaymentServiceApplication.class, args);
+  }
 }

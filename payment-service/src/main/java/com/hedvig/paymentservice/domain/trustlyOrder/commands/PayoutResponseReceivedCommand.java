@@ -2,15 +2,13 @@ package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
 import java.util.UUID;
 import javax.money.MonetaryAmount;
-import org.axonframework.commandhandling.TargetAggregateIdentifier;
-
 import lombok.Value;
+import org.axonframework.commandhandling.TargetAggregateIdentifier;
 
 @Value
 public class PayoutResponseReceivedCommand {
-    @TargetAggregateIdentifier
-    UUID hedvigOrderId;
+  @TargetAggregateIdentifier UUID hedvigOrderId;
 
-    String trustlyOrderId;
-    MonetaryAmount amount;
+  String trustlyOrderId;
+  MonetaryAmount amount;
 }
