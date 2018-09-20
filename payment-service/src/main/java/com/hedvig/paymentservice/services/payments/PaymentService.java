@@ -76,6 +76,4 @@ public class PaymentService {
   public void sendCommand(UpdateTrustlyAccountCommand cmd) {
     commandGateway.sendAndWait(cmd);
   }
-
-  private
 }
