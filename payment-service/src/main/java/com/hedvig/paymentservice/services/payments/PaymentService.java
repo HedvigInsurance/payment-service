@@ -8,7 +8,9 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCo
 import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
+import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.time.Instant;
+import java.util.UUID;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
@@ -54,7 +56,26 @@ public class PaymentService {
             Instant.now()));
   }
 
+  public UUID payoutMember(String memberId, PayoutRequest request) {
+    UUID transactionId = uuidGenerator.generateRandom();
+    boolean result = commandGateway.sendAndWait(
+        new CreatePayoutCommand(
+            memberId,
+            transactionId,
+            request.getAmount(),
+            request.getAddress(),
+            request.getCountryCode(),
+            request.getDateOfBirth(),
+            request.getFirstName(),
+            request.getLastName(),
+            Instant.now()));
+
+    return result ? transactionId : null;
+  }
+
   public void sendCommand(UpdateTrustlyAccountCommand cmd) {
     commandGateway.sendAndWait(cmd);
   }
+
+  private
 }
