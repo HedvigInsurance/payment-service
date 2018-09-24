@@ -25,11 +25,11 @@ public class MemberControllerV2 {
   }
 
   @PostMapping(path = "{memberId}/payout")
-  public ResponseEntity<?> payoutMember(
+  public ResponseEntity<UUID> payoutMember(
       @PathVariable String memberId, @RequestBody PayoutRequest request) {
 
     Optional<UUID> result = paymentService.payoutMember(memberId, request);
-    return result.<ResponseEntity<?>>map(uuid -> ResponseEntity.accepted().body(uuid))
+    return result.map(uuid -> ResponseEntity.accepted().body(uuid))
         .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
   }
 }
