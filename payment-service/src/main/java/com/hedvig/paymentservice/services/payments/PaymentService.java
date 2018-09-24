@@ -10,6 +10,7 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -56,7 +57,8 @@ public class PaymentService {
             Instant.now()));
   }
 
-  public UUID payoutMember(String memberId, PayoutRequest request) {
+
+  public Optional<UUID> payoutMember(String memberId, PayoutRequest request) {
     UUID transactionId = uuidGenerator.generateRandom();
     boolean result = commandGateway.sendAndWait(
         new CreatePayoutCommand(
@@ -70,7 +72,7 @@ public class PaymentService {
             request.getLastName(),
             Instant.now()));
 
-    return result ? transactionId : null;
+    return result ? Optional.of(transactionId) : Optional.empty();
   }
 
   public void sendCommand(UpdateTrustlyAccountCommand cmd) {

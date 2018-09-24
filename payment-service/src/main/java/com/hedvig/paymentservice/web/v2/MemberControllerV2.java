@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.web.v2;
 
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,10 +28,8 @@ public class MemberControllerV2 {
   public ResponseEntity<?> payoutMember(
       @PathVariable String memberId, @RequestBody PayoutRequest request) {
 
-    UUID result = paymentService.payoutMember(memberId, request);
-    if (result == null) {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
-    }
-    return ResponseEntity.accepted().body(result);
+    Optional<UUID> result = paymentService.payoutMember(memberId, request);
+    return result.<ResponseEntity<?>>map(uuid -> ResponseEntity.accepted().body(uuid))
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
   }
 }
