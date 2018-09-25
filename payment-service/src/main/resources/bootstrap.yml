@@ -4,9 +4,12 @@ spring:
 
 ---
 spring:
-  profiles: test, development
-  cloud:
-    kubernetes:
-      enabled: false
-  autoconfigure:
-    exclude: org.springframework.cloud.kubernetes.KubernetesAutoConfiguration
+    profiles: test, development
+    cloud:
+        kubernetes:
+            enabled: false
+            discovery.enabled: false
+    autoconfigure:
+        exclude:
+            - org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration
+            - org.springframework.cloud.kubernetes.KubernetesAutoConfiguration
