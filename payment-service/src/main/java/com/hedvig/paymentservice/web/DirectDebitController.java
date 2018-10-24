@@ -7,7 +7,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,9 +22,9 @@ public class DirectDebitController {
     this.memberRepository = memberRepository;
   }
 
-  @GetMapping(path = "/{memberId}/status")
+  @GetMapping(path = "status")
   public ResponseEntity<DirectDebitStatusDTO> getDirectDebitStatus(
-      @PathVariable("memberId") String memberId) {
+      @RequestHeader(name = "hedvig.token") String memberId) {
 
     Optional<Member> om = memberRepository.findById(memberId);
 
