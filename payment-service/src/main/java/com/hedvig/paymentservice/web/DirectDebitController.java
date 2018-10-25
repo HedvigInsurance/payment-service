@@ -58,6 +58,8 @@ public class DirectDebitController {
       @RequestHeader(name = "hedvig.token") String memberId,
       @RequestBody @Valid RegisterDirectDebitRequestDTO req) {
 
+    logger.info("Starting register directDebit for member {}", memberId);
+
     final DirectDebitResponse response = trustlyService
         .requestDirectDebitAccount(new DirectDebitOrderInfo(memberId, req, false));
 
