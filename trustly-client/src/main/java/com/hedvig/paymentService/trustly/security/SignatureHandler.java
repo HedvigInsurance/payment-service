@@ -138,7 +138,7 @@ public class SignatureHandler {
       signatureInstance.update(plainText.getBytes("UTF-8"));
 
       final byte[] signature = signatureInstance.sign();
-      return Arrays.toString(base64Encoder.encode(signature));
+      return base64Encoder.encodeToString(signature);
     } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
       throw new TrustlySignatureException(e);
     } catch (final InvalidKeyException e) {
