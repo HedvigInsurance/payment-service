@@ -29,7 +29,7 @@ public class DirectDebitController {
     Optional<Member> om = memberRepository.findById(memberId);
 
     if (!om.isPresent()) {
-      return ResponseEntity.notFound().build();
+      return ResponseEntity.badRequest().build();
     }
 
     Member member = om.get();
