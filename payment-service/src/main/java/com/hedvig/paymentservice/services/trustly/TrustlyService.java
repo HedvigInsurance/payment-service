@@ -31,7 +31,7 @@ import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
-import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
+import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
@@ -76,8 +76,10 @@ public class TrustlyService {
   private final SignedAPI api;
   private final CommandGateway gateway;
   private final UUIDGenerator uuidGenerator;
-  private final String successUrl;
-  private final String failUrl;
+  private final String redirectingToBotServiceSuccessUrl;
+  private final String redirectingToBotServiceFailUrl;
+  private final String plainSuccessUrl;
+  private final String plainFailUrl;
 
   private final TrustlyOrderRepository orderRepository;
 
@@ -88,27 +90,31 @@ public class TrustlyService {
       CommandGateway gateway,
       UUIDGenerator uuidGenerator,
       TrustlyOrderRepository orderRepository,
-      @Value("${hedvig.trustly.successURL}") String successUrl,
-      @Value("${hedvig.trustly.failURL}") String failUrl,
+      @Value("${hedvig.trustly.successURL}") String redirectingToBotServiceSuccessUrl,
+      @Value("${hedvig.trustly.failURL}") String redirectingToBotServiceFailUrl,
       @Value("${hedvig.trustly.notificationURL}") String notificationUrl,
+      @Value("${hedvig.trustly.non.redirecting.to.botService.successURL}") String plainSuccessUrl,
+      @Value("${hedvig.trustly.non.redirecting.to.botService.failURL}") String plainFailUrl,
       Environment springEnvironment) {
     this.api = api;
     this.gateway = gateway;
     this.uuidGenerator = uuidGenerator;
     this.orderRepository = orderRepository;
-    this.successUrl = successUrl;
-    this.failUrl = failUrl;
+    this.redirectingToBotServiceSuccessUrl = redirectingToBotServiceSuccessUrl;
+    this.redirectingToBotServiceFailUrl = redirectingToBotServiceFailUrl;
     this.notificationUrl = notificationUrl;
     this.springEnvironment = springEnvironment;
+    this.plainSuccessUrl = plainSuccessUrl;
+    this.plainFailUrl = plainFailUrl;
   }
 
-  public DirectDebitResponse requestDirectDebitAccount(DirectDebitRequest request) {
+  public DirectDebitResponse requestDirectDebitAccount(DirectDebitOrderInfo info) {
 
     final UUID requestId = uuidGenerator.generateRandom();
 
-    gateway.sendAndWait(new CreateOrderCommand(request.getMemberId(), requestId));
+    gateway.sendAndWait(new CreateOrderCommand(info.getMemberId(), requestId));
 
-    return startTrustlyOrder(request.getMemberId(), request, requestId);
+    return startTrustlyOrder(info, requestId);
   }
 
   public void startPaymentOrder(PaymentRequest request, UUID hedvigOrderId) {
@@ -173,10 +179,9 @@ public class TrustlyService {
     }
   }
 
-  private DirectDebitResponse startTrustlyOrder(
-      String memberId, DirectDebitRequest request, UUID requestId) {
+  private DirectDebitResponse startTrustlyOrder(DirectDebitOrderInfo request, UUID requestId) {
     try {
-      final Request trustlyRequest = createRequest(requestId, memberId, request);
+      final Request trustlyRequest = createRequest(request, requestId);
       final Response response = api.sendRequest(trustlyRequest);
 
       if (response.successfulResult()) {
@@ -272,28 +277,31 @@ public class TrustlyService {
     }
   }
 
-  private Request createRequest(UUID hedvigOrderId, String memberId, DirectDebitRequest request) {
+  private Request createRequest(DirectDebitOrderInfo info, UUID hedvigOrderId) {
     final SelectAccount.Build build =
-        new SelectAccount.Build(notificationUrl, memberId, hedvigOrderId.toString());
+        new SelectAccount.Build(notificationUrl, info.getMemberId(), hedvigOrderId.toString());
     build.requestDirectDebitMandate("1");
-    build.firstName(request.getFirstName());
-    build.lastName(request.getLastName());
+    build.firstName(info.getFirstName());
+    build.lastName(info.getLastName());
     build.country(COUNTRY);
-    build.email(createMemberEmail(request.getMemberId()));
+    build.email(createMemberEmail(info.getMemberId()));
     build.locale("sv_SE");
-    build.nationalIdentificationNumber(request.getSsn());
-    build.successURL(appendTriggerId(successUrl, request.getTriggerId()));
-    build.failURL(appendTriggerId(failUrl, request.getTriggerId()));
+    build.nationalIdentificationNumber(info.getPersonalNumber());
+    build.successURL(
+        info.isRedirectingToBotService() ? appendTriggerId(redirectingToBotServiceSuccessUrl, info.getTriggerId())
+            : plainSuccessUrl);
+    build.failURL(info.isRedirectingToBotService() ? appendTriggerId(redirectingToBotServiceFailUrl, info.getTriggerId())
+        : plainFailUrl);
 
-    final Request request1 = build.getRequest();
+    final Request directDebitOrderRequest = build.getRequest();
     final Gson gson = new Gson();
-    log.info("Trustly request details: {}", gson.toJson(request1));
+    log.info("Trustly request details: {}", gson.toJson(directDebitOrderRequest));
 
     if (springEnvironment.acceptsProfiles("development")) {
-      request1.getParams().getData().getAttributes().put("HoldNotifications", "1");
+      directDebitOrderRequest.getParams().getData().getAttributes().put("HoldNotifications", "1");
     }
 
-    return request1;
+    return directDebitOrderRequest;
   }
 
   private String appendTriggerId(String failUrl, String triggerId) {
