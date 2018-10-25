@@ -113,7 +113,7 @@ public class TrustlyServiceTest {
     given(signedAPI.sendRequest(any())).willReturn(trustlyResponse);
 
     final DirectDebitResponse directDebitResponse =
-        testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+        testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     assertThat(directDebitResponse.getUrl()).isEqualTo(TRUSTLY_IFRAME_URL);
 
@@ -134,7 +134,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -148,7 +148,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -161,7 +161,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -175,7 +175,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -190,7 +190,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -206,7 +206,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), false));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(false));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -221,7 +221,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), false));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(false));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -236,7 +236,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -254,7 +254,7 @@ public class TrustlyServiceTest {
     given(signedAPI.sendRequest(requestCaptor.capture())).willThrow(exception);
 
     thrown.expect(RuntimeException.class);
-    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
+    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true));
 
     verify(gateway, atLeastOnce())
         .sendAndWait(new SelectAccountRequestFailedCommand(REQUEST_ID, EXCEPTION_MESSAGE));
@@ -358,5 +358,9 @@ public class TrustlyServiceTest {
     response.setResult(result);
 
     return response;
+  }
+
+  private DirectDebitOrderInfo makeDirectDebitOrderInfo(boolean b) {
+    return new DirectDebitOrderInfo(makeDirectDebitRequest(), b);
   }
 }
