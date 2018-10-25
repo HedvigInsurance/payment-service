@@ -5,5 +5,7 @@ hedvig.trustly.privateKeyPassword: ""
 hedvig.trustly.username: "test"
 hedvig.trustly.password: "test"
 hedvig.trustly.notificationURL: "https://test"
+hedvig.trustly.non.redirecting.to.botService.successURL: "https://hedvig.com/trustly/success"
+hedvig.trustly.non.redirecting.to.botService.failURL: " https://hedvig.com/trustly/fail"
 
 spring.jpa.hibernate.ddl-auto: create

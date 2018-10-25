@@ -33,6 +33,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountRespo
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
+import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import java.util.HashMap;
 import java.util.Optional;
@@ -60,6 +61,8 @@ public class TrustlyServiceTest {
   private static final String EXCEPTION_MESSAGE = "Could not connect to trustly";
   private static final String SUCCESS_URL = "https://hedvig.com/success";
   private static final String FAIL_URL = "https://hedvig.com/failure&triggerId";
+  private static final String PLAIN_SUCCESS_URL = "https://hedvig.com/success";
+  private static final String PLAIN_FAIL_URL = "https://hedvig.com/failure&triggerId";
   private static final String NOTIFICATION_URL = "https://gateway.test.hedvig.com/notificationHook";
   @Mock private SignedAPI signedAPI;
 
@@ -94,7 +97,10 @@ public class TrustlyServiceTest {
             SUCCESS_URL,
             FAIL_URL,
             NOTIFICATION_URL,
-            springEnvironment);
+            PLAIN_SUCCESS_URL,
+            PLAIN_FAIL_URL,
+            springEnvironment
+            );
   }
 
   @Test
@@ -107,7 +113,7 @@ public class TrustlyServiceTest {
     given(signedAPI.sendRequest(any())).willReturn(trustlyResponse);
 
     final DirectDebitResponse directDebitResponse =
-        testService.requestDirectDebitAccount(makeDirectDebitRequest());
+        testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     assertThat(directDebitResponse.getUrl()).isEqualTo(TRUSTLY_IFRAME_URL);
 
@@ -128,7 +134,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -142,7 +148,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -155,7 +161,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -169,7 +175,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -184,12 +190,43 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
     assertThat(requestData.getAttributes().get("FailURL"))
         .isEqualTo(withQuotes(FAIL_URL + "&triggerId=" + BOT_SERVICE_TRIGGER_ID));
+  }
+
+
+  @Test
+  public void
+  givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithPlainSuccessURL_eqSuccessUrlWithTriggerId() {
+
+    final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
+    given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
+
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), false));
+
+    SelectAccountData requestData =
+        (SelectAccountData) requestCaptor.getValue().getParams().getData();
+    assertThat(requestData.getAttributes().get("SuccessURL"))
+        .isEqualTo(withQuotes(PLAIN_SUCCESS_URL));
+  }
+
+  @Test
+  public void
+  givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithPlainFailURL_eqFailUrlWithTriggerId() {
+
+    final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
+    given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
+
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), false));
+
+    SelectAccountData requestData =
+        (SelectAccountData) requestCaptor.getValue().getParams().getData();
+    assertThat(requestData.getAttributes().get("FailURL"))
+        .isEqualTo(withQuotes(PLAIN_FAIL_URL));
   }
 
   @Test
@@ -199,7 +236,7 @@ public class TrustlyServiceTest {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
     given(signedAPI.sendRequest(requestCaptor.capture())).willReturn(trustlyResponse);
 
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     SelectAccountData requestData =
         (SelectAccountData) requestCaptor.getValue().getParams().getData();
@@ -217,7 +254,7 @@ public class TrustlyServiceTest {
     given(signedAPI.sendRequest(requestCaptor.capture())).willThrow(exception);
 
     thrown.expect(RuntimeException.class);
-    testService.requestDirectDebitAccount(makeDirectDebitRequest());
+    testService.requestDirectDebitAccount(new DirectDebitOrderInfo(makeDirectDebitRequest(), true));
 
     verify(gateway, atLeastOnce())
         .sendAndWait(new SelectAccountRequestFailedCommand(REQUEST_ID, EXCEPTION_MESSAGE));
