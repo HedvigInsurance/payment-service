@@ -44,7 +44,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -58,8 +61,8 @@ public class SignatureHandler {
 
     private static SignatureHandler instance;
 
-    private final Base64.Encoder base64Encoder = Base64.getEncoder();
-    private final Base64.Decoder base64Decoder = Base64.getDecoder();
+  private final Encoder base64Encoder = Base64.getEncoder();
+  private final Decoder base64Decoder = Base64.getDecoder();
     private KeyChain keyChain;
 
     private String username;
@@ -137,7 +140,7 @@ public class SignatureHandler {
             signatureInstance.update(plainText.getBytes("UTF-8"));
 
             final byte[] signature = signatureInstance.sign();
-            return base64Encoder.encodeToString(signature);
+      return base64Encoder.encodeToString(signature);
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
             throw new TrustlySignatureException(e);
         } catch (final InvalidKeyException e) {
@@ -298,7 +301,7 @@ public class SignatureHandler {
         final String serializedData,
         final String responseSignature) {
         try {
-            final byte[] signature = base64Decoder.decode(responseSignature);
+      final byte[] signature = base64Decoder.decode(responseSignature);
             final Signature signatureInstance = Signature.getInstance("SHA1withRSA");
             signatureInstance.initVerify(keyChain.getTrustlyPublicKey());
             final String expectedPlainText = String.format("%s%s%s", method, uuid, serializedData);

@@ -11,6 +11,7 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

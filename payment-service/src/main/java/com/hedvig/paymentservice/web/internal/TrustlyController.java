@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web.internal;
 
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
+import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
@@ -33,7 +34,7 @@ public class TrustlyController {
   @PostMapping("/registerDirectDebit")
   public ResponseEntity<DirectDebitResponse> postRegisterDirectDebit(
       @RequestBody DirectDebitRequest requestData) {
-    final DirectDebitResponse directDebitResponse = service.requestDirectDebitAccount(requestData);
+    final DirectDebitResponse directDebitResponse = service.requestDirectDebitAccount(new DirectDebitOrderInfo(requestData, true));
 
     return ResponseEntity.ok(directDebitResponse);
   }
