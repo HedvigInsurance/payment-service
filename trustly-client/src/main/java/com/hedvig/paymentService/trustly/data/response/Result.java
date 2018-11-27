@@ -25,49 +25,55 @@
 package com.hedvig.paymentService.trustly.data.response;
 
 import com.hedvig.paymentService.trustly.commons.Method;
-
 import java.util.Map;
 
 public class Result {
-    private String signature;
-    private String uuid;
-    private Method method;
-    private Map<String, Object> data;
+  private String signature;
+  private String uuid;
+  private Method method;
+  private Map<String, Object> data;
 
-    public String getSignature() {
-        return signature;
-    }
+  public String getSignature() {
+    return signature;
+  }
 
-    public void setSignature(final String signature) {
-        this.signature = signature;
-    }
+  public void setSignature(final String signature) {
+    this.signature = signature;
+  }
 
-    public String getUuid() {
-        return uuid;
-    }
+  public String getUuid() {
+    return uuid;
+  }
 
-    public void setUuid(final String uuid) {
-        this.uuid = uuid;
-    }
+  public void setUuid(final String uuid) {
+    this.uuid = uuid;
+  }
 
-    public Method getMethod() {
-        return method;
-    }
+  public Method getMethod() {
+    return method;
+  }
 
-    public void setMethod(final Method method) {
-        this.method = method;
-    }
+  public void setMethod(final Method method) {
+    this.method = method;
+  }
 
-    public Map<String, Object> getData() {
-        return data;
-    }
+  public Map<String, Object> getData() {
+    return data;
+  }
 
-    public void setData(final Map<String, Object> data) {
-        this.data = data;
-    }
+  public void setData(final Map<String, Object> data) {
+    this.data = data;
+  }
 
-    @Override
-    public String toString() {
-        return "\tSIGNATURE: " + signature +  "\n\tUUID: " + uuid + "\n\tMETHOD: " + method + "\n\tDATA: " + data;
-    }
+  @Override
+  public String toString() {
+    return "\tSIGNATURE: "
+        + signature
+        + "\n\tUUID: "
+        + uuid
+        + "\n\tMETHOD: "
+        + method
+        + "\n\tDATA: "
+        + data;
+  }
 }

@@ -25,50 +25,50 @@
 package com.hedvig.paymentService.trustly.requestbuilders;
 
 import com.hedvig.paymentService.trustly.commons.Currency;
-import com.hedvig.paymentService.trustly.security.SignatureHandler;
 import com.hedvig.paymentService.trustly.commons.Method;
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.request.RequestParameters;
 import com.hedvig.paymentService.trustly.data.request.requestdata.AccountLedgerData;
+import com.hedvig.paymentService.trustly.security.SignatureHandler;
 
 /**
- * Creates an AccountLedger request ready to be sent to Trustly API.
- * The constructor contains the required fields of an AccountLedger request.
+ * Creates an AccountLedger request ready to be sent to Trustly API. The constructor contains the
+ * required fields of an AccountLedger request.
  *
- * Builder lets you add additional information if any is available for the given request.
+ * <p>Builder lets you add additional information if any is available for the given request.
  *
- * The API specifics of the request can be found on https://trustly.com/en/developer/
+ * <p>The API specifics of the request can be found on https://trustly.com/en/developer/
  *
- * Example use for a default AccountLedger request:
- * Request accountLedger = new AccountLedger.Build(fromDate, toDate, currency).getRequest();
+ * <p>Example use for a default AccountLedger request: Request accountLedger = new
+ * AccountLedger.Build(fromDate, toDate, currency).getRequest();
  */
 public class AccountLedger {
-    private final Request request = new Request();
+  private final Request request = new Request();
 
-    private AccountLedger(final Build builder) {
-        final RequestParameters params = new RequestParameters();
-        params.setUUID(SignatureHandler.generateNewUUID());
-        params.setData(builder.data);
+  private AccountLedger(final Build builder) {
+    final RequestParameters params = new RequestParameters();
+    params.setUUID(SignatureHandler.generateNewUUID());
+    params.setData(builder.data);
 
-        request.setMethod(Method.ACCOUNT_LEDGER);
-        request.setParams(params);
+    request.setMethod(Method.ACCOUNT_LEDGER);
+    request.setParams(params);
+  }
+
+  public Request getRequest() {
+    return request;
+  }
+
+  public static class Build {
+    private final AccountLedgerData data = new AccountLedgerData();
+
+    public Build(final String fromDate, final String toDate, final Currency currency) {
+      data.setFromDate(fromDate);
+      data.setToDate(toDate);
+      data.setCurrency(currency);
     }
 
     public Request getRequest() {
-        return request;
+      return new AccountLedger(this).getRequest();
     }
-
-    public static class Build {
-        private final AccountLedgerData data = new AccountLedgerData();
-
-        public Build(final String fromDate, final String toDate, final Currency currency) {
-            data.setFromDate(fromDate);
-            data.setToDate(toDate);
-            data.setCurrency(currency);
-        }
-
-        public Request getRequest() {
-            return new AccountLedger(this).getRequest();
-        }
-    }
+  }
 }

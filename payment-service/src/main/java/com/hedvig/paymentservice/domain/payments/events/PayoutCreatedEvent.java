@@ -8,15 +8,15 @@ import lombok.Value;
 
 @Value
 public class PayoutCreatedEvent {
-    String memberId;
+  String memberId;
 
-    UUID transactionId;
-    MonetaryAmount amount;
-    String address;
-    String countryCode;
-    LocalDate dateOfBirth;
-    String firstName;
-    String lastName;
-    Instant timestamp;
-    String trustlyAccountId;
+  UUID transactionId;
+  MonetaryAmount amount;
+  String address;
+  String countryCode;
+  LocalDate dateOfBirth;
+  String firstName;
+  String lastName;
+  Instant timestamp;
+  String trustlyAccountId;
 }

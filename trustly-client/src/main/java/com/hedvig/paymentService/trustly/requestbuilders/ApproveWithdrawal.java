@@ -31,41 +31,41 @@ import com.hedvig.paymentService.trustly.data.request.requestdata.ApproveWithdra
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
 
 /**
- * Creates a ApproveWithdrawal request ready to be sent to Trustly API.
- * The constructor contains the required fields of a ApproveWithdrawal request
+ * Creates a ApproveWithdrawal request ready to be sent to Trustly API. The constructor contains the
+ * required fields of a ApproveWithdrawal request
  *
- * Builder lets you add additional information if any is available for the given request.
+ * <p>Builder lets you add additional information if any is available for the given request.
  *
- * The API specifics of the request can be found on https://trustly.com/en/developer/
+ * <p>The API specifics of the request can be found on https://trustly.com/en/developer/
  *
- * Example use for a default ApproveWithdrawal request:
- * Request approveWithdrawal = new ApproveWithdrawal.Build(orderid).getRequest();
+ * <p>Example use for a default ApproveWithdrawal request: Request approveWithdrawal = new
+ * ApproveWithdrawal.Build(orderid).getRequest();
  */
 public class ApproveWithdrawal {
-    private final Request request = new Request();
+  private final Request request = new Request();
 
-    private ApproveWithdrawal(final Build builder) {
-        final RequestParameters params = new RequestParameters();
-        params.setUUID(SignatureHandler.generateNewUUID());
-        params.setData(builder.data);
+  private ApproveWithdrawal(final Build builder) {
+    final RequestParameters params = new RequestParameters();
+    params.setUUID(SignatureHandler.generateNewUUID());
+    params.setData(builder.data);
 
-        request.setMethod(Method.APPROVE_WITHDRAWAL);
-        request.setParams(params);
+    request.setMethod(Method.APPROVE_WITHDRAWAL);
+    request.setParams(params);
+  }
+
+  public Request getRequest() {
+    return request;
+  }
+
+  public static class Build {
+    private final ApproveWithdrawalData data = new ApproveWithdrawalData();
+
+    public Build(final String orderID) {
+      data.setOrderID(orderID);
     }
 
     public Request getRequest() {
-        return request;
+      return new ApproveWithdrawal(this).getRequest();
     }
-
-    public static class Build {
-        private final ApproveWithdrawalData data = new ApproveWithdrawalData();
-
-        public Build(final String orderID) {
-            data.setOrderID(orderID);
-        }
-
-        public Request getRequest() {
-            return new ApproveWithdrawal(this).getRequest();
-        }
-    }
+  }
 }

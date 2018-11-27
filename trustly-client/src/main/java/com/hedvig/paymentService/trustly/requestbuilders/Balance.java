@@ -31,37 +31,36 @@ import com.hedvig.paymentService.trustly.data.request.requestdata.BalanceData;
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
 
 /**
- * Creates a Balance request ready to be sent to Trustly API.
- * The constructor contains the required fields of a Balance request.
+ * Creates a Balance request ready to be sent to Trustly API. The constructor contains the required
+ * fields of a Balance request.
  *
- * Builder lets you add additional information if any is available for the given request.
+ * <p>Builder lets you add additional information if any is available for the given request.
  *
- * The API specifics of the request can be found on https://trustly.com/en/developer/
+ * <p>The API specifics of the request can be found on https://trustly.com/en/developer/
  *
- * Example use for a default Balance request:
- * Request balance = new Balance.Build().getRequest();
+ * <p>Example use for a default Balance request: Request balance = new Balance.Build().getRequest();
  */
 public class Balance {
-    private final Request request = new Request();
+  private final Request request = new Request();
 
-    private Balance(final Build builder) {
-        final RequestParameters params = new RequestParameters();
-        params.setUUID(SignatureHandler.generateNewUUID());
-        params.setData(builder.data);
+  private Balance(final Build builder) {
+    final RequestParameters params = new RequestParameters();
+    params.setUUID(SignatureHandler.generateNewUUID());
+    params.setData(builder.data);
 
-        request.setMethod(Method.BALANCE);
-        request.setParams(params);
-    }
+    request.setMethod(Method.BALANCE);
+    request.setParams(params);
+  }
+
+  public Request getRequest() {
+    return request;
+  }
+
+  public static class Build {
+    private final BalanceData data = new BalanceData();
 
     public Request getRequest() {
-        return request;
+      return new Balance(this).getRequest();
     }
-
-    public static class Build {
-        private final BalanceData data = new BalanceData();
-
-        public Request getRequest() {
-            return new Balance(this).getRequest();
-        }
-    }
+  }
 }

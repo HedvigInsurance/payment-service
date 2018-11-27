@@ -28,34 +28,36 @@ import com.google.gson.annotations.SerializedName;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class DepositData extends RequestData {
-    @SerializedName("NotificationURL")
-    private String notificationURL;
-    @SerializedName("EndUserID")
-    private String endUserID;
-    @SerializedName("MessageID")
-    private String messageID;
+  @SerializedName("NotificationURL")
+  private String notificationURL;
 
-    public String getNotificationURL() {
-        return notificationURL;
-    }
+  @SerializedName("EndUserID")
+  private String endUserID;
 
-    public void setNotificationURL(final String notificationURL) {
-        this.notificationURL = notificationURL;
-    }
+  @SerializedName("MessageID")
+  private String messageID;
 
-    public String getEndUserID() {
-        return endUserID;
-    }
+  public String getNotificationURL() {
+    return notificationURL;
+  }
 
-    public void setEndUserID(final String endUserID) {
-        this.endUserID = endUserID;
-    }
+  public void setNotificationURL(final String notificationURL) {
+    this.notificationURL = notificationURL;
+  }
 
-    public String getMessageID() {
-        return messageID;
-    }
+  public String getEndUserID() {
+    return endUserID;
+  }
 
-    public void setMessageID(final String messageID) {
-        this.messageID = messageID;
-    }
+  public void setEndUserID(final String endUserID) {
+    this.endUserID = endUserID;
+  }
+
+  public String getMessageID() {
+    return messageID;
+  }
+
+  public void setMessageID(final String messageID) {
+    this.messageID = messageID;
+  }
 }

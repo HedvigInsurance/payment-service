@@ -16,20 +16,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Saga
 public class PayoutSaga {
-    @Autowired
-    transient CommandGateway commandGateway;
-    @Autowired
-    transient TrustlyService trustlyService;
-    @Autowired
-    transient UUIDGenerator uuidGenerator;
+  @Autowired transient CommandGateway commandGateway;
+  @Autowired transient TrustlyService trustlyService;
+  @Autowired transient UUIDGenerator uuidGenerator;
 
-    @StartSaga
-    @SagaEventHandler(associationProperty = "memberId")
-    @EndSaga
-    public void on(PayoutCreatedEvent e) {
-        val hedvigOrderId = (UUID) commandGateway.sendAndWait(new CreatePayoutOrderCommand(
-            uuidGenerator.generateRandom(),
-            e.getTransactionId(),
+  @StartSaga
+  @SagaEventHandler(associationProperty = "memberId")
+  @EndSaga
+  public void on(PayoutCreatedEvent e) {
+    val hedvigOrderId =
+        (UUID)
+            commandGateway.sendAndWait(
+                new CreatePayoutOrderCommand(
+                    uuidGenerator.generateRandom(),
+                    e.getTransactionId(),
+                    e.getMemberId(),
+                    e.getAmount(),
+                    e.getTrustlyAccountId(),
+                    e.getAddress(),
+                    e.getCountryCode(),
+                    e.getDateOfBirth(),
+                    e.getFirstName(),
+                    e.getLastName()));
+
+    trustlyService.startPayoutOrder(
+        new PayoutRequest(
             e.getMemberId(),
             e.getAmount(),
             e.getTrustlyAccountId(),
@@ -37,18 +48,7 @@ public class PayoutSaga {
             e.getCountryCode(),
             e.getDateOfBirth(),
             e.getFirstName(),
-            e.getLastName()
-        ));
-
-        trustlyService.startPayoutOrder(new PayoutRequest(
-            e.getMemberId(),
-            e.getAmount(),
-            e.getTrustlyAccountId(),
-            e.getAddress(),
-            e.getCountryCode(),
-            e.getDateOfBirth(),
-            e.getFirstName(),
-            e.getLastName()
-        ), hedvigOrderId);
-    }
+            e.getLastName()),
+        hedvigOrderId);
+  }
 }

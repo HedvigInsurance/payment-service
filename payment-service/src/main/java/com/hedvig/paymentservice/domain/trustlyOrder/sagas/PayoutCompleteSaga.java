@@ -12,18 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Saga
 public class PayoutCompleteSaga {
-    @Autowired
-    transient CommandGateway commandGateway;
+  @Autowired transient CommandGateway commandGateway;
 
-    @StartSaga
-    @SagaEventHandler(associationProperty = "hedvigOrderId")
-    @EndSaga
-    public void on(PayoutResponseReceivedEvent e) {
-        commandGateway.sendAndWait(new PayoutCompletedCommand(
-            e.getMemberId(),
-            e.getTransactionId(),
-            e.getAmount(),
-            Instant.now()
-        ));
-    }
+  @StartSaga
+  @SagaEventHandler(associationProperty = "hedvigOrderId")
+  @EndSaga
+  public void on(PayoutResponseReceivedEvent e) {
+    commandGateway.sendAndWait(
+        new PayoutCompletedCommand(
+            e.getMemberId(), e.getTransactionId(), e.getAmount(), Instant.now()));
+  }
 }

@@ -25,6 +25,6 @@
 package com.hedvig.paymentService.trustly.commons;
 
 public enum ResponseStatus {
-    OK,
-    FAILED
+  OK,
+  FAILED
 }

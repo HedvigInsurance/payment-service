@@ -4,6 +4,6 @@ import lombok.Value;
 
 @Value
 public class UrlResponse {
-    String url;
-    String orderId;
+  String url;
+  String orderId;
 }

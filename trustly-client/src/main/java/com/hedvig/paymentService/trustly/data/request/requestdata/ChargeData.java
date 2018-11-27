@@ -29,64 +29,69 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class ChargeData extends RequestData {
-    @SerializedName("AccountID")
-    private String accountID;
-    @SerializedName("NotificationURL")
-    private String notificationURL;
-    @SerializedName("EndUserID")
-    private String endUserID;
-    @SerializedName("MessageID")
-    private String messageID;
-    @SerializedName("Amount")
-    private String amount;
-    @SerializedName("Currency")
-    private Currency currency;
+  @SerializedName("AccountID")
+  private String accountID;
 
-    public String getAccountID() {
-        return accountID;
-    }
+  @SerializedName("NotificationURL")
+  private String notificationURL;
 
-    public void setAccountID(final String accountID) {
-        this.accountID = accountID;
-    }
+  @SerializedName("EndUserID")
+  private String endUserID;
 
-    public String getNotificationURL() {
-        return notificationURL;
-    }
+  @SerializedName("MessageID")
+  private String messageID;
 
-    public void setNotificationURL(final String notificationURL) {
-        this.notificationURL = notificationURL;
-    }
+  @SerializedName("Amount")
+  private String amount;
 
-    public String getEndUserID() {
-        return endUserID;
-    }
+  @SerializedName("Currency")
+  private Currency currency;
 
-    public void setEndUserID(final String endUserID) {
-        this.endUserID = endUserID;
-    }
+  public String getAccountID() {
+    return accountID;
+  }
 
-    public String getMessageID() {
-        return messageID;
-    }
+  public void setAccountID(final String accountID) {
+    this.accountID = accountID;
+  }
 
-    public void setMessageID(final String messageID) {
-        this.messageID = messageID;
-    }
+  public String getNotificationURL() {
+    return notificationURL;
+  }
 
-    public String getAmount() {
-        return amount;
-    }
+  public void setNotificationURL(final String notificationURL) {
+    this.notificationURL = notificationURL;
+  }
 
-    public void setAmount(final String amount) {
-        this.amount = amount;
-    }
+  public String getEndUserID() {
+    return endUserID;
+  }
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  public void setEndUserID(final String endUserID) {
+    this.endUserID = endUserID;
+  }
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  public String getMessageID() {
+    return messageID;
+  }
+
+  public void setMessageID(final String messageID) {
+    this.messageID = messageID;
+  }
+
+  public String getAmount() {
+    return amount;
+  }
+
+  public void setAmount(final String amount) {
+    this.amount = amount;
+  }
+
+  public Currency getCurrency() {
+    return currency;
+  }
+
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 }

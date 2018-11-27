@@ -4,8 +4,6 @@ import lombok.Value;
 
 @Value
 public class TrustlyAccount {
-    String accountId;
-    boolean directDebitMandateActive;
-
-
+  String accountId;
+  boolean directDebitMandateActive;
 }

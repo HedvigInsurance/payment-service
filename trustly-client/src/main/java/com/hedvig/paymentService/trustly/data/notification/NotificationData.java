@@ -24,50 +24,51 @@
 
 package com.hedvig.paymentService.trustly.data.notification;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.google.gson.annotations.SerializedName;
-
 public class NotificationData {
-    @SerializedName("messageid")
-    private String messageId;
-    @SerializedName("notificationid")
-    private String notificationId;
-    @SerializedName("orderid")
-    private String orderId;
+  @SerializedName("messageid")
+  private String messageId;
 
-    private Map<String, Object> attributes;
+  @SerializedName("notificationid")
+  private String notificationId;
 
-    public String getMessageId() {
-        return messageId;
-    }
+  @SerializedName("orderid")
+  private String orderId;
 
-    public void setMessageId(final String messageId) {
-        this.messageId = messageId;
-    }
+  private Map<String, Object> attributes;
 
-    public String getNotificationId() {
-        return notificationId;
-    }
+  public String getMessageId() {
+    return messageId;
+  }
 
-    public void setNotificationId(final String notificationId) {
-        this.notificationId = notificationId;
-    }
+  public void setMessageId(final String messageId) {
+    this.messageId = messageId;
+  }
 
-    public String getOrderId() {
-        return orderId;
-    }
+  public String getNotificationId() {
+    return notificationId;
+  }
 
-    public void setOrderId(final String orderId) {
-        this.orderId = orderId;
-    }
+  public void setNotificationId(final String notificationId) {
+    this.notificationId = notificationId;
+  }
 
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
+  public String getOrderId() {
+    return orderId;
+  }
 
-    public void setAttributes(final Map<String, Object> attributes) {
-        this.attributes = new TreeMap<>(attributes);
-    }
+  public void setOrderId(final String orderId) {
+    this.orderId = orderId;
+  }
+
+  public Map<String, Object> getAttributes() {
+    return attributes;
+  }
+
+  public void setAttributes(final Map<String, Object> attributes) {
+    this.attributes = new TreeMap<>(attributes);
+  }
 }

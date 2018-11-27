@@ -7,8 +7,8 @@ import org.zalando.jackson.datatype.money.MoneyModule;
 
 @Configuration
 public class Money {
-    @Bean
-    public Module monetaModule() {
-        return new MoneyModule().withQuotedDecimalNumbers();
-    }
+  @Bean
+  public Module monetaModule() {
+    return new MoneyModule().withQuotedDecimalNumbers();
+  }
 }

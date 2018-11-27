@@ -29,34 +29,36 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class RefundData extends RequestData {
-    @SerializedName("OrderID")
-    private String orderID;
-    @SerializedName("Amount")
-    private String amount;
-    @SerializedName("Currency")
-    private Currency currency;
+  @SerializedName("OrderID")
+  private String orderID;
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  @SerializedName("Amount")
+  private String amount;
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  @SerializedName("Currency")
+  private Currency currency;
 
-    public String getOrderID() {
-        return orderID;
-    }
+  public Currency getCurrency() {
+    return currency;
+  }
 
-    public void setOrderID(final String orderID) {
-        this.orderID = orderID;
-    }
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 
-    public String getAmount() {
-        return amount;
-    }
+  public String getOrderID() {
+    return orderID;
+  }
 
-    public void setAmount(final String amount) {
-        this.amount = amount;
-    }
+  public void setOrderID(final String orderID) {
+    this.orderID = orderID;
+  }
+
+  public String getAmount() {
+    return amount;
+  }
+
+  public void setAmount(final String amount) {
+    this.amount = amount;
+  }
 }

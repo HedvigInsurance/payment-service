@@ -29,24 +29,25 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class ViewAutomaticSettlementDetailsCSVData extends RequestData {
-    @SerializedName("SettlementDate")
-    private String settlementDate;
-    @SerializedName("Currency")
-    private Currency currency;
+  @SerializedName("SettlementDate")
+  private String settlementDate;
 
-    public String getSettlementDate() {
-        return settlementDate;
-    }
+  @SerializedName("Currency")
+  private Currency currency;
 
-    public void setSettlementDate(final String settlementDate) {
-        this.settlementDate = settlementDate;
-    }
+  public String getSettlementDate() {
+    return settlementDate;
+  }
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  public void setSettlementDate(final String settlementDate) {
+    this.settlementDate = settlementDate;
+  }
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  public Currency getCurrency() {
+    return currency;
+  }
+
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 }

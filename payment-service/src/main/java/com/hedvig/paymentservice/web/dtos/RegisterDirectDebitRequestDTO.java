@@ -3,11 +3,8 @@ package com.hedvig.paymentservice.web.dtos;
 import lombok.Value;
 
 @Value
-public class SelectAccountDTO {
+public class RegisterDirectDebitRequestDTO {
   String firstName;
   String lastName;
-  String ssn;
-  String email;
-  String memberId;
-  String requestId;
+  String personalNumber;
 }

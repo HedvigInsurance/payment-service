@@ -29,41 +29,43 @@ import com.hedvig.paymentService.trustly.commons.Currency;
 import com.hedvig.paymentService.trustly.data.notification.NotificationData;
 
 public class DebitNotificationData extends NotificationData {
-    private String amount;
-    private Currency currency;
-    @SerializedName("enduserid")
-    private String endUserId;
-    private String timestamp;
+  private String amount;
+  private Currency currency;
 
-    public String getAmount() {
-        return amount;
-    }
+  @SerializedName("enduserid")
+  private String endUserId;
 
-    public void setAmount(final String amount) {
-        this.amount = amount;
-    }
+  private String timestamp;
 
-    public Currency getCurrency() {
-        return currency;
-    }
+  public String getAmount() {
+    return amount;
+  }
 
-    public void setCurrency(final Currency currency) {
-        this.currency = currency;
-    }
+  public void setAmount(final String amount) {
+    this.amount = amount;
+  }
 
-    public String getEndUserId() {
-        return endUserId;
-    }
+  public Currency getCurrency() {
+    return currency;
+  }
 
-    public void setEndUserId(final String endUserId) {
-        this.endUserId = endUserId;
-    }
+  public void setCurrency(final Currency currency) {
+    this.currency = currency;
+  }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
+  public String getEndUserId() {
+    return endUserId;
+  }
 
-    public void setTimestamp(final String timestamp) {
-        this.timestamp = timestamp;
-    }
+  public void setEndUserId(final String endUserId) {
+    this.endUserId = endUserId;
+  }
+
+  public String getTimestamp() {
+    return timestamp;
+  }
+
+  public void setTimestamp(final String timestamp) {
+    this.timestamp = timestamp;
+  }
 }

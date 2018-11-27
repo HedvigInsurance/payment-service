@@ -1,5 +1,3 @@
 package com.hedvig.paymentservice.services.trustly;
 
-public class ApiAdapter {
-
-}
+public class ApiAdapter {}

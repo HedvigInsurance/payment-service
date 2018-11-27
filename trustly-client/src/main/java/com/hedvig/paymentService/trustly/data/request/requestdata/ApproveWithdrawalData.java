@@ -28,14 +28,14 @@ import com.google.gson.annotations.SerializedName;
 import com.hedvig.paymentService.trustly.data.request.RequestData;
 
 public class ApproveWithdrawalData extends RequestData {
-    @SerializedName("OrderID")
-    private String orderID;
+  @SerializedName("OrderID")
+  private String orderID;
 
-    public String getOrderID() {
-        return orderID;
-    }
+  public String getOrderID() {
+    return orderID;
+  }
 
-    public void setOrderID(final String orderID) {
-        this.orderID = orderID;
-    }
+  public void setOrderID(final String orderID) {
+    this.orderID = orderID;
+  }
 }

@@ -1,14 +1,12 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.events;
 
-import java.util.UUID;
-
 import com.hedvig.paymentService.trustly.data.response.Error;
-
+import java.util.UUID;
 import lombok.Value;
 
 @Value
 public class PaymentErrorReceivedEvent {
-    UUID hedvigOrderId;
+  UUID hedvigOrderId;
 
-    Error error;
+  Error error;
 }

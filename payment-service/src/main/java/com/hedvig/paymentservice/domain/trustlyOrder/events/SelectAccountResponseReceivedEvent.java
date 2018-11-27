@@ -1,13 +1,11 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.events;
 
-import lombok.Value;
-
 import java.util.UUID;
+import lombok.Value;
 
 @Value
 public class SelectAccountResponseReceivedEvent {
 
-    UUID hedvigOrderId;
-    String iframeUrl;
-
+  UUID hedvigOrderId;
+  String iframeUrl;
 }

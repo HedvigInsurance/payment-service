@@ -25,31 +25,31 @@
 package com.hedvig.paymentService.trustly.data.notification;
 
 public class NotificationParameters {
-    private String signature;
-    private String uuid;
-    private NotificationData data;
+  private String signature;
+  private String uuid;
+  private NotificationData data;
 
-    public NotificationData getData() {
-        return data;
-    }
+  public NotificationData getData() {
+    return data;
+  }
 
-    public void setData(final NotificationData data) {
-        this.data = data;
-    }
+  public void setData(final NotificationData data) {
+    this.data = data;
+  }
 
-    public String getSignature() {
-        return signature;
-    }
+  public String getSignature() {
+    return signature;
+  }
 
-    public void setSignature(final String signature) {
-        this.signature = signature;
-    }
+  public void setSignature(final String signature) {
+    this.signature = signature;
+  }
 
-    String getUUID() {
-        return uuid;
-    }
+  String getUUID() {
+    return uuid;
+  }
 
-    public void setUUID(final String uuid) {
-        this.uuid = uuid;
-    }
+  public void setUUID(final String uuid) {
+    this.uuid = uuid;
+  }
 }
