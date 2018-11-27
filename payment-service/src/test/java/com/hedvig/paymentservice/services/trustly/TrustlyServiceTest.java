@@ -38,6 +38,7 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,6 +65,7 @@ public class TrustlyServiceTest {
   private static final String PLAIN_SUCCESS_URL = "https://hedvig.com/success";
   private static final String PLAIN_FAIL_URL = "https://hedvig.com/failure&triggerId";
   private static final String NOTIFICATION_URL = "https://gateway.test.hedvig.com/notificationHook";
+
   @Mock private SignedAPI signedAPI;
 
   @Mock private CommandGateway gateway;
@@ -280,13 +282,6 @@ public class TrustlyServiceTest {
 
     thrown.expect(OrderNotFoundException.class);
     testService.orderInformation(REQUEST_ID);
-  }
-
-  @Test
-  public void orderInformation_returnsOrderInformation() {
-    final TrustlyOrder trustlyOrder = makeTrustlyOrder();
-
-    given(orderRepository.findById(REQUEST_ID)).willReturn(Optional.of(trustlyOrder));
   }
 
   @Test

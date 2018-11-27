@@ -5,10 +5,14 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.services.Helpers;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+import javax.money.MonetaryAmount;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
@@ -52,6 +56,24 @@ public class PaymentService {
             request.getFirstName(),
             request.getLastName(),
             Instant.now()));
+  }
+
+
+  public Optional<UUID> payoutMember(String memberId, Member member, MonetaryAmount amount) {
+    UUID transactionId = uuidGenerator.generateRandom();
+    boolean result = commandGateway.sendAndWait(
+        new CreatePayoutCommand(
+            memberId,
+            transactionId,
+            amount,
+            member.getStreet() + " " + member.getCity() + " " + member.getZipCode(),
+            member.getCountry(),
+            member.getBirthDate(),
+            member.getFirstName(),
+            member.getLastName(),
+            Instant.now()));
+
+    return result ? Optional.of(transactionId) : Optional.empty();
   }
 
   public void sendCommand(UpdateTrustlyAccountCommand cmd) {
