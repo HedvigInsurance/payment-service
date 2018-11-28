@@ -4,5 +4,5 @@ public enum SanctionStatus {
   Undetermined,
   NoHit,
   PartialHit,
-  Hit
+  FullHit
 }
