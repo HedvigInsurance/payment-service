@@ -1,3 +1,5 @@
+hedvig.segment.writeKey: 12313
+
 hedvig.trustly.successURL: http://192.168.131.239:8008/hedvig/trigger/notification?status=SUCCESS
 hedvig.trustly.failURL: https://hedvig.com/trustly/fail
 hedvig.trustly.privateKeyPath: "src/main/resources/private.pem"
