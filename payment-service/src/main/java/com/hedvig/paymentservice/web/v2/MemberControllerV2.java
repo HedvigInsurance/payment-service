@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.web.v2;
 
+import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat;
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +25,14 @@ public class MemberControllerV2 {
 
   private final PaymentService paymentService;
   private final MemberService memberService;
+  private final Meerkat meerkat;
 
   public MemberControllerV2(PaymentService paymentService,
-      MemberService memberService) {
+      MemberService memberService,
+      Meerkat meerkat) {
     this.paymentService = paymentService;
     this.memberService = memberService;
+    this.meerkat = meerkat;
   }
 
   @PostMapping(path = "{memberId}/payout")
@@ -39,12 +44,15 @@ public class MemberControllerV2 {
       return ResponseEntity.notFound().build();
     }
 
-    SanctionStatus memberStatus = memberService.getMemberSanctionStatus(memberId);
-    if (memberStatus.equals(SanctionStatus.Hit)){
+    val member = optionalMember.get();
+
+    SanctionStatus memberStatus = meerkat
+        .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
+    if (memberStatus.equals(SanctionStatus.FullHit)) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    Optional<UUID> result = paymentService.payoutMember(memberId, optionalMember.get(), amount);
+    Optional<UUID> result = paymentService.payoutMember(memberId, member, amount);
 
     return result.map(uuid -> ResponseEntity.accepted().body(uuid))
         .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
