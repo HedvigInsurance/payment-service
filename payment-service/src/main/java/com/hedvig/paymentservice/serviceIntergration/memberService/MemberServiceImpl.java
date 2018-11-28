@@ -34,19 +34,4 @@ public class MemberServiceImpl implements MemberService {
       throw ex;
     }
   }
-
-  @Override
-  public SanctionStatus getMemberSanctionStatus(String memberId) {
-    try {
-      ResponseEntity<SanctionStatus> response = memberServiceClient
-          .getSanctionListStatus(memberId);
-      return response.getBody();
-    } catch (RestClientResponseException ex) {
-      if (ex.getRawStatusCode() == 404) {
-        return SanctionStatus.Undetermined;
-      }
-      log.error("Could not check sanction list for member {} , {}", memberId, ex);
-      throw ex;
-    }
-  }
 }
