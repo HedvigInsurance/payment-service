@@ -16,15 +16,15 @@ import org.javamoney.moneta.Money;
 public class Transaction {
   @Id UUID id;
 
-  BigDecimal amount;
-  String currency;
-  Instant timestamp;
+  private BigDecimal amount;
+  private String currency;
+  private Instant timestamp;
 
   @Enumerated(EnumType.STRING)
-  TransactionType transactionType;
+  private TransactionType transactionType;
 
   @Enumerated(EnumType.STRING)
-  TransactionStatus transactionStatus;
+  private TransactionStatus transactionStatus;
 
   public MonetaryAmount getMoney() {
     return Money.of(this.amount, this.currency);
@@ -37,11 +37,11 @@ public class Transaction {
     return this.id;
   }
 
-  public BigDecimal getAmount() {
+  private BigDecimal getAmount() {
     return this.amount;
   }
 
-  public String getCurrency() {
+  private String getCurrency() {
     return this.currency;
   }
 

@@ -12,13 +12,15 @@ import org.springframework.stereotype.Component
 @ProcessingGroup("SegmentProcessorGroup")
 open class EventListener(private val segmentAnalytics: Analytics) {
 
+  private val integrationSettings = mapOf("All" to false, "Customer.io" to true)
+
     @EventHandler
     fun on(evt: TrustlyAccountCreatedEvent) {
 
 
         val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", evt.isDirectDebitMandateActivated)
 
-        segmentAnalytics.identify(traits, evt.memberId)
+        segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
 
     }
 

@@ -121,9 +121,9 @@ class LiveEventListenerTest {
   private fun Member.makeChargeTransaction(transactionId:String, amount:BigDecimal = BigDecimal.TEN){
     val transaction = Transaction()
     transaction.id = UUID.fromString(transactionId)
-    transaction.amount = amount
+    transaction.setAmount(amount)
     transaction.transactionType = TransactionType.CHARGE
-    transaction.currency = "SEK"
+    transaction.setCurrency("SEK")
     transaction.timestamp = Instant.parse("2018-09-11T23:00:00Z")
     this.transactions[transaction.id] = transaction
   }
