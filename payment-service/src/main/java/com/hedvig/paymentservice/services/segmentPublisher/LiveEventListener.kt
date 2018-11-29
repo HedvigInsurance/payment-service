@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.segment.analytics.Analytics
 import net.logstash.logback.argument.StructuredArguments.value
 import org.axonframework.config.ProcessingGroup
+import org.axonframework.eventhandling.EventHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -14,7 +15,7 @@ import javax.money.format.MonetaryFormats
 
 @Component
 @ProcessingGroup("SegmentProcessorGroupLive")
-open class LiveEventListener(
+class LiveEventListener(
   private val segmentAnalytics: Analytics,
   private val memberRepository: MemberRepository) {
 
@@ -22,6 +23,7 @@ open class LiveEventListener(
 
   private val integrationSettings = mapOf("All" to false, "Customer.io" to true)
 
+  @EventHandler
   fun on(evt: ChargeFailedEvent) {
     try {
       val member = memberRepository.findById(evt.memberId)

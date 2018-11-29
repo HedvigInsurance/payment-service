@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @ProcessingGroup("SegmentProcessorGroup")
-open class EventListener(private val segmentAnalytics: Analytics) {
+class EventListener(private val segmentAnalytics: Analytics) {
 
   private val integrationSettings = mapOf("All" to false, "Customer.io" to true)
 
