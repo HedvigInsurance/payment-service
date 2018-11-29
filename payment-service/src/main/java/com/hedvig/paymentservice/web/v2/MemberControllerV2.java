@@ -5,9 +5,9 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus;
 import com.hedvig.paymentservice.services.payments.PaymentService;
+import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO;
 import java.util.Optional;
 import java.util.UUID;
-import javax.money.MonetaryAmount;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.http.HttpStatus;
@@ -37,7 +37,7 @@ public class MemberControllerV2 {
 
   @PostMapping(path = "{memberId}/payout")
   public ResponseEntity<UUID> payoutMember(
-      @PathVariable String memberId, @RequestBody MonetaryAmount amount) {
+      @PathVariable String memberId, @RequestBody PayoutRequestDTO request) {
 
     Optional<Member> optionalMember = memberService.getMember(memberId);
     if (!optionalMember.isPresent()) {
@@ -46,13 +46,17 @@ public class MemberControllerV2 {
 
     val member = optionalMember.get();
 
-    SanctionStatus memberStatus = meerkat
-        .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
-    if (memberStatus.equals(SanctionStatus.FullHit)) {
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    if (!request.isSanctionBypassed()) {
+      SanctionStatus memberStatus = meerkat
+          .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
+
+      if (memberStatus.equals(SanctionStatus.FullHit)
+          || memberStatus.equals(SanctionStatus.Undetermined)) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+      }
     }
 
-    Optional<UUID> result = paymentService.payoutMember(memberId, member, amount);
+    Optional<UUID> result = paymentService.payoutMember(memberId, member, request.getAmount());
 
     return result.map(uuid -> ResponseEntity.accepted().body(uuid))
         .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
