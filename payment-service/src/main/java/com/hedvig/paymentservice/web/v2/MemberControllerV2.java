@@ -46,14 +46,17 @@ public class MemberControllerV2 {
 
     val member = optionalMember.get();
 
-    if (!request.isSanctionBypassed()) {
-      SanctionStatus memberStatus = meerkat
-          .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
+    SanctionStatus memberStatus = meerkat
+        .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
 
-      if (memberStatus.equals(SanctionStatus.FullHit)
-          || memberStatus.equals(SanctionStatus.Undetermined)) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-      }
+    if (memberStatus.equals(SanctionStatus.FullHit)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    if (!request.isSanctionBypassed()
+        && (memberStatus.equals(SanctionStatus.Undetermined)
+        || memberStatus.equals(SanctionStatus.PartialHit))) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     Optional<UUID> result = paymentService.payoutMember(memberId, member, request.getAmount());
