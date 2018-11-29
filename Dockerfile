@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk:11
 
 
 ADD payment-service/target/payment-service-0.0.1-SNAPSHOT.jar /
