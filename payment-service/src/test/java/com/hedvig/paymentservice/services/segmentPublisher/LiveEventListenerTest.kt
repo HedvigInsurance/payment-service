@@ -25,6 +25,8 @@ import java.util.*
 @RunWith(MockitoJUnitRunner::class)
 class LiveEventListenerTest {
 
+  private val PRODUCT_ID = "0ebc7d7a-f34b-11e8-ac63-3be345834e94"
+
   @Mock
   lateinit var segementAnalytics: Analytics
 
@@ -37,10 +39,12 @@ class LiveEventListenerTest {
   @Test
   fun chargeFailedEvent_disablesDefaultIntegrationAndEnablesCustomerIO() {
     val memberEntity = makeDefaultMember("1337")
-    memberEntity.makeChargeTransaction("0ebc7d7a-f34b-11e8-ac63-3be345834e94")
+
+    memberEntity.makeChargeTransaction(PRODUCT_ID)
     given(memberRepository.findById("1337")).willReturn(Optional.of(memberEntity))
 
-    val evt = ChargeFailedEvent("1337", UUID.fromString("0ebc7d7a-f34b-11e8-ac63-3be345834e94"))
+    val evt = ChargeFailedEvent("1337", UUID.fromString(PRODUCT_ID))
+
 
     val sut = LiveEventListener(segementAnalytics, memberRepository)
 
@@ -59,10 +63,10 @@ class LiveEventListenerTest {
   @Test
   fun chargeFailedEvent_givenTransaction_setsAmountAndCurrency() {
     val memberEntity = makeDefaultMember("1337")
-    memberEntity.makeChargeTransaction("0ebc7d7a-f34b-11e8-ac63-3be345834e94", amount = BigDecimal.TEN)
+    memberEntity.makeChargeTransaction(PRODUCT_ID, amount = BigDecimal.TEN)
     given(memberRepository.findById("1337")).willReturn(Optional.of(memberEntity))
 
-    val evt = ChargeFailedEvent("1337", UUID.fromString("0ebc7d7a-f34b-11e8-ac63-3be345834e94"))
+    val evt = ChargeFailedEvent("1337", UUID.fromString(PRODUCT_ID))
 
     val sut = LiveEventListener(segementAnalytics, memberRepository)
 
@@ -81,10 +85,10 @@ class LiveEventListenerTest {
   @Test
   fun chargeFailedEvent_givenTransaction_setsEventNameAndMemberId() {
     val memberEntity = makeDefaultMember("1337")
-    memberEntity.makeChargeTransaction("0ebc7d7a-f34b-11e8-ac63-3be345834e94")
+    memberEntity.makeChargeTransaction(PRODUCT_ID)
     given(memberRepository.findById("1337")).willReturn(Optional.of(memberEntity))
 
-    val evt = ChargeFailedEvent("1337", UUID.fromString("0ebc7d7a-f34b-11e8-ac63-3be345834e94"))
+    val evt = ChargeFailedEvent("1337", UUID.fromString(PRODUCT_ID))
 
     val sut = LiveEventListener(segementAnalytics, memberRepository)
 
@@ -101,10 +105,10 @@ class LiveEventListenerTest {
   @Test
   fun chargeFailedEvent_givenTransactionWithManyDecimals_setsAmountWithTwoDecimals() {
     val memberEntity = makeDefaultMember("1337")
-    memberEntity.makeChargeTransaction("0ebc7d7a-f34b-11e8-ac63-3be345834e94", amount = BigDecimal.valueOf(10.00))
+    memberEntity.makeChargeTransaction(PRODUCT_ID, amount = BigDecimal.valueOf(10.00))
     given(memberRepository.findById("1337")).willReturn(Optional.of(memberEntity))
 
-    val evt = ChargeFailedEvent("1337", UUID.fromString("0ebc7d7a-f34b-11e8-ac63-3be345834e94"))
+    val evt = ChargeFailedEvent("1337", UUID.fromString(PRODUCT_ID))
 
     val sut = LiveEventListener(segementAnalytics, memberRepository)
 
