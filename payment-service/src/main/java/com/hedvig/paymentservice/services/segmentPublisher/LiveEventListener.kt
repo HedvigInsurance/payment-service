@@ -8,12 +8,14 @@ import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.money.format.AmountFormatQueryBuilder
 import javax.money.format.MonetaryFormats
 
 @Component
+@Profile("customer.io")
 @ProcessingGroup("SegmentProcessorGroupLive")
 class LiveEventListener(
   private val segmentAnalytics: Analytics,
