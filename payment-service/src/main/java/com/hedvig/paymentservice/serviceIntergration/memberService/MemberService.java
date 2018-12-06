@@ -6,5 +6,4 @@ import java.util.Optional;
 
 public interface MemberService {
   Optional<Member> getMember(String memberId);
-  SanctionStatus getMemberSanctionStatus(String memberId);
 }
