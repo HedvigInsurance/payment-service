@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.web.internal;
 
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
+import com.hedvig.paymentservice.web.dtos.TransactionDTO;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +24,11 @@ public class TransactionController {
   }
 
   @GetMapping("{transactionId}")
-  public ResponseEntity<Transaction> getTransaction(@PathVariable UUID transactionId) {
+  public ResponseEntity<TransactionDTO> getTransaction(@PathVariable UUID transactionId) {
     Optional<Transaction> optionalTransaction = repository.findById(transactionId);
 
-    return optionalTransaction.map(ResponseEntity::ok)
+    return optionalTransaction
+        .map(transaction -> ResponseEntity.ok(TransactionDTO.fromTransaction(transaction)))
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 }
