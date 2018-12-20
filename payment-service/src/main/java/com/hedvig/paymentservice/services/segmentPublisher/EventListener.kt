@@ -19,7 +19,5 @@ class EventListener(private val segmentAnalytics: Analytics) {
     val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", evt.isDirectDebitMandateActivated)
 
     segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
-    Thread.sleep(10)
   }
-
 }
