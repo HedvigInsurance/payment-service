@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.services.segmentPublisher
 import com.google.common.collect.ImmutableMap
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.segment.analytics.Analytics
-import com.segment.analytics.messages.IdentifyMessage
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.springframework.context.annotation.Profile
@@ -13,17 +12,12 @@ import org.springframework.stereotype.Component
 @Profile("customer.io")
 @ProcessingGroup("SegmentProcessorGroup")
 class EventListener(private val segmentAnalytics: Analytics) {
-
   private val integrationSettings = mapOf("All" to false, "Customer.io" to true)
 
-    @EventHandler
-    fun on(evt: TrustlyAccountCreatedEvent) {
+  @EventHandler
+  fun on(evt: TrustlyAccountCreatedEvent) {
+    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", evt.isDirectDebitMandateActivated)
 
-
-        val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", evt.isDirectDebitMandateActivated)
-
-        segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
-
-    }
-
+    segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
+  }
 }
