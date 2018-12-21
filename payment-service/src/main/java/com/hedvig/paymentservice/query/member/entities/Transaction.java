@@ -2,10 +2,12 @@ package com.hedvig.paymentservice.query.member.entities;
 
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
+import com.hedvig.paymentservice.query.member.entities.converter.InstantByteaConverter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -18,6 +20,8 @@ public class Transaction {
 
   private BigDecimal amount;
   private String currency;
+
+  @Convert(converter = InstantByteaConverter.class)
   private Instant timestamp;
 
   @Enumerated(EnumType.STRING)
