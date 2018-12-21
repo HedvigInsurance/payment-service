@@ -1,17 +1,16 @@
 package com.hedvig.paymentservice.web.internal;
 
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
-import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
+import com.hedvig.paymentservice.web.dtos.PaymentMemberDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -81,15 +80,12 @@ public class MemberController {
   }
 
   @GetMapping(path = "{memberId}/transactions")
-  public ResponseEntity<Member> getTransactionsByMember(@PathVariable String memberId) {
+  public ResponseEntity<PaymentMemberDTO> getTransactionsByMember(@PathVariable String memberId) {
 
-    val member =
-        memberRepository
-            .findById(memberId)
-            .orElse(new Member()); // Return an empty Member Object if the member does not exist
-    // The empty object will not break back-office
+    val member = memberRepository.findById(memberId);
 
-    return ResponseEntity.ok().body(member);
+    return member.map(member1 -> ResponseEntity.ok().body(PaymentMemberDTO.fromMember(member1)))
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PostMapping(path = "{memberId}/updateTrustlyAccount")
