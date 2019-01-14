@@ -62,7 +62,7 @@ public class CreditSaga {
   @EndSaga
   public void on(OrderCanceledEvent e) {
 
-      if (memberId == null){
+      if (this.memberId == null || this.memberId.isEmpty()){
         log.error("CreditSaga - OrderCanceledEvent memberId is null");
         throw new RuntimeException("CreditSaga - OrderCanceledEvent memberId is null");
       }
