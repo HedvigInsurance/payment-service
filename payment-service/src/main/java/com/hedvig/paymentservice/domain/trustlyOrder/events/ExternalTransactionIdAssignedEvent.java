@@ -8,4 +8,6 @@ public class ExternalTransactionIdAssignedEvent {
   UUID hedvigOrderId;
 
   UUID transactionId;
+
+  String memberId;
 }

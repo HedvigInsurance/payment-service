@@ -65,13 +65,13 @@ public class TrustlyOrder {
   @CommandHandler
   public TrustlyOrder(CreatePaymentOrderCommand cmd) {
     apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
-    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId()));
+    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId(), cmd.getMemberId()));
   }
 
   @CommandHandler
   public TrustlyOrder(CreatePayoutOrderCommand cmd) {
     apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
-    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId()));
+    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId(), cmd.getMemberId()));
   }
 
   @CommandHandler

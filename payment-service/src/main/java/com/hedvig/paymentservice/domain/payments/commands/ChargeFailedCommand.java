@@ -6,7 +6,8 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier;
 
 @Value
 public class ChargeFailedCommand {
-  @TargetAggregateIdentifier String memberId;
+  @TargetAggregateIdentifier
+  String memberId;
 
   UUID transactionId;
 }
