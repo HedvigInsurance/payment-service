@@ -312,7 +312,7 @@ public class TrustlyService {
     return api.sendRequest(request);
   }
 
-  public ResponseStatus recieveNotification(Notification notification) {
+  public ResponseStatus receiveNotification(Notification notification) {
 
     log.info("Received notification from Trustly: {}", notification.getMethod());
 

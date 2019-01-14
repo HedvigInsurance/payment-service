@@ -38,7 +38,7 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.val;
+
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Before;
 import org.junit.Rule;
@@ -303,7 +303,7 @@ public class TrustlyServiceTest {
     attributes.put("bank", "Handelsbanken");
     attributes.put("descriptor", "**847257");
 
-    final ResponseStatus responseStatus = testService.recieveNotification(notification);
+    final ResponseStatus responseStatus = testService.receiveNotification(notification);
 
     assertThat(responseStatus).isEqualTo(ResponseStatus.OK);
   }
