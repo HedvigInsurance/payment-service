@@ -30,7 +30,6 @@ class LiveEventListener(
     try {
       val member = memberRepository.findById(evt.memberId)
       if (!member.isPresent) {
-
         return
       }
 
@@ -39,7 +38,7 @@ class LiveEventListener(
           val transaction = m.getTransaction(evt.transactionId)
 
           if (transaction == null) {
-            log.error("Could send 'Charge Failed' event transaction not found for member {}, {}", value("memberId", evt.memberId), evt.transactionId)
+            log.error("Could not send 'Charge Failed' event transaction not found for member {}, {}", value("memberId", evt.memberId), evt.transactionId)
           } else {
 
             val money = transaction.money
