@@ -7,6 +7,8 @@ import com.hedvig.paymentservice.domain.trustlyOrder.events.CreditNotificationRe
 import com.hedvig.paymentservice.domain.trustlyOrder.events.ExternalTransactionIdAssignedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent;
 import java.util.UUID;
+
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.saga.EndSaga;
 import org.axonframework.eventhandling.saga.SagaEventHandler;
@@ -14,6 +16,7 @@ import org.axonframework.eventhandling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 @Saga
 public class CreditSaga {
   @Autowired transient CommandGateway commandGateway;
@@ -25,6 +28,7 @@ public class CreditSaga {
   @SagaEventHandler(associationProperty = "hedvigOrderId")
   public void on(ExternalTransactionIdAssignedEvent e) {
     this.transactionId = e.getTransactionId();
+    this.memberId = e.getMemberId();
   }
 
   @StartSaga
@@ -54,8 +58,14 @@ public class CreditSaga {
     }
   }
 
+  @SagaEventHandler(associationProperty = "hedvigOrderId")
   @EndSaga
   public void on(OrderCanceledEvent e) {
+
+      if (this.memberId == null || this.memberId.isEmpty()){
+        log.error("CreditSaga - OrderCanceledEvent memberId is null");
+        throw new RuntimeException("CreditSaga - OrderCanceledEvent memberId is null");
+      }
     commandGateway.sendAndWait(new ChargeFailedCommand(this.memberId, this.transactionId));
   }
 }

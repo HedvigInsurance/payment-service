@@ -6,9 +6,9 @@ import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makeDirectDebitRequest;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makePaymentRequest;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
@@ -20,6 +20,7 @@ import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationData;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
+import com.hedvig.paymentService.trustly.data.notification.notificationdata.CancelNotificationData;
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.request.requestdata.ChargeData;
 import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountData;
@@ -28,6 +29,7 @@ import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
@@ -38,7 +40,6 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,7 +51,7 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -303,10 +304,31 @@ public class TrustlyServiceTest {
     attributes.put("bank", "Handelsbanken");
     attributes.put("descriptor", "**847257");
 
-    final ResponseStatus responseStatus = testService.recieveNotification(notification);
+    final ResponseStatus responseStatus = testService.receiveNotification(notification);
 
     assertThat(responseStatus).isEqualTo(ResponseStatus.OK);
   }
+
+    @Test
+    public void givenCancelOrderNotification_whenChargeFailed_thenCancelNotificationReceivedCommandIsSent() {
+
+        Notification notification = new Notification();
+        final NotificationParameters params = new NotificationParameters();
+        notification.setParams(params);
+        notification.setMethod(Method.CANCEL);
+        final NotificationData data = new CancelNotificationData();
+        params.setData(data);
+        data.setNotificationId(withQuotes("0182309810381"));
+        data.setMessageId(withQuotes(REQUEST_ID.toString()));
+        ((CancelNotificationData) data).setEndUserId(MEMBER_ID);
+        data.setOrderId("1234");
+        final HashMap<String, Object> attributes = new HashMap<>();
+        data.setAttributes(attributes);
+
+        final ResponseStatus responseStatus = testService.receiveNotification(notification);
+
+        verify(gateway, atLeastOnce()).sendAndWait(new CancelNotificationReceivedCommand(REQUEST_ID, "0182309810381", "1234", MEMBER_ID));
+    }
 
   private String withQuotes(String requestId) {
     return String.format("%s", requestId);

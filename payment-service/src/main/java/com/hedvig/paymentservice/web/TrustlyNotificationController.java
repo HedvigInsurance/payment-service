@@ -6,19 +6,18 @@ import com.hedvig.paymentService.trustly.commons.ResponseStatus;
 import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/hooks/trustly/")
 public class TrustlyNotificationController {
 
-  private final Logger log = LoggerFactory.getLogger(TrustlyNotificationController.class);
   private final TrustlyService trustlyService;
   private final NotificationHandler notificationHandler;
 
@@ -35,7 +34,7 @@ public class TrustlyNotificationController {
 
     log.info("Notification received from trustly: {}", requestBody);
 
-    final ResponseStatus responseStatus = trustlyService.recieveNotification(notification);
+    final ResponseStatus responseStatus = trustlyService.receiveNotification(notification);
 
     final Response response =
         notificationHandler.prepareNotificationResponse(
