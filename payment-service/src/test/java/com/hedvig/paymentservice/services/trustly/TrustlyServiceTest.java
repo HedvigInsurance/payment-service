@@ -2,7 +2,11 @@ package com.hedvig.paymentservice.services.trustly;
 
 
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.BOT_SERVICE_TRIGGER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_EMAIL;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makeDirectDebitRequest;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makePaymentRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
