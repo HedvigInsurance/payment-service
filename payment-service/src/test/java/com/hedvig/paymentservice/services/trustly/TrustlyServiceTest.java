@@ -1,7 +1,5 @@
 package com.hedvig.paymentservice.services.trustly;
 
-
-
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.BOT_SERVICE_TRIGGER_ID;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_EMAIL;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
