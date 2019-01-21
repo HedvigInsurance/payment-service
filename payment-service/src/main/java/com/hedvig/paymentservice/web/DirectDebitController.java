@@ -50,7 +50,7 @@ public class DirectDebitController {
     Member member = om.get();
 
     return ResponseEntity
-        .ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitMandateActive()));
+        .ok(new DirectDebitStatusDTO(member.getId(), member.isDirectDebitMandateActive()));
   }
 
   @PostMapping(path = "register")

@@ -13,13 +13,14 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEve
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
-import java.math.BigDecimal;
-import java.util.Optional;
 import lombok.val;
 import org.axonframework.eventhandling.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Optional;
 
 @Component
 public class MemberEventListener {
@@ -42,9 +43,9 @@ public class MemberEventListener {
   @EventHandler
   public void on(ChargeCreatedEvent e) {
     val member =
-        memberRepository
-            .findById(e.getMemberId())
-            .orElseThrow(() -> new RuntimeException("Could not find member"));
+      memberRepository
+        .findById(e.getMemberId())
+        .orElseThrow(() -> new RuntimeException("Could not find member"));
     val transaction = new Transaction();
     transaction.setId(e.getTransactionId());
     transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
@@ -61,9 +62,9 @@ public class MemberEventListener {
   @EventHandler
   public void on(ChargeFailedEvent e) {
     val member =
-        memberRepository
-            .findById(e.getMemberId())
-            .orElseThrow(() -> new RuntimeException("Could not find member"));
+      memberRepository
+        .findById(e.getMemberId())
+        .orElseThrow(() -> new RuntimeException("Could not find member"));
     val transactions = member.getTransactions();
     val transaction = transactions.get(e.getTransactionId());
     transaction.setTransactionStatus(TransactionStatus.FAILED);
@@ -73,9 +74,9 @@ public class MemberEventListener {
   @EventHandler
   public void on(PayoutCreatedEvent e) {
     val member =
-        memberRepository
-            .findById(e.getMemberId())
-            .orElseThrow(() -> new RuntimeException("Could not find member"));
+      memberRepository
+        .findById(e.getMemberId())
+        .orElseThrow(() -> new RuntimeException("Could not find member"));
     val transaction = new Transaction();
     transaction.setId(e.getTransactionId());
     transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
@@ -134,7 +135,6 @@ public class MemberEventListener {
 
   @EventHandler
   public void on(TrustlyAccountCreatedEvent e) {
-
     Optional<Member> member = memberRepository.findById(e.getMemberId());
 
     if (!member.isPresent()) {
@@ -146,6 +146,8 @@ public class MemberEventListener {
 
     m.setDirectDebitMandateActive(e.isDirectDebitMandateActivated());
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
+    m.setBank(e.getBank());
+    m.setLastDigits(e.getLastDigits());
 
     memberRepository.save(m);
   }

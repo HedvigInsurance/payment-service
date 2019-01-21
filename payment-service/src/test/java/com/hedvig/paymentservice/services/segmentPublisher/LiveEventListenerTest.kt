@@ -135,7 +135,7 @@ class LiveEventListenerTest {
   private fun makeDefaultMember(memberId:String = "1337"): Member {
     val member = Member()
     member.id = memberId
-    member.directDebitMandateActive = true
+    member.isDirectDebitMandateActive = true
     member.trustlyAccountNumber = "32094820834"
 
     return member
