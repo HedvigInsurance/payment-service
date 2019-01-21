@@ -1,0 +1,12 @@
+schema {
+  query: Query
+}
+
+type Query {
+  accountInfo(memberId: String!): Account
+}
+
+type Account {
+  bankName: String!
+  lastDigits: String!
+}

@@ -7,3 +7,15 @@ spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
 
 
+graphql:
+  servlet:
+    mapping: /graphql
+    enabled: true
+    corsEnabled: false
+
+graphiql:
+  mapping: /graphiql
+  endpoint: /graphql
+  enabled: true
+  pageTitle: Payment GraphiQL
+
