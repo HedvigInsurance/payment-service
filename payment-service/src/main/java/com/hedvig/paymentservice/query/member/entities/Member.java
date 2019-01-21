@@ -2,7 +2,11 @@ package com.hedvig.paymentservice.query.member.entities;
 
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.MapKey;
+import javax.persistence.OneToMany;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
