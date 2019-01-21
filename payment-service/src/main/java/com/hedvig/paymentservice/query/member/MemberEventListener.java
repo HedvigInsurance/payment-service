@@ -13,19 +13,21 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEve
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.axonframework.eventhandling.ReplayStatus;
+import org.axonframework.eventhandling.ResetHandler;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
+@ProcessingGroup("member-projection")
+@Slf4j
 public class MemberEventListener {
-
-  private Logger log = LoggerFactory.getLogger(MemberEventListener.class);
 
   private final MemberRepository memberRepository;
 
@@ -150,5 +152,10 @@ public class MemberEventListener {
     m.setLastDigits(e.getLastDigits());
 
     memberRepository.save(m);
+  }
+
+  @ResetHandler
+  public void onReset() {
+    memberRepository.deleteAll();
   }
 }
