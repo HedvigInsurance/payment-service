@@ -123,7 +123,7 @@ public class TrustlyOrder {
             cmd.getCity(),
             cmd.getClearingHouse(),
             cmd.getDescriptor(),
-            cmd.isDirectDebitMandateActivated(),
+            cmd.getDirectDebitMandateActivated(),
             cmd.getLastDigits(),
             cmd.getName(),
             cmd.getPersonId(),

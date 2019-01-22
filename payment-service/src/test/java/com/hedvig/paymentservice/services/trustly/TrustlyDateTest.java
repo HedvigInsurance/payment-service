@@ -32,6 +32,6 @@ public class TrustlyDateTest {
   }
 
   public DateTimeFormatter getDateTimeFormatter() {
-    return TrustlyService.getDateTimeFormatter();
+    return TrustlyService.Companion.getDateTimeFormatter();
   }
 }

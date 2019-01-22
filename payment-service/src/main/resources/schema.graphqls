@@ -3,10 +3,10 @@ schema {
 }
 
 type Query {
-  accountInfo(memberId: String!): Account
+  accountInfo(memberId: String!): BankAccount
 }
 
-type Account {
+type BankAccount {
   bankName: String!
-  lastDigits: String!
+  descriptor: String!
 }

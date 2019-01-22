@@ -25,6 +25,7 @@
 package com.hedvig.paymentService.trustly.data.notification;
 
 import com.google.gson.annotations.SerializedName;
+
 import java.util.Map;
 import java.util.TreeMap;
 

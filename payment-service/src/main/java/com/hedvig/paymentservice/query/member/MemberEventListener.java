@@ -149,7 +149,7 @@ public class MemberEventListener {
     m.setDirectDebitMandateActive(e.isDirectDebitMandateActivated());
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
-    m.setLastDigits(e.getLastDigits());
+    m.setDescriptor(e.getDescriptor());
 
     memberRepository.save(m);
   }

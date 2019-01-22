@@ -26,7 +26,7 @@ public class Member {
   boolean directDebitMandateActive;
 
   String bank;
-  String lastDigits;
+  String descriptor;
 
   public Transaction getTransaction(UUID transactionId) {
     return this.transactions.get(transactionId);
