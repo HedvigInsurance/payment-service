@@ -1,15 +1,9 @@
 package com.hedvig.paymentservice.query.member;
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.*;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
@@ -17,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
-import org.axonframework.eventhandling.ReplayStatus;
 import org.axonframework.eventhandling.ResetHandler;
 import org.springframework.stereotype.Component;
 
@@ -146,13 +139,52 @@ public class MemberEventListener {
 
     Member m = member.get();
 
-    m.setDirectDebitMandateActive(false);  //TODO: FIX ME
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
     m.setDescriptor(e.getDescriptor());
 
     memberRepository.save(m);
   }
+
+  @EventHandler
+  public void on(DirectDebitConnectedEvent e) {
+    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
+
+    if (!optionalMember.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = optionalMember.get();
+    m.setDirectDebitStatus(DirectDebitStatus.CONNECTED);
+  }
+
+  @EventHandler
+  public void on(DirectDebitPendingConnectionEvent e) {
+    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
+
+    if (!optionalMember.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = optionalMember.get();
+    m.setDirectDebitStatus(DirectDebitStatus.PENDING);
+  }
+
+  @EventHandler
+  public void on(DirectDebitDisconnectedEvent e) {
+    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
+
+    if (!optionalMember.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = optionalMember.get();
+    m.setDirectDebitStatus(DirectDebitStatus.DISCONNECTED);
+  }
+
 
   @ResetHandler
   public void onReset() {

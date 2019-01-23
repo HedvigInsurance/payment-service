@@ -1,12 +1,9 @@
 package com.hedvig.paymentservice.query.member.entities;
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import lombok.Data;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.MapKey;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +20,9 @@ public class Member {
   Map<UUID, Transaction> transactions = new HashMap<>();
 
   String trustlyAccountNumber;
-  boolean directDebitMandateActive;
+
+  @Enumerated(EnumType.STRING)
+  DirectDebitStatus directDebitStatus;
 
   String bank;
   String descriptor;
