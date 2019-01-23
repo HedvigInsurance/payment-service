@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.segment.analytics.Analytics
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
