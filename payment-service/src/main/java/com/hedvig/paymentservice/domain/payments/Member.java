@@ -122,7 +122,6 @@ public class Member {
             cmd.getCity(),
             cmd.getClearingHouse(),
             cmd.getDescriptor(),
-            cmd.isDirectDebitMandateActive(),
             cmd.getLastDigits(),
             cmd.getName(),
             cmd.getPersonId(),
@@ -231,7 +230,7 @@ public class Member {
   @EventSourcingHandler
   public void on(TrustlyAccountCreatedEvent e) {
 
-    val account = new TrustlyAccount(e.getTrustlyAccountId(), e.isDirectDebitMandateActivated());
+    val account = new TrustlyAccount(e.getTrustlyAccountId(), false); //TODO: FIX ME
 
     this.trustlyAccount = account;
   }

@@ -16,7 +16,7 @@ class EventListener(private val segmentAnalytics: Analytics) {
 
   @EventHandler
   fun on(evt: TrustlyAccountCreatedEvent) {
-    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", evt.isDirectDebitMandateActivated)
+    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", false) //TODO: FIX ME
 
     segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
   }

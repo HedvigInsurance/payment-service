@@ -16,7 +16,7 @@ public class UpdateTrustlyAccountCommand {
   String city;
   String clearingHouse;
   String descriptor;
-  boolean directDebitMandateActive;
+  Boolean directDebitMandateActive;
   String lastDigits;
   String name;
   String personId;

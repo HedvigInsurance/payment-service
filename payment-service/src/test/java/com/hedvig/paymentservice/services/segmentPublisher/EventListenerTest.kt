@@ -61,6 +61,6 @@ class EventListenerTest {
       memberId,
       productId,
       trustlyAccountId,
-      address, "SWEDBANK", "Stockholm", "SWE", "descriptor", directDebitMandateActivated, "XXXX", "Tolvan", "19121212-1212", "12345")
+      address, "SWEDBANK", "Stockholm", "SWE", "descriptor", "XXXX", "Tolvan", "19121212-1212", "12345")
   }
 }

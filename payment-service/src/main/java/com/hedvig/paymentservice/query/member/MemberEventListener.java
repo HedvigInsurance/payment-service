@@ -146,7 +146,7 @@ public class MemberEventListener {
 
     Member m = member.get();
 
-    m.setDirectDebitMandateActive(e.isDirectDebitMandateActivated());
+    m.setDirectDebitMandateActive(false);  //TODO: FIX ME
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
     m.setDescriptor(e.getDescriptor());
