@@ -6,5 +6,6 @@ import lombok.Value;
 public class DirectDebitConnectedEvent {
 
   String memberId;
+  String hedvigOrderId;
   String trustlyAccountId;
 }

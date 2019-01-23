@@ -12,14 +12,13 @@ import java.util.stream.Stream
 class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
 
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
-    return intermediateRepresentation.type == targetType
-      && intermediateRepresentation.type.revision == targetType.revision
+    return true //intermediateRepresentation.type == targetType
+      //&& intermediateRepresentation.type.revision == targetType.revision
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
 
-    intermediateRepresentation.metaData.`object`["memberId"]
-
+    val data = intermediateRepresentation.getData(String::class.java)
 
     return Stream.of(
 
@@ -38,9 +37,21 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
         ddTypes["connected"],
         org.dom4j.Document::class.java
       ) { document ->
+        val root = document.rootElement
+        root.name = ddTypes["connected"]!!.name
+          root.remove(root.element("address"))
+          root.remove(root.element("address"))
+          root.remove(root.element("bank"))
+          root.remove(root.element("city"))
+          root.remove(root.element("clearingHouse"))
+          root.remove(root.element("descriptor"))
+          root.remove(root.element("lastDigits"))
+          root.remove(root.element("name"))
+          root.remove(root.element("personId"))
+          root.remove(root.element("zipCode"))
+        root.remove(root.element("directDebitMandateActivated"))
+        document
       },
-
-
       intermediateRepresentation.upcastPayload(
         SimpleSerializedType(targetType.name, "1.0"),
         org.dom4j.Document::class.java
