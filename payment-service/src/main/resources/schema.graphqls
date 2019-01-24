@@ -3,10 +3,17 @@ schema {
 }
 
 type Query {
-  accountInfo(memberId: String!): BankAccount
+  getBankAccountInfo: BankAccount
 }
 
 type BankAccount {
   bankName: String!
   descriptor: String!
+  directDebitStatus: DirectDebitStatus
+}
+
+enum DirectDebitStatus {
+  CONNECTED
+  PENDING
+  FAILED
 }
