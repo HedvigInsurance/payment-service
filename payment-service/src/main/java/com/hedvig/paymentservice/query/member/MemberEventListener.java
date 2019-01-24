@@ -147,6 +147,24 @@ public class MemberEventListener {
   }
 
   @EventHandler
+  public void on(TrustlyAccountUpdatedEvent e) {
+    Optional<Member> member = memberRepository.findById(e.getMemberId());
+
+    if (!member.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = member.get();
+
+    m.setTrustlyAccountNumber(e.getTrustlyAccountId());
+    m.setBank(e.getBank());
+    m.setDescriptor(e.getDescriptor());
+
+    memberRepository.save(m);
+  }
+
+  @EventHandler
   public void on(DirectDebitConnectedEvent e) {
     Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
 

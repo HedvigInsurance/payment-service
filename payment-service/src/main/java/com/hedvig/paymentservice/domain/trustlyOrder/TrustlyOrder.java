@@ -1,51 +1,27 @@
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
-import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
-
 import com.hedvig.paymentService.trustly.data.response.Error;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.CreditNotificationReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.ExternalTransactionIdAssignedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.NotificationReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderAssignedTrustlyIdEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCreatedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentErrorReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentResponseReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.PayoutErrorReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.PayoutResponseReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.PendingNotificationReceivedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.UUID;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
+import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.UUID;
+
+import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
+
+@Slf4j
 @Aggregate
 public class TrustlyOrder {
 
-  Logger log = LoggerFactory.getLogger(TrustlyOrder.class);
-
-  @AggregateIdentifier private UUID id;
+  @AggregateIdentifier
+  private UUID id;
   private String trustlyOrderId;
   private OrderType orderType;
   private OrderState orderState;
@@ -54,7 +30,8 @@ public class TrustlyOrder {
   private List<Error> errors = new ArrayList<Error>();
   private TreeSet<String> handledNotifications = new TreeSet<>();
 
-  public TrustlyOrder() {}
+  public TrustlyOrder() {
+  }
 
   @CommandHandler
   public TrustlyOrder(CreateOrderCommand cmd) {
@@ -90,8 +67,8 @@ public class TrustlyOrder {
   public void cmd(PayoutResponseReceivedCommand cmd) {
     apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
     apply(
-        new PayoutResponseReceivedEvent(
-            cmd.getHedvigOrderId(), memberId, cmd.getAmount(), externalTransactionId));
+      new PayoutResponseReceivedEvent(
+        cmd.getHedvigOrderId(), memberId, cmd.getAmount(), externalTransactionId));
   }
 
   @CommandHandler
@@ -106,28 +83,27 @@ public class TrustlyOrder {
 
   @CommandHandler
   public void cmd(AccountNotificationReceivedCommand cmd) {
-
     if (handledNotifications.contains(cmd.getNotificationId())) {
       return;
     }
 
     apply(
-        new AccountNotificationReceivedEvent(
-            this.id,
-            this.memberId,
-            cmd.getNotificationId(),
-            cmd.getTrustlyOrderId(),
-            cmd.getAccountId(),
-            cmd.getAddress(),
-            cmd.getBank(),
-            cmd.getCity(),
-            cmd.getClearingHouse(),
-            cmd.getDescriptor(),
-            cmd.getDirectDebitMandateActivated(),
-            cmd.getLastDigits(),
-            cmd.getName(),
-            cmd.getPersonId(),
-            cmd.getZipCode()));
+      new AccountNotificationReceivedEvent(
+        this.id,
+        this.memberId,
+        cmd.getNotificationId(),
+        cmd.getTrustlyOrderId(),
+        cmd.getAccountId(),
+        cmd.getAddress(),
+        cmd.getBank(),
+        cmd.getCity(),
+        cmd.getClearingHouse(),
+        cmd.getDescriptor(),
+        cmd.getDirectDebitMandateActivated(),
+        cmd.getLastDigits(),
+        cmd.getName(),
+        cmd.getPersonId(),
+        cmd.getZipCode()));
     markOrderComplete();
   }
 
@@ -139,27 +115,27 @@ public class TrustlyOrder {
   @CommandHandler
   public void cmd(PendingNotificationReceivedCommand cmd) {
     apply(
-        new PendingNotificationReceivedEvent(
-            cmd.getHedvigOrderId(),
-            cmd.getNotificationId(),
-            cmd.getTrustlyOrderId(),
-            cmd.getAmount(),
-            cmd.getMemberId(),
-            cmd.getTimestamp()));
+      new PendingNotificationReceivedEvent(
+        cmd.getHedvigOrderId(),
+        cmd.getNotificationId(),
+        cmd.getTrustlyOrderId(),
+        cmd.getAmount(),
+        cmd.getMemberId(),
+        cmd.getTimestamp()));
   }
 
   @CommandHandler
   public void cmd(CreditNotificationReceivedCommand cmd) {
     apply(
-        new CreditNotificationReceivedEvent(
-            this.id,
-            this.externalTransactionId,
-            cmd.getNotificationId(),
-            cmd.getTrustlyOrderId(),
-            cmd.getMemberId(),
-            cmd.getAmount(),
-            cmd.getTimestamp(),
-            this.orderType));
+      new CreditNotificationReceivedEvent(
+        this.id,
+        this.externalTransactionId,
+        cmd.getNotificationId(),
+        cmd.getTrustlyOrderId(),
+        cmd.getMemberId(),
+        cmd.getAmount(),
+        cmd.getTimestamp(),
+        this.orderType));
 
     markOrderComplete();
   }

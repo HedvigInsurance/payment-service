@@ -1,10 +1,15 @@
 package com.hedvig.paymentservice.domain.payments.events;
 
-import java.util.UUID;
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
+import org.axonframework.serialization.Revision;
 
+import java.util.UUID;
+
+@Revision("1.0")
 public class TrustlyAccountCreatedEvent {
-  @AggregateIdentifier String memberId;
+  @AggregateIdentifier
+  String memberId;
   UUID hedvigOrderId;
 
   String trustlyAccountId;
@@ -13,19 +18,18 @@ public class TrustlyAccountCreatedEvent {
   String city;
   String clearingHouse;
   String descriptor;
-  boolean directDebitMandateActivated;
   String lastDigits;
   String name;
   String personId;
   String zipCode;
 
   @java.beans.ConstructorProperties({"memberId", "hedvigOrderId", "trustlyAccountId", "address",
-    "bank", "city", "clearingHouse", "descriptor", "directDebitMandateActivated", "lastDigits",
+    "bank", "city", "clearingHouse", "descriptor", "lastDigits",
     "name", "personId", "zipCode"})
   public TrustlyAccountCreatedEvent(String memberId, UUID hedvigOrderId, String trustlyAccountId,
-    String address, String bank, String city, String clearingHouse, String descriptor,
-    boolean directDebitMandateActivated, String lastDigits, String name, String personId,
-    String zipCode) {
+                                    String address, String bank, String city, String clearingHouse, String descriptor,
+                                    String lastDigits, String name, String personId,
+                                    String zipCode) {
     this.memberId = memberId;
     this.hedvigOrderId = hedvigOrderId;
     this.trustlyAccountId = trustlyAccountId;
@@ -34,11 +38,26 @@ public class TrustlyAccountCreatedEvent {
     this.city = city;
     this.clearingHouse = clearingHouse;
     this.descriptor = descriptor;
-    this.directDebitMandateActivated = directDebitMandateActivated;
     this.lastDigits = lastDigits;
     this.name = name;
     this.personId = personId;
     this.zipCode = zipCode;
+  }
+
+  public static TrustlyAccountCreatedEvent fromUpdateTrustlyAccountCmd(String memberId, UpdateTrustlyAccountCommand cmd) {
+    return new TrustlyAccountCreatedEvent(
+      memberId,
+      cmd.getHedvigOrderId(),
+      cmd.getAccountId(),
+      cmd.getAddress(),
+      cmd.getBank(),
+      cmd.getCity(),
+      cmd.getClearingHouse(),
+      cmd.getDescriptor(),
+      cmd.getLastDigits(),
+      cmd.getName(),
+      cmd.getPersonId(),
+      cmd.getZipCode());
   }
 
   public String getMemberId() {
@@ -71,10 +90,6 @@ public class TrustlyAccountCreatedEvent {
 
   public String getDescriptor() {
     return this.descriptor;
-  }
-
-  public boolean isDirectDebitMandateActivated() {
-    return this.directDebitMandateActivated;
   }
 
   public String getLastDigits() {
@@ -145,9 +160,6 @@ public class TrustlyAccountCreatedEvent {
       : !this$descriptor.equals(other$descriptor)) {
       return false;
     }
-    if (this.isDirectDebitMandateActivated() != other.isDirectDebitMandateActivated()) {
-      return false;
-    }
     final Object this$lastDigits = this.getLastDigits();
     final Object other$lastDigits = other.getLastDigits();
     if (this$lastDigits == null ? other$lastDigits != null
@@ -191,7 +203,6 @@ public class TrustlyAccountCreatedEvent {
     result = result * PRIME + ($clearingHouse == null ? 43 : $clearingHouse.hashCode());
     final Object $descriptor = this.getDescriptor();
     result = result * PRIME + ($descriptor == null ? 43 : $descriptor.hashCode());
-    result = result * PRIME + (this.isDirectDebitMandateActivated() ? 79 : 97);
     final Object $lastDigits = this.getLastDigits();
     result = result * PRIME + ($lastDigits == null ? 43 : $lastDigits.hashCode());
     final Object $name = this.getName();
@@ -208,7 +219,7 @@ public class TrustlyAccountCreatedEvent {
       .getHedvigOrderId() + ", trustlyAccountId=" + this.getTrustlyAccountId() + ", address="
       + this.getAddress() + ", bank=" + this.getBank() + ", city=" + this.getCity()
       + ", clearingHouse=" + this.getClearingHouse() + ", descriptor=" + this.getDescriptor()
-      + ", directDebitMandateActivated=" + this.isDirectDebitMandateActivated() + ", lastDigits="
+      + ", lastDigits="
       + this.getLastDigits() + ", name=" + this.getName() + ", personId=" + this.getPersonId()
       + ", zipCode=" + this.getZipCode() + ")";
   }

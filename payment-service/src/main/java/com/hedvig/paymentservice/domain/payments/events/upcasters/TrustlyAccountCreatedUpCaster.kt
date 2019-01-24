@@ -21,24 +21,24 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
     val directDebit = intermediateRepresentation.getData(org.dom4j.Document::class.java)
       .data.rootElement.element("directDebitMandateActivated")
     return Stream.of(
-      intermediateEventRepresentation(intermediateRepresentation, directDebit?.text),
       intermediateRepresentation.upcastPayload(
         eventTypes[TRUSTLY_ACCOUNT_CREATED_V1],
         org.dom4j.Document::class.java
       ) { document ->
         document.rootElement.remove(document.rootElement.element("directDebitMandateActivated"))
         document
-      }
+      },
+      convertToDirectDebitRepresentation(intermediateRepresentation, directDebit?.text?.toBoolean())
     )
   }
 
-  private fun intermediateEventRepresentation(
+  private fun convertToDirectDebitRepresentation(
     intermediateRepresentation: IntermediateEventRepresentation,
-    directDebit: String?
+    directDebit: Boolean?
   ): IntermediateEventRepresentation? {
     val eventType = when (directDebit) {
-      "1" -> CONNECTED
-      "0" -> DISCONNECTED
+      true -> CONNECTED
+      false -> DISCONNECTED
       else -> PENDING_CONNECTION
     }
 

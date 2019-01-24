@@ -2,13 +2,12 @@ package com.hedvig.paymentservice.domain.payments;
 
 import com.hedvig.paymentservice.domain.payments.commands.*;
 import com.hedvig.paymentservice.domain.payments.events.*;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +17,8 @@ import java.util.stream.Collectors;
 import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
 
 @Aggregate
+@Slf4j
 public class Member {
-  Logger log = LoggerFactory.getLogger(Member.class);
 
   @AggregateIdentifier
   private String id;
@@ -101,21 +100,12 @@ public class Member {
 
   @CommandHandler
   public void cmd(UpdateTrustlyAccountCommand cmd) {
-
-    apply(
-      new TrustlyAccountCreatedEventV1(
-        this.id,
-        cmd.getHedvigOrderId(),
-        cmd.getAccountId(),
-        cmd.getAddress(),
-        cmd.getBank(),
-        cmd.getCity(),
-        cmd.getClearingHouse(),
-        cmd.getDescriptor(),
-        cmd.getLastDigits(),
-        cmd.getName(),
-        cmd.getPersonId(),
-        cmd.getZipCode()));
+    if (trustlyAccount == null || !trustlyAccount.getAccountId().equals(cmd.getAccountId())) {
+      apply(TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(this.id, cmd));
+    } else {
+      apply(TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCmd(this.id, cmd));
+    }
+    updateDirectDebitStatus(cmd);
   }
 
   @CommandHandler
@@ -219,7 +209,7 @@ public class Member {
 
   @EventSourcingHandler
   public void on(TrustlyAccountCreatedEvent e) {
-    this.trustlyAccount = new TrustlyAccount(e.getTrustlyAccountId(), DirectDebitStatus.PENDING);
+    this.trustlyAccount = new TrustlyAccount(e.getTrustlyAccountId(), null);
   }
 
   @EventSourcingHandler
@@ -252,5 +242,30 @@ public class Member {
     }
 
     return matchingTransactions.get(0);
+  }
+
+  private void updateDirectDebitStatus(UpdateTrustlyAccountCommand cmd) {
+    if (cmd.getDirectDebitMandateActive()) {
+      apply(
+        new DirectDebitConnectedEvent(
+          this.id,
+          cmd.getHedvigOrderId().toString(),
+          cmd.getAccountId()));
+    } else if (!cmd.getDirectDebitMandateActive()) {
+      apply(
+        new DirectDebitDisconnectedEvent(
+          this.id,
+          cmd.getHedvigOrderId().toString(),
+          cmd.getAccountId()));
+    } else {
+      if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)
+        || !trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED)) {
+        apply(
+          new DirectDebitPendingConnectionEvent(
+            this.id,
+            cmd.getHedvigOrderId().toString(),
+            cmd.getAccountId()));
+      }
+    }
   }
 }
