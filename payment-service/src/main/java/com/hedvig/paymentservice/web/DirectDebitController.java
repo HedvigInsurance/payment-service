@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.web;
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
@@ -7,8 +8,6 @@ import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO;
-import java.util.Optional;
-import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -37,7 +39,7 @@ public class DirectDebitController {
 
   @GetMapping(path = "status")
   public ResponseEntity<DirectDebitStatusDTO> getDirectDebitStatus(
-      @RequestHeader(name = "hedvig.token") String memberId) {
+    @RequestHeader(name = "hedvig.token") String memberId) {
 
     logger.debug("Fetching status for member {}", memberId);
 
@@ -50,18 +52,18 @@ public class DirectDebitController {
     Member member = om.get();
 
     return ResponseEntity
-        .ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitStatus() != null)); //TODO FIXME
+      .ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTEDgs)));
   }
 
   @PostMapping(path = "register")
   public ResponseEntity<DirectDebitResponse> registerDirectDebit(
-      @RequestHeader(name = "hedvig.token") String memberId,
-      @RequestBody @Valid RegisterDirectDebitRequestDTO req) {
+    @RequestHeader(name = "hedvig.token") String memberId,
+    @RequestBody @Valid RegisterDirectDebitRequestDTO req) {
 
     logger.info("Starting register directDebit for member {}", memberId);
 
     final DirectDebitResponse response = trustlyService
-        .requestDirectDebitAccount(new DirectDebitOrderInfo(memberId, req, false));
+      .requestDirectDebitAccount(new DirectDebitOrderInfo(memberId, req, false));
 
     return ResponseEntity.ok(response);
   }

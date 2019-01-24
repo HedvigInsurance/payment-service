@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.web.dtos;
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import lombok.Value;
 
@@ -20,7 +21,7 @@ public class PaymentMemberDTO {
       m.getId(),
       m.getTransactions().entrySet().stream().collect(
         Collectors.toMap(Map.Entry::getKey, e -> TransactionDTO.fromTransaction(e.getValue()))),
-      m.getDirectDebitStatus() != null, //TODO fix
+      m.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED),
       m.getTrustlyAccountNumber()
     );
   }
