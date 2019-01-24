@@ -49,8 +49,7 @@ public class Member {
       return false;
     }
 
-    if (trustlyAccount.getDirectDebitStatus() == null
-      || !trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
+    if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
       log.info("Cannot charge account - direct debit mandate not received in Trustly");
       apply(
         new ChargeCreationFailedEvent(

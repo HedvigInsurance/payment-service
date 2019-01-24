@@ -11,7 +11,19 @@ public class BankAccount {
   DirectDebitStatus directDebitStatus;
 
   public static BankAccount fromMember(Member m) {
-    //TODO Resume work here
-    return new BankAccount(m.getBank(), m.getDescriptor(), DirectDebitStatus.PENDING);
+    return new BankAccount(m.getBank(), m.getDescriptor(), fromMemberDirectStatus(m.getDirectDebitStatus()));
+  }
+
+  private static DirectDebitStatus fromMemberDirectStatus(com.hedvig.paymentservice.domain.payments.DirectDebitStatus s) {
+    switch (s) {
+      case CONNECTED:
+        return DirectDebitStatus.CONNECTED;
+      case PENDING:
+        return DirectDebitStatus.PENDING;
+      case DISCONNECTED:
+        return DirectDebitStatus.FAILED;
+      default:
+        return null;
+    }
   }
 }
