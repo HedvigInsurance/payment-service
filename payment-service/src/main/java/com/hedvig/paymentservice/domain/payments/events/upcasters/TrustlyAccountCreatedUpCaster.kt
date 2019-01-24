@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEve
 import org.axonframework.serialization.SimpleSerializedType
 import org.axonframework.serialization.upcasting.event.EventMultiUpcaster
 import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation
+import org.dom4j.Document
 import java.util.stream.Stream
 
 class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
@@ -17,17 +18,36 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
+    val directDebit = intermediateRepresentation.getData(org.dom4j.Document::class.java)
+      .data.rootElement.element("directDebitMandateActivated")
+    return Stream.of(
+      intermediateEventRepresentation(intermediateRepresentation, directDebit?.text),
+      intermediateRepresentation.upcastPayload(
+        eventTypes[TRUSTLY_ACCOUNT_CREATED_V1],
+        org.dom4j.Document::class.java
+      ) { document ->
+        document.rootElement.remove(document.rootElement.element("directDebitMandateActivated"))
+        document
+      }
+    )
+  }
 
-    val dom = intermediateRepresentation.getData(org.dom4j.Document::class.java)
+  private fun intermediateEventRepresentation(
+    intermediateRepresentation: IntermediateEventRepresentation,
+    directDebit: String?
+  ): IntermediateEventRepresentation? {
+    val eventType = when (directDebit) {
+      "1" -> CONNECTED
+      "0" -> DISCONNECTED
+      else -> PENDING_CONNECTION
+    }
 
-    dom.data.rootElement
-
-    val connected = intermediateRepresentation.upcastPayload(
-      eventTypes[CONNECTED],
-      org.dom4j.Document::class.java
+    return intermediateRepresentation.upcastPayload(
+      eventTypes[eventType],
+      Document::class.java
     ) { document ->
       val root = document.rootElement
-      root.name = eventTypes[CONNECTED]!!.name
+      root.name = eventTypes[eventType]!!.name
       root.remove(root.element("address"))
       root.remove(root.element("bank"))
       root.remove(root.element("city"))
@@ -40,53 +60,6 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
       root.remove(root.element("directDebitMandateActivated"))
       document
     }
-
-
-    return Stream.of(
-      intermediateRepresentation.upcastPayload(
-        eventTypes[PENDING_CONNECTION],
-        org.dom4j.Document::class.java
-      ) { document ->
-        val root = document.rootElement
-        root.name = eventTypes[PENDING_CONNECTION]!!.name
-        root.remove(root.element("address"))
-        root.remove(root.element("bank"))
-        root.remove(root.element("city"))
-        root.remove(root.element("clearingHouse"))
-        root.remove(root.element("descriptor"))
-        root.remove(root.element("lastDigits"))
-        root.remove(root.element("name"))
-        root.remove(root.element("personId"))
-        root.remove(root.element("zipCode"))
-        root.remove(root.element("directDebitMandateActivated"))
-        document
-      },
-      intermediateRepresentation.upcastPayload(
-        eventTypes[DISCONNECTED],
-        org.dom4j.Document::class.java
-      ) { document ->
-        val root = document.rootElement
-        root.name = eventTypes[DISCONNECTED]!!.name
-        root.remove(root.element("address"))
-        root.remove(root.element("bank"))
-        root.remove(root.element("city"))
-        root.remove(root.element("clearingHouse"))
-        root.remove(root.element("descriptor"))
-        root.remove(root.element("lastDigits"))
-        root.remove(root.element("name"))
-        root.remove(root.element("personId"))
-        root.remove(root.element("zipCode"))
-        root.remove(root.element("directDebitMandateActivated"))
-        document
-      },
-      intermediateRepresentation.upcastPayload(
-        eventTypes[TRUSTLY_ACCOUNT_CREATED_V1],
-        org.dom4j.Document::class.java
-      ) { document ->
-        document.rootElement.remove(document.rootElement.element("directDebitMandateActivated"))
-        document
-      }
-    )
   }
 
   companion object {
