@@ -103,7 +103,7 @@ public class Member {
   public void cmd(UpdateTrustlyAccountCommand cmd) {
 
     apply(
-      new TrustlyAccountCreatedEvent(
+      new TrustlyAccountCreatedEventV1(
         this.id,
         cmd.getHedvigOrderId(),
         cmd.getAccountId(),

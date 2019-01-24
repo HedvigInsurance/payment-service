@@ -20,7 +20,7 @@ public class PaymentMemberDTO {
       m.getId(),
       m.getTransactions().entrySet().stream().collect(
         Collectors.toMap(Map.Entry::getKey, e -> TransactionDTO.fromTransaction(e.getValue()))),
-      m.isDirectDebitMandateActive(),
+      m.getDirectDebitStatus() != null, //TODO fix
       m.getTrustlyAccountNumber()
     );
   }

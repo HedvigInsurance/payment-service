@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
@@ -89,7 +90,7 @@ public class DirectDebitControllerTest {
   private Member makeMember(String memberId, boolean isConnected) {
     Member member = new Member();
     member.setId(memberId);
-    member.setDirectDebitMandateActive(isConnected);
+    member.setDirectDebitStatus(isConnected ? DirectDebitStatus.CONNECTED : DirectDebitStatus.DISCONNECTED );
 
     return member;
   }

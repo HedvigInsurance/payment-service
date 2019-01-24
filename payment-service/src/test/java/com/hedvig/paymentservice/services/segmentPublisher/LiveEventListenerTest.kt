@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.services.segmentPublisher
 
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.TransactionType
 import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent
 import com.hedvig.paymentservice.query.member.entities.Member
@@ -135,7 +136,7 @@ class LiveEventListenerTest {
   private fun makeDefaultMember(memberId:String = "1337"): Member {
     val member = Member()
     member.id = memberId
-    member.isDirectDebitMandateActive = true
+    member.directDebitStatus = DirectDebitStatus.CONNECTED
     member.trustlyAccountNumber = "32094820834"
 
     return member

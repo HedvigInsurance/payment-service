@@ -7,6 +7,7 @@ import com.hedvig.paymentService.trustly.data.notification.NotificationParameter
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEventV1;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
 import java.time.Instant;
@@ -68,8 +69,8 @@ public class TestData {
     return new PaymentRequest(TOLVANSSON_MEMBER_ID, amount, "1234567", TOLVANSSON_EMAIL);
   }
 
-  public static TrustlyAccountCreatedEvent makeTrustlyAccountCreatedEvent() {
-    return new TrustlyAccountCreatedEvent(
+  public static TrustlyAccountCreatedEventV1 makeTrustlyAccountCreatedEvent() {
+    return new TrustlyAccountCreatedEventV1(
         TOLVANSSON_MEMBER_ID,
         HEDVIG_ORDER_ID,
         TRUSTLY_ACCOUNT_ID,

@@ -17,25 +17,32 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
+
+    val dom = intermediateRepresentation.getData(org.dom4j.Document::class.java)
+
+    dom.data.rootElement
+
+    val connected = intermediateRepresentation.upcastPayload(
+      eventTypes[CONNECTED],
+      org.dom4j.Document::class.java
+    ) { document ->
+      val root = document.rootElement
+      root.name = eventTypes[CONNECTED]!!.name
+      root.remove(root.element("address"))
+      root.remove(root.element("bank"))
+      root.remove(root.element("city"))
+      root.remove(root.element("clearingHouse"))
+      root.remove(root.element("descriptor"))
+      root.remove(root.element("lastDigits"))
+      root.remove(root.element("name"))
+      root.remove(root.element("personId"))
+      root.remove(root.element("zipCode"))
+      root.remove(root.element("directDebitMandateActivated"))
+      document
+    }
+
+
     return Stream.of(
-      intermediateRepresentation.upcastPayload(
-        eventTypes[CONNECTED],
-        org.dom4j.Document::class.java
-      ) { document ->
-        val root = document.rootElement
-        root.name = eventTypes[CONNECTED]!!.name
-        root.remove(root.element("address"))
-        root.remove(root.element("bank"))
-        root.remove(root.element("city"))
-        root.remove(root.element("clearingHouse"))
-        root.remove(root.element("descriptor"))
-        root.remove(root.element("lastDigits"))
-        root.remove(root.element("name"))
-        root.remove(root.element("personId"))
-        root.remove(root.element("zipCode"))
-        root.remove(root.element("directDebitMandateActivated"))
-        document
-      },
       intermediateRepresentation.upcastPayload(
         eventTypes[PENDING_CONNECTION],
         org.dom4j.Document::class.java

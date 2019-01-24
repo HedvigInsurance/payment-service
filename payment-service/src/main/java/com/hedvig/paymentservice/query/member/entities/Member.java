@@ -31,4 +31,7 @@ public class Member {
     return this.transactions.get(transactionId);
   }
 
+  public Boolean isDirectDebitMandateActive() {
+    return directDebitStatus != null && directDebitStatus.equals(DirectDebitStatus.CONNECTED);
+  }
 }

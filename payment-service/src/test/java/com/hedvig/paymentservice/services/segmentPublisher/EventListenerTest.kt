@@ -22,7 +22,7 @@ class EventListenerTest {
 
   @Captor
   lateinit var enqueueCaptor: ArgumentCaptor<MessageBuilder<*, *>>
-
+/*
   @Test
   fun trustlyAccountCreatedEvent_withDirectDebitMandateActivated_setsIsDirectDebitActivatedToTrue() {
     val evt = makeTrustlyAccountCreatedEvent(memberId = "1337", directDebitMandateActivated = true)
@@ -63,4 +63,5 @@ class EventListenerTest {
       trustlyAccountId,
       address, "SWEDBANK", "Stockholm", "SWE", "descriptor", "XXXX", "Tolvan", "19121212-1212", "12345")
   }
+  */
 }

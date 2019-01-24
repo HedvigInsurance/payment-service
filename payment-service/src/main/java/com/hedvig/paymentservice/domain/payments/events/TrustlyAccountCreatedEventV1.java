@@ -2,8 +2,10 @@ package com.hedvig.paymentservice.domain.payments.events;
 
 import java.util.UUID;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
+import org.axonframework.serialization.Revision;
 
-public class TrustlyAccountCreatedEvent {
+@Revision("1.0")
+public class TrustlyAccountCreatedEventV1 {
   @AggregateIdentifier String memberId;
   UUID hedvigOrderId;
 
@@ -13,18 +15,17 @@ public class TrustlyAccountCreatedEvent {
   String city;
   String clearingHouse;
   String descriptor;
-  boolean directDebitMandateActivated;
   String lastDigits;
   String name;
   String personId;
   String zipCode;
 
   @java.beans.ConstructorProperties({"memberId", "hedvigOrderId", "trustlyAccountId", "address",
-    "bank", "city", "clearingHouse", "descriptor", "directDebitMandateActivated", "lastDigits",
+    "bank", "city", "clearingHouse", "descriptor", "lastDigits",
     "name", "personId", "zipCode"})
-  public TrustlyAccountCreatedEvent(String memberId, UUID hedvigOrderId, String trustlyAccountId,
+  public TrustlyAccountCreatedEventV1(String memberId, UUID hedvigOrderId, String trustlyAccountId,
     String address, String bank, String city, String clearingHouse, String descriptor,
-    boolean directDebitMandateActivated, String lastDigits, String name, String personId,
+    String lastDigits, String name, String personId,
     String zipCode) {
     this.memberId = memberId;
     this.hedvigOrderId = hedvigOrderId;
@@ -34,7 +35,6 @@ public class TrustlyAccountCreatedEvent {
     this.city = city;
     this.clearingHouse = clearingHouse;
     this.descriptor = descriptor;
-    this.directDebitMandateActivated = directDebitMandateActivated;
     this.lastDigits = lastDigits;
     this.name = name;
     this.personId = personId;
@@ -73,10 +73,6 @@ public class TrustlyAccountCreatedEvent {
     return this.descriptor;
   }
 
-  public boolean isDirectDebitMandateActivated() {
-    return this.directDebitMandateActivated;
-  }
-
   public String getLastDigits() {
     return this.lastDigits;
   }
@@ -97,10 +93,10 @@ public class TrustlyAccountCreatedEvent {
     if (o == this) {
       return true;
     }
-    if (!(o instanceof TrustlyAccountCreatedEvent)) {
+    if (!(o instanceof TrustlyAccountCreatedEventV1)) {
       return false;
     }
-    final TrustlyAccountCreatedEvent other = (TrustlyAccountCreatedEvent) o;
+    final TrustlyAccountCreatedEventV1 other = (TrustlyAccountCreatedEventV1) o;
     final Object this$memberId = this.getMemberId();
     final Object other$memberId = other.getMemberId();
     if (this$memberId == null ? other$memberId != null : !this$memberId.equals(other$memberId)) {
@@ -143,9 +139,6 @@ public class TrustlyAccountCreatedEvent {
     final Object other$descriptor = other.getDescriptor();
     if (this$descriptor == null ? other$descriptor != null
       : !this$descriptor.equals(other$descriptor)) {
-      return false;
-    }
-    if (this.isDirectDebitMandateActivated() != other.isDirectDebitMandateActivated()) {
       return false;
     }
     final Object this$lastDigits = this.getLastDigits();
@@ -191,7 +184,6 @@ public class TrustlyAccountCreatedEvent {
     result = result * PRIME + ($clearingHouse == null ? 43 : $clearingHouse.hashCode());
     final Object $descriptor = this.getDescriptor();
     result = result * PRIME + ($descriptor == null ? 43 : $descriptor.hashCode());
-    result = result * PRIME + (this.isDirectDebitMandateActivated() ? 79 : 97);
     final Object $lastDigits = this.getLastDigits();
     result = result * PRIME + ($lastDigits == null ? 43 : $lastDigits.hashCode());
     final Object $name = this.getName();
@@ -208,7 +200,7 @@ public class TrustlyAccountCreatedEvent {
       .getHedvigOrderId() + ", trustlyAccountId=" + this.getTrustlyAccountId() + ", address="
       + this.getAddress() + ", bank=" + this.getBank() + ", city=" + this.getCity()
       + ", clearingHouse=" + this.getClearingHouse() + ", descriptor=" + this.getDescriptor()
-      + ", directDebitMandateActivated=" + this.isDirectDebitMandateActivated() + ", lastDigits="
+      + ", lastDigits="
       + this.getLastDigits() + ", name=" + this.getName() + ", personId=" + this.getPersonId()
       + ", zipCode=" + this.getZipCode() + ")";
   }
