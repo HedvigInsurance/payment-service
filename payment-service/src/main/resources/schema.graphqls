@@ -4,6 +4,7 @@ schema {
 
 type Query {
   getBankAccountInfo: BankAccount
+  getChargeDate: LocalDate
 }
 
 type BankAccount {
@@ -17,3 +18,6 @@ enum DirectDebitStatus {
   PENDING
   FAILED
 }
+
+# A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
+scalar LocalDate

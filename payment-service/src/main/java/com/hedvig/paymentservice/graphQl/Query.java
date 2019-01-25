@@ -10,6 +10,8 @@ import javassist.tools.web.BadHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Optional;
 
 @Slf4j
@@ -31,6 +33,11 @@ public class Query implements GraphQLQueryResolver {
     }
     Optional<Member> optionalMember = memberRepository.findById(memberId);
     return optionalMember.map(BankAccount::fromMember).orElse(null);
+  }
+
+  //TODO: Catch Red days - Weekends
+  public LocalDate getChargeDate() {
+    return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
   }
 
   private String getToken(DataFetchingEnvironment dfe) {
