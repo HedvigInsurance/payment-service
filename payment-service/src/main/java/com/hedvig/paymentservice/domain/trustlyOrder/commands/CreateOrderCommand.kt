@@ -1,10 +1,8 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands
 
-import java.util.UUID
-import lombok.Value
+import java.util.*
 
-//@Value
 data class CreateOrderCommand(
-    val memberId: String,
-    val hedvigOrderId: UUID
+  val memberId: String,
+  val hedvigOrderId: UUID
 )

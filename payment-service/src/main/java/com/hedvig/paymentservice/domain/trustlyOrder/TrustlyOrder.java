@@ -35,7 +35,6 @@ public class TrustlyOrder {
 
   @CommandHandler
   public TrustlyOrder(CreateOrderCommand cmd) {
-
     apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
   }
 
@@ -140,7 +139,7 @@ public class TrustlyOrder {
     markOrderComplete();
   }
 
-  public void markOrderComplete() {
+  private void markOrderComplete() {
     if (orderState == OrderState.CONFIRMED) {
       apply(new OrderCompletedEvent(this.id));
     }
@@ -160,7 +159,9 @@ public class TrustlyOrder {
 
   @EventSourcingHandler
   public void on(SelectAccountResponseReceivedEvent e) {
+
     this.orderType = OrderType.SELECT_ACCOUNT;
+    this.orderState = OrderState.STARTED;
   }
 
   @EventSourcingHandler
