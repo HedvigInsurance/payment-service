@@ -6,6 +6,7 @@ import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.servlet.GraphQLContext;
+import javassist.tools.web.BadHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +23,10 @@ public class Query implements GraphQLQueryResolver {
     this.memberRepository = memberRepository;
   }
 
-  public BankAccount getBankAccountInfo(DataFetchingEnvironment env) {
+  public BankAccount getBankAccountInfo(DataFetchingEnvironment env) throws BadHttpRequest {
     String memberId = getToken(env);
-    if (memberId == null){
-      log.info("NULL");
+    if (memberId == null) {
+      log.error("GetBankAccountInfo - hedvig.token is missing");
       return null;
     }
     Optional<Member> optionalMember = memberRepository.findById(memberId);
@@ -39,7 +40,6 @@ public class Query implements GraphQLQueryResolver {
         .map(r -> r.getHeader(HEDVIG_TOKEN))
         .orElse(null);
     }
-
     return null;
   }
 }

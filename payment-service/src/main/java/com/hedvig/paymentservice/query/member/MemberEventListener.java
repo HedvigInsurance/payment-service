@@ -3,13 +3,23 @@ package com.hedvig.paymentservice.query.member;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
-import com.hedvig.paymentservice.domain.payments.events.*;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent;
+import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ResetHandler;
 import org.springframework.stereotype.Component;
@@ -18,7 +28,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
-@ProcessingGroup("member-projection")
 @Slf4j
 public class MemberEventListener {
 
