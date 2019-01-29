@@ -9,7 +9,6 @@ import com.hedvig.paymentservice.domain.registerAccount.events.RegisterAccountCo
 import com.hedvig.paymentservice.domain.registerAccount.events.RegisterAccountNotificationReceivedEvent
 import com.hedvig.paymentservice.domain.registerAccount.events.RegisterAccountRequestCreatedEvent
 import com.hedvig.paymentservice.domain.registerAccount.events.RegisterAccountResponseReceivedEvent
-import lombok.extern.slf4j.Slf4j
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
@@ -17,14 +16,13 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import java.util.*
 
-@Slf4j
 @Aggregate
 class RegisterAccount(
   @AggregateIdentifier
   var hedvigOrderId: UUID,
   var memberId: String,
   var status: RegisterAccountProcessStatus,
-  var trustlyUrl: String
+  var trustlyUrl: String?
 ) {
 
   @CommandHandler
