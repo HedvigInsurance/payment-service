@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.domain.trustlyOrder.sagas;
+package com.hedvig.paymentservice.domain.trustlyOrder.commands;
 
 import lombok.Value;
 
