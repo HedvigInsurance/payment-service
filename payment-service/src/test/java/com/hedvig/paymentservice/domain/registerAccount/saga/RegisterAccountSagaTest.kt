@@ -13,7 +13,6 @@ import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountRespons
 import org.axonframework.test.saga.SagaTestFixture
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
 import java.util.*
 
 class RegisterAccountSagaTest {
@@ -51,19 +50,19 @@ class RegisterAccountSagaTest {
         AccountNotificationReceivedEvent(
           TEST_HEDVIG_ORDER_ID,
           TEST_MEMBER_ID,
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyBoolean(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString()
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          null,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING
         )
       )
       .expectActiveSagas(1)
@@ -78,16 +77,16 @@ class RegisterAccountSagaTest {
         TrustlyAccountCreatedEvent(
           TEST_MEMBER_ID,
           TEST_HEDVIG_ORDER_ID,
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString()
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING
         )
       )
       .expectDispatchedCommands(ReceiveRegisterAccountConfirmationCommand(TEST_HEDVIG_ORDER_ID, TEST_MEMBER_ID))
@@ -102,16 +101,16 @@ class RegisterAccountSagaTest {
         TrustlyAccountUpdatedEvent(
           TEST_MEMBER_ID,
           TEST_HEDVIG_ORDER_ID,
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString(),
-          Mockito.anyString()
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING
         )
       )
       .expectDispatchedCommands(ReceiveRegisterAccountConfirmationCommand(TEST_HEDVIG_ORDER_ID, TEST_MEMBER_ID))
@@ -122,6 +121,7 @@ class RegisterAccountSagaTest {
   companion object {
     val TEST_HEDVIG_ORDER_ID: UUID = UUID.fromString("dbe1a7dc-2490-11e9-a718-dbca6dd113e4")
     const val TEST_MEMBER_ID: String = "RemarkableMemberId1"
+    const val TEST_STRING: String = "RemarkableTestString"
   }
 
 }
