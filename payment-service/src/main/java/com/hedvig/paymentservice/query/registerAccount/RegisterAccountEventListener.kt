@@ -42,10 +42,8 @@ class RegisterAccountEventListener(
 
     if (optionalRegisterAccount.isPresent) {
       val registerAccount = optionalRegisterAccount.get()
-      if (registerAccount.status != RegisterAccountProcessStatus.CONFIRMED) {
-        registerAccount.status = RegisterAccountProcessStatus.IN_PROGRESS
-        repository.save(registerAccount)
-      }
+      registerAccount.status = RegisterAccountProcessStatus.IN_PROGRESS
+      repository.save(registerAccount)
     } else {
       logger.error { "RegisterAccountNotificationReceivedEvent - Cannot finn register account for hedvigOrderId: ${e.hedvigOrderId}" }
     }

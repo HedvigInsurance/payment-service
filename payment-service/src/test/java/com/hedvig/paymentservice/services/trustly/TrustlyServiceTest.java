@@ -15,6 +15,7 @@ import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountD
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
+import com.hedvig.paymentservice.domain.registerAccount.commands.CreateRegisterAccountRequestCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
@@ -113,7 +114,7 @@ public class TrustlyServiceTest {
 
   @Test
   public void
-  givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSendCreateOrderCommandAndSelectAccountResponseReceivedCommand_returnIframeUrl() {
+  givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSendCreateRegisterAccountRequestCommandAndSelectAccountResponseReceivedCommand_returnIframeUrl() {
 
     given(uuidGenerator.generateRandom()).willReturn(REQUEST_ID);
 
@@ -127,7 +128,7 @@ public class TrustlyServiceTest {
 
     InOrder inOrder = Mockito.inOrder(gateway);
 
-    inOrder.verify(gateway).sendAndWait(isA(CreateOrderCommand.class));
+    inOrder.verify(gateway).sendAndWait(isA(CreateRegisterAccountRequestCommand.class));
     inOrder
       .verify(gateway)
       .sendAndWait(

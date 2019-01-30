@@ -17,6 +17,7 @@ import com.hedvig.paymentService.trustly.requestbuilders.AccountPayout
 import com.hedvig.paymentService.trustly.requestbuilders.Charge
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.domain.registerAccount.commands.CreateRegisterAccountRequestCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
 import com.hedvig.paymentservice.services.Helpers
@@ -62,7 +63,7 @@ class TrustlyService(
 
     val requestId = uuidGenerator.generateRandom()
 
-    gateway.sendAndWait<Any>(CreateOrderCommand(info.memberId, requestId))
+    gateway.sendAndWait<Any>(CreateRegisterAccountRequestCommand(requestId, info.memberId))
 
     return startTrustlyOrder(info, requestId)
   }
@@ -137,14 +138,13 @@ class TrustlyService(
 
   }
 
-  private fun startTrustlyOrder(request: DirectDebitOrderInfo, requestId: UUID): DirectDebitResponse {
+  fun startTrustlyOrder(request: DirectDebitOrderInfo, requestId: UUID): DirectDebitResponse {
     try {
       val trustlyRequest = createRequest(request, requestId)
       val response = api.sendRequest(trustlyRequest)
 
       if (response.successfulResult()) {
-        val data: Map<String, Any>
-        data = response.result.data
+        val data: Map<String, Any> = response.result.data
         log.info(
           "SelectAccount Order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}",
           data["orderid"],
