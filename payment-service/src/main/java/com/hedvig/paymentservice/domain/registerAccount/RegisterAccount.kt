@@ -17,27 +17,28 @@ import org.axonframework.spring.stereotype.Aggregate
 import java.util.*
 
 @Aggregate
-class RegisterAccount(
+class RegisterAccount() {
+
   @AggregateIdentifier
-  var hedvigOrderId: UUID,
-  var memberId: String,
-  var status: RegisterAccountProcessStatus,
-  var trustlyUrl: String?
-) {
+  lateinit var hedvigOrderId: UUID
+  lateinit var memberId: String
+  lateinit var status: RegisterAccountProcessStatus
 
   @CommandHandler
-  fun on(cmd: CreateRegisterAccountRequestCommand) {
-    apply(RegisterAccountRequestCreatedEvent(cmd.memberId, cmd.hedvigOrderId))
+  constructor(cmd: CreateRegisterAccountRequestCommand) : this() {
+    apply(RegisterAccountRequestCreatedEvent(cmd.hedvigOrderId, cmd.memberId))
   }
 
   @CommandHandler
   fun on(cmd: ReceiveRegisterAccountResponseCommand) {
-    apply(RegisterAccountResponseReceivedEvent(cmd.hedvigOrderId, cmd.trustlyUrl))
+    apply(RegisterAccountResponseReceivedEvent(cmd.hedvigOrderId))
   }
 
   @CommandHandler
   fun on(cmd: ReceiveRegisterAccountNotificationCommand) {
-    apply(RegisterAccountNotificationReceivedEvent(cmd.hedvigOrderId, cmd.memberId))
+    if (this.status != RegisterAccountProcessStatus.CONFIRMED) {
+      apply(RegisterAccountNotificationReceivedEvent(cmd.hedvigOrderId, cmd.memberId))
+    }
   }
 
   @CommandHandler
@@ -55,14 +56,12 @@ class RegisterAccount(
   @EventSourcingHandler
   fun on(e: RegisterAccountResponseReceivedEvent) {
     this.status = RegisterAccountProcessStatus.REQUESTED
-    this.trustlyUrl = e.trustlyUrl
   }
 
   @EventSourcingHandler
   fun on(e: RegisterAccountNotificationReceivedEvent) {
-    if (this.status != RegisterAccountProcessStatus.CONFIRMED) {
-      this.status = RegisterAccountProcessStatus.IN_PROGRESS
-    }
+    this.status = RegisterAccountProcessStatus.IN_PROGRESS
+
   }
 
   @EventSourcingHandler
