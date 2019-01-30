@@ -16,9 +16,12 @@ class SelectAccountSaga(
 ) {
 
   @StartSaga
-  @SagaEventHandler(associationProperty = "hedvigOrderId")
+  @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
   fun on(e: RegisterAccountRequestCreatedEvent) {
     commandGateway.sendAndWait<Any>(CreateOrderCommand(e.memberId, e.hedvigOrderId))
   }
 
+  companion object {
+    const val HEDVIG_ORDER_ID: String = "hedvigOrderId"
+  }
 }
