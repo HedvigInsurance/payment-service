@@ -1,26 +1,24 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.events
 
-import java.util.UUID
-import lombok.Value
+import java.util.*
 
-@Value
-class AccountNotificationReceivedEvent {
+data class AccountNotificationReceivedEvent(
 
-    val hedvigOrderId: UUID? = null
-    val memberId: String? = null
+  val hedvigOrderId: UUID,
+  val memberId: String,
 
-    val notificationId: String? = null
-    val trustlyOrderId: String? = null
+  val notificationId: String,
+  val trustlyOrderId: String,
 
-    val accountId: String? = null
-    val address: String? = null
-    val bank: String? = null
-    val city: String? = null
-    val clearingHouse: String? = null
-    val descriptor: String? = null
-    val directDebitMandate: Boolean? = null
-    val lastDigits: String? = null
-    val name: String? = null
-    val personId: String? = null
-    val zipCode: String? = null
-}
+  val accountId: String,
+  val address: String,
+  val bank: String,
+  val city: String,
+  val clearingHouse: String,
+  val descriptor: String,
+  val directDebitMandate: Boolean?,
+  val lastDigits: String,
+  val name: String,
+  val personId: String,
+  val zipCode: String
+)

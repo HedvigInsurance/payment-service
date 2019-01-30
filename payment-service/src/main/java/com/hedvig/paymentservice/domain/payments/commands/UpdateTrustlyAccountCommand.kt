@@ -2,25 +2,24 @@ package com.hedvig.paymentservice.domain.payments.commands
 
 import lombok.Value
 import org.axonframework.commandhandling.TargetAggregateIdentifier
-
-import java.util.UUID
+import java.util.*
 
 @Value
-class UpdateTrustlyAccountCommand {
-    @TargetAggregateIdentifier
-    val memberId: String? = null
+class UpdateTrustlyAccountCommand(
+  @TargetAggregateIdentifier
+  val memberId: String,
 
-    val hedvigOrderId: UUID? = null
+  val hedvigOrderId: UUID,
 
-    val accountId: String? = null
-    val address: String? = null
-    val bank: String? = null
-    val city: String? = null
-    val clearingHouse: String? = null
-    val descriptor: String? = null
-    val directDebitMandateActive: Boolean? = null
-    val lastDigits: String? = null
-    val name: String? = null
-    val personId: String? = null
-    val zipCode: String? = null
-}
+  val accountId: String,
+  val address: String,
+  val bank: String,
+  val city: String,
+  val clearingHouse: String,
+  val descriptor: String,
+  val directDebitMandateActive: Boolean?,
+  val lastDigits: String,
+  val name: String,
+  val personId: String,
+  val zipCode: String
+)

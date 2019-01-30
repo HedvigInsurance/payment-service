@@ -1,49 +1,42 @@
 package com.hedvig.paymentservice.domain.payments.events
 
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
-import lombok.Value
-import org.axonframework.commandhandling.model.AggregateIdentifier
+import java.util.*
 
-import java.util.UUID
+data class TrustlyAccountUpdatedEvent(
+  val memberId: String,
 
-@Value
-class TrustlyAccountUpdatedEvent {
-    val memberId: String? = null
+  val hedvigOrderId: UUID,
+  val trustlyAccountId: String,
 
-    val hedvigOrderId: UUID? = null
-    val trustlyAccountId: String? = null
+  val address: String,
+  val bank: String,
+  val city: String,
+  val clearingHouse: String,
+  val descriptor: String,
+  val lastDigits: String,
+  val name: String,
+  val personId: String,
+  val zipCode: String
 
-    val address: String? = null
-    val bank: String? = null
-    val city: String? = null
-    val clearingHouse: String? = null
-    val descriptor: String? = null
-    val lastDigits: String? = null
-    val name: String? = null
-    val personId: String? = null
-    val zipCode: String? = null
-
-    companion object {
-
-        fun fromUpdateTrustlyAccountCmd(
-            memberId: String,
-            cmd: UpdateTrustlyAccountCommand
-        ): TrustlyAccountUpdatedEvent {
-            return TrustlyAccountUpdatedEvent(
-                memberId,
-                cmd.hedvigOrderId,
-                cmd.accountId,
-                cmd.address,
-                cmd.bank,
-                cmd.city,
-                cmd.clearingHouse,
-                cmd.descriptor,
-                cmd.lastDigits,
-                cmd.name,
-                cmd.personId,
-                cmd.zipCode
-            )
-        }
+) {
+  companion object {
+    @JvmStatic
+    fun fromUpdateTrustlyAccountCmd(id: String, cmd: UpdateTrustlyAccountCommand): Any {
+      return TrustlyAccountUpdatedEvent(
+        id,
+        cmd.hedvigOrderId,
+        cmd.accountId,
+        cmd.address,
+        cmd.bank,
+        cmd.city,
+        cmd.clearingHouse,
+        cmd.descriptor,
+        cmd.lastDigits,
+        cmd.name,
+        cmd.personId,
+        cmd.zipCode
+      )
     }
-
+  }
 }
