@@ -1,8 +1,10 @@
 package com.hedvig.paymentservice.domain.registerAccount.commands
 
-import java.util.UUID
+import org.axonframework.commandhandling.TargetAggregateIdentifier
+import java.util.*
 
 data class CreateRegisterAccountRequestCommand(
-  val memberId: String,
-  val hedvigOrderId: UUID
+  @TargetAggregateIdentifier
+  val hedvigOrderId: UUID,
+  val memberId: String
 )
