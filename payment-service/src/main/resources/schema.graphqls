@@ -5,6 +5,7 @@ schema {
 type Query {
   getBankAccountInfo: BankAccount
   getChargeDate: LocalDate
+  getRegisterAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
 }
 
 type BankAccount {
@@ -17,6 +18,13 @@ enum DirectDebitStatus {
   CONNECTED
   PENDING
   FAILED
+}
+
+enum RegisterAccountProcessingStatus {
+  INITIATED
+  REQUESTED
+  IN_PROGRESS
+  CONFIRMED
 }
 
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
