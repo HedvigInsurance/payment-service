@@ -17,11 +17,10 @@ import org.axonframework.spring.stereotype.Saga
 import org.springframework.beans.factory.annotation.Autowired
 
 @Saga
-data class RegisterAccountSaga(
+class RegisterAccountSaga {
   @Autowired
   @Transient
-  val commandGateway: CommandGateway
-) {
+  private lateinit var commandGateway: CommandGateway
 
   @StartSaga
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
