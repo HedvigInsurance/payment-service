@@ -17,7 +17,7 @@ import com.hedvig.paymentService.trustly.requestbuilders.AccountPayout
 import com.hedvig.paymentService.trustly.requestbuilders.Charge
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount
 import com.hedvig.paymentservice.common.UUIDGenerator
-import com.hedvig.paymentservice.domain.registerAccount.commands.CreateRegisterAccountRequestCommand
+import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
 import com.hedvig.paymentservice.services.Helpers
@@ -61,11 +61,49 @@ class TrustlyService(
 
   fun requestDirectDebitAccount(info: DirectDebitOrderInfo): DirectDebitResponse {
 
-    val requestId = uuidGenerator.generateRandom()
+    val hedvigOrderId = uuidGenerator.generateRandom()
 
-    gateway.sendAndWait<Any>(CreateRegisterAccountRequestCommand(requestId, info.memberId))
+    try {
+      val trustlyRequest = createRequest(info, hedvigOrderId)
+      val response = api.sendRequest(trustlyRequest)
 
-    return startTrustlyOrder(info, requestId)
+      if (response.successfulResult()) {
+        val data: Map<String, Any> = response.result.data
+
+        val trustlyUrl: String = data["url"] as String
+        val trustlyOrderId: String = data["orderid"] as String
+
+        log.info(
+          "SelectAccount Order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}",
+          trustlyOrderId,
+          hedvigOrderId
+        )
+
+        gateway.sendAndWait<Any>(
+          CreateAccountRegistrationRequestCommand(
+            uuidGenerator.generateRandom(),
+            hedvigOrderId,
+            info.memberId,
+            trustlyOrderId,
+            trustlyUrl
+          )
+        )
+
+        return DirectDebitResponse(trustlyUrl, hedvigOrderId.toString())
+      } else {
+        val error = response.error
+        log.info(
+          "Order creation failed: {}, {}, {}",
+          error.name,
+          error.code,
+          error.message
+        )
+        throw RuntimeException("Got error from trustly")
+      }
+    } catch (ex: TrustlyAPIException) {
+      // gateway.sendAndWait(new SelectAccountRequestFailedCommand(requestId, ex.getMessage()));
+      throw RuntimeException("Failed calling trustly.", ex)
+    }
   }
 
   fun startPaymentOrder(request: PaymentRequest, hedvigOrderId: UUID) {
@@ -133,43 +171,6 @@ class TrustlyService(
         throw RuntimeException("Got error from trustly")
       }
     } catch (ex: TrustlyAPIException) {
-      throw RuntimeException("Failed calling trustly.", ex)
-    }
-
-  }
-
-  fun startTrustlyOrder(request: DirectDebitOrderInfo, requestId: UUID): DirectDebitResponse {
-    try {
-      val trustlyRequest = createRequest(request, requestId)
-      val response = api.sendRequest(trustlyRequest)
-
-      if (response.successfulResult()) {
-        val data: Map<String, Any> = response.result.data
-        log.info(
-          "SelectAccount Order created at trustly with trustlyOrderId: {}, hedvigOrderId: {}",
-          data["orderid"],
-          requestId
-        )
-
-        gateway.sendAndWait<Any>(
-          SelectAccountResponseReceivedCommand(
-            requestId, data["url"] as String, data["orderid"] as String
-          )
-        )
-
-        return DirectDebitResponse(data["url"] as String, requestId.toString())
-      } else {
-        val error = response.error
-        log.info(
-          "Order creation failed: {}, {}, {}",
-          error.name,
-          error.code,
-          error.message
-        )
-        throw RuntimeException("Got error from trustly")
-      }
-    } catch (ex: TrustlyAPIException) {
-      // gateway.sendAndWait(new SelectAccountRequestFailedCommand(requestId, ex.getMessage()));
       throw RuntimeException("Failed calling trustly.", ex)
     }
 

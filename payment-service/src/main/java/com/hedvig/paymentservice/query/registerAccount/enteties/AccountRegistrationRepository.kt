@@ -5,4 +5,4 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface RegisterAccountRepository : CrudRepository<RegisterAccount, UUID>
+interface AccountRegistrationRepository : CrudRepository<AccountRegistration, UUID>

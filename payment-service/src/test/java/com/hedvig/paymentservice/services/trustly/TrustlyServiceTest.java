@@ -15,13 +15,11 @@ import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountD
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
 import com.hedvig.paymentservice.common.UUIDGenerator;
-import com.hedvig.paymentservice.domain.registerAccount.commands.CreateRegisterAccountRequestCommand;
+import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderState;
 import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
@@ -128,12 +126,7 @@ public class TrustlyServiceTest {
 
     InOrder inOrder = Mockito.inOrder(gateway);
 
-    inOrder.verify(gateway).sendAndWait(isA(CreateRegisterAccountRequestCommand.class));
-    inOrder
-      .verify(gateway)
-      .sendAndWait(
-        new SelectAccountResponseReceivedCommand(
-          REQUEST_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID));
+    inOrder.verify(gateway).sendAndWait(isA(CreateAccountRegistrationRequestCommand.class));
   }
 
   @Test
@@ -300,7 +293,6 @@ public class TrustlyServiceTest {
 
     assertThat(responseStatus).isEqualTo(ResponseStatus.OK);
   }
-
 
 
   @Test

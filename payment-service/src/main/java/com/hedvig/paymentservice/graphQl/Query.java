@@ -5,8 +5,8 @@ import com.hedvig.paymentservice.graphQl.types.BankAccount;
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
-import com.hedvig.paymentservice.query.registerAccount.enteties.RegisterAccount;
-import com.hedvig.paymentservice.query.registerAccount.enteties.RegisterAccountRepository;
+import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration;
+import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.servlet.GraphQLContext;
 import javassist.tools.web.BadHttpRequest;
@@ -24,7 +24,7 @@ public class Query implements GraphQLQueryResolver {
 
   private static String HEDVIG_TOKEN = "hedvig.token";
   private MemberRepository memberRepository;
-  private RegisterAccountRepository registerAccountRepository;
+  private AccountRegistrationRepository accountRegistrationRepository;
 
   public Query(MemberRepository memberRepository) {
     this.memberRepository = memberRepository;
@@ -46,9 +46,9 @@ public class Query implements GraphQLQueryResolver {
   }
 
   public RegisterAccountProcessingStatus getRegisterAccountProcessingStatus(String orderId) {
-    Optional<RegisterAccount> optionalRegisterAccount = registerAccountRepository.findById(UUID.fromString(orderId));
+    Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findById(UUID.fromString(orderId));
     return optionalRegisterAccount.
-      map(registerAccount -> RegisterAccountProcessingStatus.valueOf(registerAccount.getStatus().name()))
+      map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(accountRegistration.getStatus().name()))
       .orElse(null);
   }
 
