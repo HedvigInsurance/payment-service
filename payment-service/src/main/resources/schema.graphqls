@@ -1,0 +1,31 @@
+schema {
+  query: Query
+}
+
+type Query {
+  getBankAccountInfo: BankAccount
+  getChargeDate: LocalDate
+  getRegisterAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
+}
+
+type BankAccount {
+  bankName: String!
+  descriptor: String!
+  directDebitStatus: DirectDebitStatus
+}
+
+enum DirectDebitStatus {
+  CONNECTED
+  PENDING
+  FAILED
+}
+
+enum RegisterAccountProcessingStatus {
+  INITIATED
+  REQUESTED
+  IN_PROGRESS
+  CONFIRMED
+}
+
+# A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
+scalar LocalDate

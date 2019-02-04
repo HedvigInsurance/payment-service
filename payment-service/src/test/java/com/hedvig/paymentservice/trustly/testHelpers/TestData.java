@@ -6,18 +6,18 @@ import com.hedvig.paymentService.trustly.data.notification.Notification;
 import com.hedvig.paymentService.trustly.data.notification.NotificationParameters;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.AccountNotificationData;
 import com.hedvig.paymentService.trustly.data.notification.notificationdata.CreditData;
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitRequest;
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest;
+import lombok.val;
+import org.javamoney.moneta.FastMoney;
+import org.javamoney.moneta.Money;
+
+import javax.money.Monetary;
+import javax.money.MonetaryAmount;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.UUID;
-import javax.money.Monetary;
-import javax.money.MonetaryAmount;
-import lombok.val;
-import org.javamoney.moneta.FastMoney;
-import org.javamoney.moneta.Money;
 
 public class TestData {
   public static final String BOT_SERVICE_TRIGGER_ID = "7fece3ca-17d9-11e8-8c15-f36f3d1de091";
@@ -34,7 +34,7 @@ public class TestData {
   public static final String TOLVANSSON_MEMBER_ID = "1337";
 
   public static final UUID HEDVIG_ORDER_ID =
-      UUID.fromString("f1dd38f2-237f-11e8-8fc1-e74ced44b3e1");
+    UUID.fromString("f1dd38f2-237f-11e8-8fc1-e74ced44b3e1");
   public static final String TOLVAN_FIRST_NAME = "Tolvan";
   public static final String TOLVANSSON_LAST_NAME = "Tolvansson";
   public static final String TOLVANSSON_SSN = "19121212-1212";
@@ -55,34 +55,17 @@ public class TestData {
 
   public static DirectDebitRequest makeDirectDebitRequest() {
     return new DirectDebitRequest(
-        TOLVAN_FIRST_NAME,
-        TOLVANSSON_LAST_NAME,
-        TOLVANSSON_SSN,
-        TOLVANSSON_MEMBER_ID,
-        BOT_SERVICE_TRIGGER_ID);
+      TOLVAN_FIRST_NAME,
+      TOLVANSSON_LAST_NAME,
+      TOLVANSSON_SSN,
+      TOLVANSSON_MEMBER_ID,
+      BOT_SERVICE_TRIGGER_ID);
   }
 
   public static PaymentRequest makePaymentRequest() {
     val amount = FastMoney.of(123, Monetary.getCurrency("SEK"));
 
     return new PaymentRequest(TOLVANSSON_MEMBER_ID, amount, "1234567", TOLVANSSON_EMAIL);
-  }
-
-  public static TrustlyAccountCreatedEvent makeTrustlyAccountCreatedEvent() {
-    return new TrustlyAccountCreatedEvent(
-        TOLVANSSON_MEMBER_ID,
-        HEDVIG_ORDER_ID,
-        TRUSTLY_ACCOUNT_ID,
-        TOLVANSSON_STREET,
-        TRUSTLY_ACCOUNT_BANK,
-        TOLVANSSON_CITY,
-        TRUSTLY_ACCOUNT_CLEARING_HOUSE,
-        TRUSTLY_ACCOUNT_DESCRIPTOR,
-        TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
-        TRUSTLY_ACCOUNT_LAST_DIGITS,
-        TOLVAN_FIRST_NAME,
-        TOLVANSSON_SSN,
-        TOLVANSSON_ZIP);
   }
 
   public static Notification makeTrustlyCreditNotificationRequest() {

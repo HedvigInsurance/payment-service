@@ -1,47 +1,33 @@
 package com.hedvig.paymentservice.domain.payments;
 
-import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
-
-import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
-import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
-import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
-import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.hedvig.paymentservice.domain.payments.commands.*;
+import com.hedvig.paymentservice.domain.payments.events.*;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
 
 @Aggregate
+@Slf4j
 public class Member {
-  Logger log = LoggerFactory.getLogger(Member.class);
 
-  @AggregateIdentifier private String id;
+  @AggregateIdentifier
+  private String id;
 
   private List<Transaction> transactions = new ArrayList<>();
   private TrustlyAccount trustlyAccount;
 
-  public Member() {}
+  public Member() {
+  }
 
   @CommandHandler
   public Member(CreateMemberCommand cmd) {
@@ -50,37 +36,39 @@ public class Member {
 
   @CommandHandler
   public boolean cmd(CreateChargeCommand cmd) {
+
     if (trustlyAccount == null) {
       log.info("Cannot charge account - no account set up in Trustly");
       apply(
-          new ChargeCreationFailedEvent(
-              this.id,
-              cmd.getTransactionId(),
-              cmd.getAmount(),
-              cmd.getTimestamp(),
-              "account id not set"));
+        new ChargeCreationFailedEvent(
+          this.id,
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          cmd.getTimestamp(),
+          "account id not set"));
       return false;
     }
-    if (trustlyAccount.isDirectDebitMandateActive() == false) {
+
+    if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
       log.info("Cannot charge account - direct debit mandate not received in Trustly");
       apply(
-          new ChargeCreationFailedEvent(
-              this.id,
-              cmd.getTransactionId(),
-              cmd.getAmount(),
-              cmd.getTimestamp(),
-              "direct debit mandate not received in Trustly"));
+        new ChargeCreationFailedEvent(
+          this.id,
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          cmd.getTimestamp(),
+          "direct debit mandate not received in Trustly"));
       return false;
     }
 
     apply(
-        new ChargeCreatedEvent(
-            this.id,
-            cmd.getTransactionId(),
-            cmd.getAmount(),
-            cmd.getTimestamp(),
-            this.trustlyAccount.getAccountId(),
-            cmd.getEmail()));
+      new ChargeCreatedEvent(
+        this.id,
+        cmd.getTransactionId(),
+        cmd.getAmount(),
+        cmd.getTimestamp(),
+        this.trustlyAccount.getAccountId(),
+        cmd.getEmail()));
     return true;
   }
 
@@ -89,44 +77,34 @@ public class Member {
     if (trustlyAccount == null) {
       log.info("Cannot payout account - no account set up in Trustly");
       apply(
-          new PayoutCreationFailedEvent(
-              id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));
+        new PayoutCreationFailedEvent(
+          id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));
       return false;
     }
 
     apply(
-        new PayoutCreatedEvent(
-            id,
-            cmd.getTransactionId(),
-            cmd.getAmount(),
-            cmd.getAddress(),
-            cmd.getCountryCode(),
-            cmd.getDateOfBirth(),
-            cmd.getFirstName(),
-            cmd.getLastName(),
-            cmd.getTimestamp(),
-            trustlyAccount.getAccountId()));
+      new PayoutCreatedEvent(
+        id,
+        cmd.getTransactionId(),
+        cmd.getAmount(),
+        cmd.getAddress(),
+        cmd.getCountryCode(),
+        cmd.getDateOfBirth(),
+        cmd.getFirstName(),
+        cmd.getLastName(),
+        cmd.getTimestamp(),
+        trustlyAccount.getAccountId()));
     return true;
   }
 
   @CommandHandler
   public void cmd(UpdateTrustlyAccountCommand cmd) {
-
-    apply(
-        new TrustlyAccountCreatedEvent(
-            this.id,
-            cmd.getHedvigOrderId(),
-            cmd.getAccountId(),
-            cmd.getAddress(),
-            cmd.getBank(),
-            cmd.getCity(),
-            cmd.getClearingHouse(),
-            cmd.getDescriptor(),
-            cmd.isDirectDebitMandateActive(),
-            cmd.getLastDigits(),
-            cmd.getName(),
-            cmd.getPersonId(),
-            cmd.getZipCode()));
+    if (trustlyAccount == null || !trustlyAccount.getAccountId().equals(cmd.getAccountId())) {
+      apply(TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(this.id, cmd));
+    } else {
+      apply(TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCmd(this.id, cmd));
+    }
+    updateDirectDebitStatus(cmd);
   }
 
   @CommandHandler
@@ -134,15 +112,15 @@ public class Member {
     val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
     if (transaction.getAmount().equals(cmd.getAmount()) == false) {
       log.error(
-          "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
-          transaction.getAmount().toString(),
-          cmd.getAmount().toString(),
-          transaction.getTransactionId().toString());
+        "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
+        transaction.getAmount().toString(),
+        cmd.getAmount().toString(),
+        transaction.getTransactionId().toString());
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(
-        new ChargeCompletedEvent(
-            this.id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));
+      new ChargeCompletedEvent(
+        this.id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));
   }
 
   @CommandHandler
@@ -150,9 +128,9 @@ public class Member {
     val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
     if (transaction == null) {
       final String s =
-          String.format(
-              "Could not find matching transaction for ChargeFailedCommand with memberId: %s and transactionId: %s",
-              id, cmd.getTransactionId());
+        String.format(
+          "Could not find matching transaction for ChargeFailedCommand with memberId: %s and transactionId: %s",
+          id, cmd.getTransactionId());
       throw new RuntimeException(s);
     }
     apply(new ChargeFailedEvent(this.id, cmd.getTransactionId()));
@@ -163,10 +141,10 @@ public class Member {
     val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
     if (transaction.getAmount().equals(cmd.getAmount()) == false) {
       log.error(
-          "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
-          transaction.getAmount().toString(),
-          cmd.getAmount().toString(),
-          transaction.getTransactionId().toString());
+        "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
+        transaction.getAmount().toString(),
+        cmd.getAmount().toString(),
+        transaction.getTransactionId().toString());
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(new PayoutCompletedEvent(id, cmd.getTransactionId(), cmd.getTimestamp()));
@@ -185,23 +163,23 @@ public class Member {
   @EventSourcingHandler
   public void on(ChargeCreatedEvent e) {
     transactions.add(
-        new Transaction(
-            e.getTransactionId(),
-            e.getAmount(),
-            e.getTimestamp(),
-            TransactionType.CHARGE,
-            TransactionStatus.INITIATED));
+      new Transaction(
+        e.getTransactionId(),
+        e.getAmount(),
+        e.getTimestamp(),
+        TransactionType.CHARGE,
+        TransactionStatus.INITIATED));
   }
 
   @EventSourcingHandler
   public void on(PayoutCreatedEvent e) {
     transactions.add(
-        new Transaction(
-            e.getTransactionId(),
-            e.getAmount(),
-            e.getTimestamp(),
-            TransactionType.PAYOUT,
-            TransactionStatus.INITIATED));
+      new Transaction(
+        e.getTransactionId(),
+        e.getAmount(),
+        e.getTimestamp(),
+        TransactionType.PAYOUT,
+        TransactionStatus.INITIATED));
   }
 
   @EventSourcingHandler
@@ -230,26 +208,63 @@ public class Member {
 
   @EventSourcingHandler
   public void on(TrustlyAccountCreatedEvent e) {
+    this.trustlyAccount = new TrustlyAccount(e.getTrustlyAccountId(), null);
+  }
 
-    val account = new TrustlyAccount(e.getTrustlyAccountId(), e.isDirectDebitMandateActivated());
+  @EventSourcingHandler
+  public void on(DirectDebitConnectedEvent e) {
+    this.trustlyAccount.setDirectDebitStatus(DirectDebitStatus.CONNECTED);
+  }
 
-    this.trustlyAccount = account;
+  @EventSourcingHandler
+  public void on(DirectDebitDisconnectedEvent e) {
+    this.trustlyAccount.setDirectDebitStatus(DirectDebitStatus.DISCONNECTED);
+  }
+
+  @EventSourcingHandler
+  public void on(DirectDebitPendingConnectionEvent e) {
+    this.trustlyAccount.setDirectDebitStatus(DirectDebitStatus.PENDING);
   }
 
   private static Transaction getSingleTransaction(
-      List<Transaction> transactions, UUID transactionId, String memberId) {
+    List<Transaction> transactions, UUID transactionId, String memberId) {
     val matchingTransactions =
-        transactions
-            .stream()
-            .filter(t -> t.getTransactionId().equals(transactionId))
-            .collect(Collectors.toList());
+      transactions
+        .stream()
+        .filter(t -> t.getTransactionId().equals(transactionId))
+        .collect(Collectors.toList());
     if (matchingTransactions.size() != 1) {
       throw new RuntimeException(
-          String.format(
-              "Unexpected number of matching transactions: %n, with transactionId: %s for memberId: %s",
-              matchingTransactions.size(), transactionId.toString(), memberId));
+        String.format(
+          "Unexpected number of matching transactions: %n, with transactionId: %s for memberId: %s",
+          matchingTransactions.size(), transactionId.toString(), memberId));
     }
 
     return matchingTransactions.get(0);
+  }
+
+  private void updateDirectDebitStatus(UpdateTrustlyAccountCommand cmd) {
+    if (cmd.getDirectDebitMandateActive()) {
+      apply(
+        new DirectDebitConnectedEvent(
+          this.id,
+          cmd.getHedvigOrderId().toString(),
+          cmd.getAccountId()));
+    } else if (!cmd.getDirectDebitMandateActive()) {
+      apply(
+        new DirectDebitDisconnectedEvent(
+          this.id,
+          cmd.getHedvigOrderId().toString(),
+          cmd.getAccountId()));
+    } else {
+      if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)
+        || !trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED)) {
+        apply(
+          new DirectDebitPendingConnectionEvent(
+            this.id,
+            cmd.getHedvigOrderId().toString(),
+            cmd.getAccountId()));
+      }
+    }
   }
 }

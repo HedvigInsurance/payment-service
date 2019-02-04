@@ -59,11 +59,6 @@
       <artifactId>spring-retry</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>com.vdurmont</groupId>
       <artifactId>emoji-java</artifactId>
       <version>4.0.0</version>
@@ -224,6 +219,35 @@
       <artifactId>analytics</artifactId>
       <version>2.1.1</version>
     </dependency>
+    <!--- GraphQl Dependencies -->
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-spring-boot-starter</artifactId>
+      <version>5.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphql-java-tools</artifactId>
+      <version>5.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.graphql-java</groupId>
+      <artifactId>graphiql-spring-boot-starter</artifactId>
+      <version>5.0.2</version>
+    </dependency>
+    <!--- GraphQl Dependencies -->
+    <dependency>
+      <groupId>javax.interceptor</groupId>
+      <artifactId>javax.interceptor-api</artifactId>
+      <version>1.2.2</version>
+    </dependency>
+    <!--- Kotlin Specific -->
+    <dependency>
+      <groupId>io.github.microutils</groupId>
+      <artifactId>kotlin-logging</artifactId>
+      <version>1.6.22</version>
+    </dependency>
+
   </dependencies>
 
   <build>

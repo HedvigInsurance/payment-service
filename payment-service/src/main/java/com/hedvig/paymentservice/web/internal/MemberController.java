@@ -104,7 +104,7 @@ public class MemberController {
         memberRepository
             .findAllByIdIn(memberIds)
             .stream()
-            .map(m -> new DirectDebitStatusDTO(m.getId(), m.getDirectDebitMandateActive()))
+            .map(m -> new DirectDebitStatusDTO(m.getId(), m.isDirectDebitMandateActive()))
             .collect(Collectors.toList());
 
     if (memberIds.size() != members.size()) {

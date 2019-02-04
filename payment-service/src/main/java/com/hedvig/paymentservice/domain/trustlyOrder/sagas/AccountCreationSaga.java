@@ -15,7 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Saga
 public class AccountCreationSaga {
 
-  @Autowired transient CommandGateway commandGateway;
+  @Autowired
+  transient CommandGateway commandGateway;
 
   @StartSaga
   @SagaEventHandler(associationProperty = "accountId")
@@ -31,20 +32,20 @@ public class AccountCreationSaga {
 
   private void updateTrustlyAccount(AccountNotificationReceivedEvent event) {
     val command =
-        new UpdateTrustlyAccountCommand(
-            event.getMemberId(),
-            event.getHedvigOrderId(),
-            event.getAccountId(),
-            event.getAddress(),
-            event.getBank(),
-            event.getCity(),
-            event.getClearingHouse(),
-            event.getDescriptor(),
-            event.getDirectDebitMandate(),
-            event.getLastDigits(),
-            event.getName(),
-            event.getPersonId(),
-            event.getZipCode());
+      new UpdateTrustlyAccountCommand(
+        event.getMemberId(),
+        event.getHedvigOrderId(),
+        event.getAccountId(),
+        event.getAddress(),
+        event.getBank(),
+        event.getCity(),
+        event.getClearingHouse(),
+        event.getDescriptor(),
+        event.getDirectDebitMandate(),
+        event.getLastDigits(),
+        event.getName(),
+        event.getPersonId(),
+        event.getZipCode());
 
     commandGateway.sendAndWait(command);
   }
