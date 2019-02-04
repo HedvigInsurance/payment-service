@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/reset")
 public class ResetController {
 
-  private static String MEMBER_EVENT_NAME = "com.hedvig.paymentservice.query.member";
+  private static String PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
 
