@@ -23,12 +23,14 @@ import lombok.val;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ResetHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
 @Slf4j
+@Transactional
 public class MemberEventListener {
 
   private final MemberRepository memberRepository;

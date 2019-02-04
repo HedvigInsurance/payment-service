@@ -10,11 +10,13 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import mu.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class RegisterAccountEventListener(
+@Transactional
+class AccountRegistrationEventListener(
   val repository: AccountRegistrationRepository
 ) {
 
