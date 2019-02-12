@@ -30,7 +30,7 @@ public class Query implements GraphQLQueryResolver {
     this.memberRepository = memberRepository;
   }
 
-  public BankAccount getBankAccountInfo(DataFetchingEnvironment env) throws BadHttpRequest {
+  public BankAccount bankAccount(DataFetchingEnvironment env) throws BadHttpRequest {
     String memberId = getToken(env);
     if (memberId == null) {
       log.error("GetBankAccountInfo - hedvig.token is missing");
@@ -41,11 +41,11 @@ public class Query implements GraphQLQueryResolver {
   }
 
   //TODO: Catch Red days - Weekends
-  public LocalDate getChargeDate() {
+  public LocalDate chargeDate() {
     return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
   }
 
-  public RegisterAccountProcessingStatus getRegisterAccountProcessingStatus(String orderId) {
+  public RegisterAccountProcessingStatus registerAccountProcessingStatus(String orderId) {
     Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findById(UUID.fromString(orderId));
     return optionalRegisterAccount.
       map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(accountRegistration.getStatus().name()))

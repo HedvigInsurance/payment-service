@@ -3,9 +3,9 @@ schema {
 }
 
 type Query {
-  getBankAccountInfo: BankAccount
-  getChargeDate: LocalDate
-  getRegisterAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
+  bankAccount: BankAccount
+  chargeDate: LocalDate
+  registerAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
 }
 
 type BankAccount {
