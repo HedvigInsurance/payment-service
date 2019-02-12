@@ -15,9 +15,9 @@ type BankAccount {
 }
 
 enum DirectDebitStatus {
-  CONNECTED
+  ACTIVE
   PENDING
-  FAILED
+  NEEDS_SETUP
 }
 
 enum RegisterAccountProcessingStatus {

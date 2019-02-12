@@ -51,8 +51,7 @@ public class DirectDebitController {
 
     Member member = om.get();
 
-    return ResponseEntity
-      .ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)));
+    return ResponseEntity.ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)));
   }
 
   @PostMapping(path = "register")
