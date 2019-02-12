@@ -3,9 +3,9 @@ schema {
 }
 
 type Query {
-  getBankAccountInfo: BankAccount
-  getChargeDate: LocalDate
-  getRegisterAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
+  bankAccount: BankAccount
+  chargeDate: LocalDate
+  registerAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
 }
 
 type BankAccount {
@@ -15,9 +15,9 @@ type BankAccount {
 }
 
 enum DirectDebitStatus {
-  CONNECTED
+  ACTIVE
   PENDING
-  FAILED
+  NEEDS_SETUP
 }
 
 enum RegisterAccountProcessingStatus {

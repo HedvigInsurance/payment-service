@@ -287,7 +287,7 @@ public class TrustlyServiceTest {
   @Test
   public void test_Notification() {
 
-    Notification notification = makeAccountNotification(DirectDebitStatus.CONNECTED);
+    Notification notification = makeAccountNotification(DirectDebitStatus.ACTIVE);
 
     final ResponseStatus responseStatus = testService.receiveNotification(notification);
 
@@ -396,10 +396,10 @@ public class TrustlyServiceTest {
     data.setAttributes(attributes);
 
     switch (status) {
-      case FAILED:
+      case NEEDS_SETUP:
         attributes.put("directdebitmandate", "0");
         break;
-      case CONNECTED:
+      case ACTIVE:
         attributes.put("directdebitmandate", "1");
         break;
       default:

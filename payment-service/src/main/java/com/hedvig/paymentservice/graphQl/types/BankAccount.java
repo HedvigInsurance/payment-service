@@ -17,11 +17,11 @@ public class BankAccount {
   private static DirectDebitStatus fromMemberDirectStatus(com.hedvig.paymentservice.domain.payments.DirectDebitStatus s) {
     switch (s) {
       case CONNECTED:
-        return DirectDebitStatus.CONNECTED;
+        return DirectDebitStatus.ACTIVE;
       case PENDING:
         return DirectDebitStatus.PENDING;
       case DISCONNECTED:
-        return DirectDebitStatus.FAILED;
+        return DirectDebitStatus.NEEDS_SETUP;
       default:
         return null;
     }

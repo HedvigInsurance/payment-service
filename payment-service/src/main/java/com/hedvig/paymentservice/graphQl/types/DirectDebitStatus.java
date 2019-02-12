@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.graphQl.types;
 
 public enum DirectDebitStatus {
-  CONNECTED,
+  ACTIVE,
   PENDING,
-  FAILED
+  NEEDS_SETUP
 }
