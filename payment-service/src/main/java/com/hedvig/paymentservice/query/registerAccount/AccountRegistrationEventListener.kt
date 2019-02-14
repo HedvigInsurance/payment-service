@@ -8,9 +8,12 @@ import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegist
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import mu.KotlinLogging
+import org.axonframework.eventhandling.EventHandler
+import org.axonframework.eventhandling.Timestamp
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
@@ -20,12 +23,23 @@ class AccountRegistrationEventListener(
   val repository: AccountRegistrationRepository
 ) {
 
-  @EventListener
-  fun on(e: AccountRegistrationRequestCreatedEvent) {
-    this.repository.save(AccountRegistration(e.accountRegistrationId, e.memberId, AccountRegistrationStatus.INITIATED))
+  @EventHandler
+  fun on(e: AccountRegistrationRequestCreatedEvent, @Timestamp timestamp: Instant) {
+
+    logger.info { "AccountRegistrationRequestCreatedEvent Saved" }
+
+    this.repository.save(
+      AccountRegistration(
+        e.accountRegistrationId,
+        e.memberId,
+        AccountRegistrationStatus.INITIATED,
+        e.hedvigOrderId,
+        timestamp
+      )
+    )
   }
 
-  @EventListener
+  @EventHandler
   fun on(e: AccountRegistrationResponseReceivedEvent) {
     val optionalRegisterAccount = repository.findById(e.accountRegistrationId)
 
@@ -38,7 +52,7 @@ class AccountRegistrationEventListener(
     }
   }
 
-  @EventListener
+  @EventHandler
   fun on(e: AccountRegistrationNotificationReceivedEvent) {
     val optionalRegisterAccount = repository.findById(e.accountRegistrationId)
 
@@ -51,7 +65,7 @@ class AccountRegistrationEventListener(
     }
   }
 
-  @EventListener
+  @EventHandler
   fun on(e: AccountRegistrationConfirmationReceivedEvent) {
     val optionalRegisterAccount = repository.findById(e.accountRegistrationId)
 
