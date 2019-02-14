@@ -158,7 +158,7 @@
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>
-      <version>5.0</version>
+      <version>5.3</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
