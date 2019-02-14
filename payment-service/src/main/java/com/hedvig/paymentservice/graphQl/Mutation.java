@@ -6,9 +6,11 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
 public class Mutation implements GraphQLMutationResolver {
 
   private TrustlyService trustlyService;
