@@ -4,5 +4,6 @@ enum class AccountRegistrationStatus {
   INITIATED,
   REQUESTED,
   IN_PROGRESS,
-  CONFIRMED
+  CONFIRMED,
+  CANCELLED
 }

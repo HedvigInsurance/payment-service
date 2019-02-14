@@ -3,10 +3,7 @@ package com.hedvig.paymentservice.query.registerAccount.enteties
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import java.time.Instant
 import java.util.*
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.Id
+import javax.persistence.*
 
 @Entity
 class AccountRegistration (

@@ -18,7 +18,11 @@ import com.hedvig.paymentService.trustly.requestbuilders.Charge
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand
+import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
+import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
+import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
+import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
 import com.hedvig.paymentservice.services.Helpers
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException
@@ -50,6 +54,7 @@ class TrustlyService(
   private val gateway: CommandGateway,
   private val uuidGenerator: UUIDGenerator,
   private val orderRepository: TrustlyOrderRepository,
+  private val accountRegistrationRepository: AccountRegistrationRepository,
   @param:Value("\${hedvig.trustly.successURL}") private val redirectingToBotServiceSuccessUrl: String,
   @param:Value("\${hedvig.trustly.failURL}") private val redirectingToBotServiceFailUrl: String,
   @param:Value("\${hedvig.trustly.notificationURL}") private val notificationUrl: String,
@@ -103,6 +108,37 @@ class TrustlyService(
     } catch (ex: TrustlyAPIException) {
       // gateway.sendAndWait(new SelectAccountRequestFailedCommand(requestId, ex.getMessage()));
       throw RuntimeException("Failed calling trustly.", ex)
+    }
+  }
+
+  fun cancelDirectDebitAccountRequest(memberId: String): Boolean {
+    val stream: List<AccountRegistration> = accountRegistrationRepository.findByMemberId(memberId).filter { x -> x.status != AccountRegistrationStatus.CANCELLED }
+    when {
+      stream.count() < 1 -> return false
+      stream.count() == 1 -> {
+        val accountRegistration: AccountRegistration = stream.single()
+        gateway.sendAndWait<Any>(
+          ReceiveAccountRegistrationCancellationCommand(
+            accountRegistration.accountRegistrationId,
+            accountRegistration.hedvigOrderId,
+            accountRegistration.memberId
+          )
+        )
+        return true
+      }
+      else -> {
+        val optionalAccountRegistration: AccountRegistration? = stream.maxBy { x -> x.initiated }
+        if (optionalAccountRegistration != null) {
+          gateway.sendAndWait<Any>(
+            ReceiveAccountRegistrationCancellationCommand(
+              optionalAccountRegistration.accountRegistrationId,
+              optionalAccountRegistration.hedvigOrderId,
+              optionalAccountRegistration.memberId
+            )
+          )
+        }
+        return true
+      }
     }
   }
 

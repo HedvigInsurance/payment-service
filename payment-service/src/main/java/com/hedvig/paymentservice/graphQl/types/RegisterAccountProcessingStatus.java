@@ -4,5 +4,6 @@ public enum RegisterAccountProcessingStatus {
   INITIATED,
   REQUESTED,
   IN_PROGRESS,
-  CONFIRMED
+  CONFIRMED,
+  CANCELLED
 }

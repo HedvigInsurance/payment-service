@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.accountRegistration.sagas
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationConfirmationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationNotificationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationResponseCommand
+import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationCancellationReceivedEvent
 import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationRequestCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
@@ -16,11 +17,16 @@ import org.axonframework.eventhandling.saga.SagaEventHandler
 import org.axonframework.eventhandling.saga.SagaLifecycle
 import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 
 @Saga
 class AccountRegistrationSaga {
+
+  private val log: Logger = LoggerFactory.getLogger(AccountRegistrationSaga::class.java)
+
   @Autowired
   @Transient
   private lateinit var commandGateway: CommandGateway
@@ -42,6 +48,11 @@ class AccountRegistrationSaga {
         e.trustlyOrderId
       )
     )
+  }
+
+  @SagaEventHandler(associationProperty = ACCOUNT_REGISTRATION_ID)
+  @EndSaga
+  fun on(e: AccountRegistrationCancellationReceivedEvent) {
   }
 
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)

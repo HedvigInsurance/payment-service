@@ -1,14 +1,8 @@
 package com.hedvig.paymentservice.domain.accountRegistration
 
-import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand
-import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationConfirmationCommand
-import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationNotificationCommand
-import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationResponseCommand
+import com.hedvig.paymentservice.domain.accountRegistration.commands.*
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
-import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationConfirmationReceivedEvent
-import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationNotificationReceivedEvent
-import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationRequestCreatedEvent
-import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationResponseReceivedEvent
+import com.hedvig.paymentservice.domain.accountRegistration.events.*
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
@@ -56,6 +50,11 @@ class AccountRegistrationAggregate() {
     apply(AccountRegistrationConfirmationReceivedEvent(cmd.accountRegistrationId, cmd.memberId))
   }
 
+  @CommandHandler
+  fun on(cmd: ReceiveAccountRegistrationCancellationCommand) {
+    apply(AccountRegistrationCancellationReceivedEvent(cmd.accountRegistrationId, cmd.hedvigOrderId, cmd.memberId))
+  }
+
   @EventSourcingHandler
   fun on(e: AccountRegistrationRequestCreatedEvent) {
     this.accountRegistrationId = e.accountRegistrationId
@@ -80,5 +79,11 @@ class AccountRegistrationAggregate() {
   fun on(e: AccountRegistrationConfirmationReceivedEvent) {
     this.status = AccountRegistrationStatus.CONFIRMED
   }
+
+  @EventSourcingHandler
+  fun on(e: AccountRegistrationCancellationReceivedEvent) {
+    this.status = AccountRegistrationStatus.CANCELLED
+  }
+
 }
 
