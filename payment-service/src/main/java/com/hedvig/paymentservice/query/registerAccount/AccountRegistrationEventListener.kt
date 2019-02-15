@@ -30,6 +30,7 @@ class AccountRegistrationEventListener(
         e.memberId,
         AccountRegistrationStatus.INITIATED,
         e.hedvigOrderId,
+        e.trustlyOrderId,
         timestamp
       )
     )

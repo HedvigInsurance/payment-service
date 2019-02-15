@@ -258,15 +258,14 @@
         <configuration>
           <compilerPlugins>
             <plugin>spring</plugin>
-            <plugin>jpa</plugin>
           </compilerPlugins>
           <jvmTarget>1.8</jvmTarget>
         </configuration>
         <dependencies>
           <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-maven-noarg</artifactId>
-            <version>1.3.0</version>
+            <artifactId>kotlin-maven-allopen</artifactId>
+            <version>1.3.10</version>
           </dependency>
         </dependencies>
         <executions>
