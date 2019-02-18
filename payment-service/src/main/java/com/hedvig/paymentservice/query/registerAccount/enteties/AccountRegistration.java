@@ -30,6 +30,9 @@ public class AccountRegistration {
     this.initiated = initiated;
   }
 
+  public AccountRegistration() {
+  }
+
   public UUID getAccountRegistrationId() {
     return this.accountRegistrationId;
   }
