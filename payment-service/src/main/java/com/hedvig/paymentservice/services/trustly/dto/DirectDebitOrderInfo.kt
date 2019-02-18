@@ -35,7 +35,8 @@ data class DirectDebitOrderInfo(
         m.memberId,
         m.ssn,
         m.firstName,
-        m.lastName, null,
+        m.lastName,
+        null,
         false
       )
     }

@@ -32,6 +32,7 @@ enum DirectDebitStatus {
 }
 
 enum RegisterAccountProcessingStatus {
+  NOT_INITIATED
   INITIATED
   REQUESTED
   IN_PROGRESS

@@ -53,8 +53,12 @@ public class Query implements GraphQLQueryResolver {
     }
     Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findByMemberId(memberId).stream().max(Comparator.comparing(AccountRegistration::getInitiated));
     return optionalRegisterAccount.
-      map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(accountRegistration.getStatus().name()))
-      .orElse(null);
+      map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(
+        accountRegistration.getStatus() == null ?
+          RegisterAccountProcessingStatus.NOT_INITIATED.name()
+          : accountRegistration.getStatus().name())
+      )
+      .orElse(RegisterAccountProcessingStatus.NOT_INITIATED);
   }
 
   private String getToken(DataFetchingEnvironment dfe) {
