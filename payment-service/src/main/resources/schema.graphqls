@@ -1,17 +1,28 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Query {
   bankAccount: BankAccount
-  chargeDate: LocalDate
-  registerAccountProcessingStatus(orderId: String!) : RegisterAccountProcessingStatus
+  chargeDate: LocalDate!
+  registerAccountProcessingStatus : RegisterAccountProcessingStatus!
+}
+
+type Mutation{
+  registerDirectDebit: DirectDebitResponse!
+  cancelDirectDebitRequest : CancelDirectDebitStatus!
 }
 
 type BankAccount {
   bankName: String!
   descriptor: String!
   directDebitStatus: DirectDebitStatus
+}
+
+type DirectDebitResponse {
+  url: String!,
+  orderId: String!
 }
 
 enum DirectDebitStatus {
@@ -25,7 +36,15 @@ enum RegisterAccountProcessingStatus {
   REQUESTED
   IN_PROGRESS
   CONFIRMED
+  CANCELLED
 }
+
+enum CancelDirectDebitStatus {
+  ACCEPTED
+  DECLINED_MISSING_TOKEN
+  DECLINED_MISSING_REQUEST
+}
+
 
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
 scalar LocalDate

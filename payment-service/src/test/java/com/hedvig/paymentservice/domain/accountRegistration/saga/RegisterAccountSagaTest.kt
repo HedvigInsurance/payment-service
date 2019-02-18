@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.accountRegistration.saga
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationConfirmationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationNotificationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationResponseCommand
+import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationCancellationReceivedEvent
 import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationRequestCreatedEvent
 import com.hedvig.paymentservice.domain.accountRegistration.sagas.AccountRegistrationSaga
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
@@ -174,6 +175,73 @@ class RegisterAccountSagaTest {
           TEST_MEMBER_ID
         )
       )
+      .expectActiveSagas(0)
+  }
+
+  @Test
+  fun given_RegisterAccountRequestCancellationEvent_when_AccountNotificationReceivedEventArrives_expect_ToEndSaga() {
+    fixture
+      .givenAPublished(
+        AccountRegistrationRequestCreatedEvent(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID,
+          TEST_TRUSTLY_ORDER_ID,
+          TEST_TRUSTLY_URL
+        )
+      )
+      .whenPublishingA(
+        AccountRegistrationCancellationReceivedEvent(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID
+        )
+      )
+      .expectNoDispatchedCommands()
+      .expectNoScheduledEvents()
+      .expectActiveSagas(0)
+  }
+
+  @Test
+  fun given_RegisterAccountRequestCancellationEvent_when_AccountNotificationReceivedEventArrives_expect_Nothing() {
+    fixture
+      .givenAPublished(
+        AccountRegistrationRequestCreatedEvent(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID,
+          TEST_TRUSTLY_ORDER_ID,
+          TEST_TRUSTLY_URL
+        )
+      )
+      .andThenAPublished(
+        AccountRegistrationCancellationReceivedEvent(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID
+        )
+      )
+      .whenPublishingA(
+        AccountNotificationReceivedEvent(
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          null,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING,
+          TEST_STRING
+        )
+      )
+      .expectNoDispatchedCommands()
+      .expectNoScheduledEvents()
       .expectActiveSagas(0)
   }
 

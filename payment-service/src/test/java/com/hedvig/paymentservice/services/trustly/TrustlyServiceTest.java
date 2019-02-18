@@ -21,6 +21,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.OrderType;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus;
+import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrder;
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository;
 import com.hedvig.paymentservice.services.exceptions.OrderNotFoundException;
@@ -77,6 +78,9 @@ public class TrustlyServiceTest {
   @Mock
   private Environment springEnvironment;
 
+  @Mock
+  private AccountRegistrationRepository accountRegistrationRepository;
+
   private TrustlyService testService;
 
   @Captor
@@ -101,6 +105,7 @@ public class TrustlyServiceTest {
         gateway,
         uuidGenerator,
         orderRepository,
+        accountRegistrationRepository,
         SUCCESS_URL,
         FAIL_URL,
         NOTIFICATION_URL,

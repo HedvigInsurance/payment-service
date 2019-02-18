@@ -9,14 +9,13 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.servlet.GraphQLContext;
-import javassist.tools.web.BadHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.Comparator;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -26,11 +25,12 @@ public class Query implements GraphQLQueryResolver {
   private MemberRepository memberRepository;
   private AccountRegistrationRepository accountRegistrationRepository;
 
-  public Query(MemberRepository memberRepository) {
+  public Query(MemberRepository memberRepository, AccountRegistrationRepository accountRegistrationRepository) {
     this.memberRepository = memberRepository;
+    this.accountRegistrationRepository = accountRegistrationRepository;
   }
 
-  public BankAccount bankAccount(DataFetchingEnvironment env) throws BadHttpRequest {
+  public BankAccount bankAccount(DataFetchingEnvironment env) {
     String memberId = getToken(env);
     if (memberId == null) {
       log.error("GetBankAccountInfo - hedvig.token is missing");
@@ -45,8 +45,13 @@ public class Query implements GraphQLQueryResolver {
     return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
   }
 
-  public RegisterAccountProcessingStatus registerAccountProcessingStatus(String orderId) {
-    Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findById(UUID.fromString(orderId));
+  public RegisterAccountProcessingStatus registerAccountProcessingStatus(DataFetchingEnvironment env) {
+    String memberId = getToken(env);
+    if (memberId == null) {
+      log.error("registerAccountProcessingStatus - hedvig.token is missing");
+      return null;
+    }
+    Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findByMemberId(memberId).stream().max(Comparator.comparing(AccountRegistration::getInitiated));
     return optionalRegisterAccount.
       map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(accountRegistration.getStatus().name()))
       .orElse(null);
