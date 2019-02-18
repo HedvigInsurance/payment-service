@@ -244,21 +244,21 @@ public class Member {
   }
 
   private void updateDirectDebitStatus(UpdateTrustlyAccountCommand cmd) {
-    if (cmd.getDirectDebitMandateActive()) {
+    if (cmd.getDirectDebitMandateActive() != null && cmd.getDirectDebitMandateActive()) {
       apply(
         new DirectDebitConnectedEvent(
           this.id,
           cmd.getHedvigOrderId().toString(),
           cmd.getAccountId()));
-    } else if (!cmd.getDirectDebitMandateActive()) {
+    } else if (cmd.getDirectDebitMandateActive() != null && !cmd.getDirectDebitMandateActive()) {
       apply(
         new DirectDebitDisconnectedEvent(
           this.id,
           cmd.getHedvigOrderId().toString(),
           cmd.getAccountId()));
     } else {
-      if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)
-        || !trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED)) {
+      if (trustlyAccount.getDirectDebitStatus() == null || (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)
+        || !trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED))) {
         apply(
           new DirectDebitPendingConnectionEvent(
             this.id,

@@ -247,7 +247,6 @@
       <artifactId>kotlin-logging</artifactId>
       <version>1.6.22</version>
     </dependency>
-
   </dependencies>
 
   <build>
@@ -259,7 +258,6 @@
         <configuration>
           <compilerPlugins>
             <plugin>spring</plugin>
-            <plugin>jpa</plugin>
           </compilerPlugins>
           <jvmTarget>1.8</jvmTarget>
         </configuration>
@@ -300,7 +298,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.0</version>
         <executions>
           <!-- Replacing default-compile as it is treated specially by maven -->
           <execution>
