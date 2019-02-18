@@ -8,12 +8,12 @@ data class Member(
   val firstName: String,
   val lastName: String,
 
-  val birthDate: LocalDate,
+  val birthDate: LocalDate?,
 
-  val street: String,
-  val city: String,
-  val zipCode: String,
-  val country: String,
+  val street: String?,
+  val city: String?,
+  val zipCode: String?,
+  val country: String?,
 
   val ssn: String
 )
