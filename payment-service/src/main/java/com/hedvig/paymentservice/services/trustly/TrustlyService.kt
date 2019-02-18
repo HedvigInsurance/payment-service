@@ -112,7 +112,11 @@ class TrustlyService(
   }
 
   fun cancelDirectDebitAccountRequest(memberId: String): Boolean {
-    val stream: List<AccountRegistration> = accountRegistrationRepository.findByMemberId(memberId).filter { x -> x.status != AccountRegistrationStatus.CANCELLED }
+    val stream: List<AccountRegistration> = accountRegistrationRepository.findByMemberId(memberId)
+      .filter { x -> x.status != AccountRegistrationStatus.CANCELLED
+        && x.status != AccountRegistrationStatus.CONFIRMED
+        && x.status != AccountRegistrationStatus.IN_PROGRESS}
+
     when {
       stream.count() < 1 -> return false
       stream.count() == 1 -> {
