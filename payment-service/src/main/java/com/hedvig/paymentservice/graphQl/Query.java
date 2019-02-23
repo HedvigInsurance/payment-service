@@ -54,7 +54,7 @@ public class Query implements GraphQLQueryResolver {
     Optional<AccountRegistration> optionalRegisterAccount = accountRegistrationRepository.findByMemberId(memberId).stream().max(Comparator.comparing(AccountRegistration::getInitiated));
     
     //Hack for fixing App until we can get a release out
-    return RegisterAccountProcessingStatus.NOT_INITIATED;
+    return RegisterAccountProcessingStatus.CONFIRMED;
   }
 
   private String getToken(DataFetchingEnvironment dfe) {
