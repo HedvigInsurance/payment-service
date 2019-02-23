@@ -55,14 +55,6 @@ public class Query implements GraphQLQueryResolver {
     
     //Hack for fixing App until we can get a release out
     return RegisterAccountProcessingStatus.NOT_INITIATED;
-    
-    return optionalRegisterAccount.
-      map(accountRegistration -> RegisterAccountProcessingStatus.valueOf(
-        accountRegistration.getStatus() == null ?
-          RegisterAccountProcessingStatus.NOT_INITIATED.name()
-          : accountRegistration.getStatus().name())
-      )
-      .orElse(RegisterAccountProcessingStatus.NOT_INITIATED);
   }
 
   private String getToken(DataFetchingEnvironment dfe) {
