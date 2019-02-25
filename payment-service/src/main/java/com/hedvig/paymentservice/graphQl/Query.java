@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.graphQl;
 
 import com.coxautodev.graphql.tools.GraphQLQueryResolver;
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
@@ -41,7 +42,8 @@ public class Query implements GraphQLQueryResolver {
       return null;
     }
     Optional<Member> optionalMember = memberRepository.findById(memberId);
-    return optionalMember.map(BankAccount::fromMember).orElse(null);
+
+    return optionalMember.filter(x -> x.getDirectDebitStatus() == DirectDebitStatus.CONNECTED).map(BankAccount::fromMember).orElse(null);
   }
 
   @Deprecated
