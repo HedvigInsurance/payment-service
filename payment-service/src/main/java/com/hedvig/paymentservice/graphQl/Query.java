@@ -44,7 +44,6 @@ public class Query implements GraphQLQueryResolver {
     return optionalMember.map(BankAccount::fromMember).orElse(null);
   }
 
-
   @Deprecated
   public LocalDate chargeDate() {
     return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
