@@ -71,17 +71,15 @@ public class AccountServiceImpl implements AccountService {
 
     Optional<Member> optionalMember = memberRepository.findById(memberId);
 
-    if (!optionalMember.isPresent()) {
-      return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
-    } else {
+    if (optionalMember.isPresent()) {
       Member member = optionalMember.get();
-      if (member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
+      if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
         if (accountRegistration == null || accountRegistration.getStatus().equals(AccountRegistrationStatus.CONFIRMED) || accountRegistration.getStatus().equals(AccountRegistrationStatus.CANCELLED)) {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.ACTIVE;
         } else {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
         }
-      } else if (member.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED)) {
+      } else if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.DISCONNECTED)) {
         if (accountRegistration == null || accountRegistration.getStatus().equals(AccountRegistrationStatus.CONFIRMED) || accountRegistration.getStatus().equals(AccountRegistrationStatus.CANCELLED)) {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
         } else {
@@ -89,8 +87,7 @@ public class AccountServiceImpl implements AccountService {
         }
       }
     }
-    return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
-
+    return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
   }
 
 }
