@@ -1,11 +1,9 @@
 package com.hedvig.paymentservice.web;
 
 
-import com.hedvig.paymentservice.domain.payments.Member;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.config.EventProcessingConfiguration;
 import org.axonframework.eventhandling.TrackingEventProcessor;
-import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping(path = "/reset")
 public class ResetController {
-
-  private static String PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
+  private static final String TRANSACTION_HISTORY_BACKFILL = "com.hedvig.paymentservice.domain.payments.backfill";
+  private static final String MEMBER_RESET_PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
 
@@ -23,15 +21,21 @@ public class ResetController {
     this.eventProcessingConfiguration = eventProcessingConfiguration;
   }
 
-  @PutMapping("transactionHistory/backfill")
+  @PutMapping("transactionHistory")
   public void backfillTransactionHistory() {
-    // TODO
+    eventProcessingConfiguration
+      .eventProcessor(TRANSACTION_HISTORY_BACKFILL, TrackingEventProcessor.class)
+      .ifPresent(trackingEventProcessor -> {
+        trackingEventProcessor.shutDown();
+        trackingEventProcessor.resetTokens();
+        trackingEventProcessor.start();
+      });
   }
 
   @PutMapping("/member")
   public void resetMember() {
     eventProcessingConfiguration
-      .eventProcessor(PROCESSOR_NAME, TrackingEventProcessor.class)
+      .eventProcessor(MEMBER_RESET_PROCESSOR_NAME, TrackingEventProcessor.class)
       .ifPresent(trackingEventProcessor -> {
         trackingEventProcessor.shutDown();
         trackingEventProcessor.resetTokens();
