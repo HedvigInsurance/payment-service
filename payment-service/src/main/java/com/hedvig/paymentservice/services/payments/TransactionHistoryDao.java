@@ -4,10 +4,11 @@ import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventRepository;
 import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
+import com.hedvig.paymentservice.services.exceptions.DuplicateTransactionHistoryEventException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import javax.transaction.Transactional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -23,7 +24,18 @@ public class TransactionHistoryDao {
     this.transactionRepository = transactionRepository;
   }
 
-  public void add(final TransactionHistoryEvent transactionHistoryEvent) {
+  @Transactional
+  public void add(final TransactionHistoryEvent transactionHistoryEvent, final boolean unique) {
+    if (unique) {
+      final boolean thisTransactionHasEventAlready = StreamSupport.stream(transactionHistoryEventRepository.findAllForTransaction(transactionHistoryEvent.getTransactionId()).spliterator(), false)
+        .map(TransactionHistoryEvent::getType)
+        .anyMatch(type -> transactionHistoryEvent.getType().equals(type));
+
+      if (thisTransactionHasEventAlready) {
+        throw DuplicateTransactionHistoryEventException.from(transactionHistoryEvent.getTransactionId(), transactionHistoryEvent.getType());
+      }
+    }
+
     transactionHistoryEventRepository.save(transactionHistoryEvent);
   }
 

@@ -133,7 +133,8 @@ public class Member {
           cmd.getAmount().getCurrency().getCurrencyCode(),
           cmd.getTimestamp(),
           TransactionHistoryEventType.ERROR,
-          "Transaction amount mismatch")
+          "Transaction amount mismatch"),
+        false
       );
 
       throw new RuntimeException("Transaction amount mismatch");
@@ -173,7 +174,8 @@ public class Member {
           cmd.getAmount().getCurrency().getCurrencyCode(),
           cmd.getTimestamp(),
           TransactionHistoryEventType.ERROR,
-          "Transaction amount mismatch")
+          "Transaction amount mismatch"),
+        false
       );
 
       throw new RuntimeException("Transaction amount mismatch");
@@ -209,7 +211,8 @@ public class Member {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.CREATED,
-        null)
+        null),
+      true
     );
   }
 
@@ -231,7 +234,8 @@ public class Member {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.CREATED,
-        null)
+        null),
+      true
     );
   }
 
@@ -247,7 +251,8 @@ public class Member {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.COMPLETED,
-        null)
+        null),
+      true
     );
   }
 
@@ -260,7 +265,8 @@ public class Member {
       new TransactionHistoryEvent(
         tx.getTransactionId(),
         Instant.now(),
-        TransactionHistoryEventType.FAILED)
+        TransactionHistoryEventType.FAILED),
+      true
     );
   }
 
@@ -273,7 +279,8 @@ public class Member {
       new TransactionHistoryEvent(
         tx.getTransactionId(),
         Instant.now(),
-        TransactionHistoryEventType.COMPLETED)
+        TransactionHistoryEventType.COMPLETED),
+      true
     );
   }
 
@@ -289,7 +296,8 @@ public class Member {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.FAILED,
-        null)
+        null),
+      true
     );
   }
 

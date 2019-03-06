@@ -43,7 +43,11 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
   }
 
   private boolean hasNoFailedEvents(final List<TransactionHistoryEvent> transactionHistoryEvents) {
-    return transactionHistoryEvents.parallelStream().noneMatch(event -> event.getType().equals(TransactionHistoryEventType.FAILED));
+    return transactionHistoryEvents.parallelStream().noneMatch(
+      event ->
+        event.getType().equals(TransactionHistoryEventType.FAILED)
+          || event.getType().equals(TransactionHistoryEventType.ERROR)
+    );
   }
 
   private boolean hasCompleted(final List<TransactionHistoryEvent> transactionHistoryEvents) {
