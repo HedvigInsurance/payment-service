@@ -24,4 +24,8 @@ public class TransactionHistoryDao {
   public Stream<TransactionHistoryEvent> findAllAsStream() {
     return StreamSupport.stream(transactionHistoryEventRepository.findAll().spliterator(), false);
   }
+
+  public void dangerouslyReset() {
+    transactionHistoryEventRepository.deleteAll();
+  }
 }

@@ -270,5 +270,6 @@ public class MemberEventListener {
   @ResetHandler
   public void onReset() {
     memberRepository.deleteAll();
+    transactionHistoryDao.dangerouslyReset();
   }
 }

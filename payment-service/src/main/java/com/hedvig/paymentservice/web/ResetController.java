@@ -26,8 +26,6 @@ public class ResetController {
 
   @PutMapping("/memberAndTransactionHistoryDangerously")
   public void dangerouslyResetTransactionHistory() {
-    transactionHistoryEventRepository.deleteAll();
-
     eventProcessingConfiguration
       .eventProcessor(MEMBER_PROCESSOR_NAME, TrackingEventProcessor.class)
       .ifPresent(trackingEventProcessor -> {
