@@ -12,9 +12,8 @@ public class TransactionHistoryEvent {
   @Id
   private UUID id;
 
-  @ManyToOne(cascade = CascadeType.PERSIST)
   @NotNull
-  private Transaction transaction;
+  private UUID transactionId;
 
   @Nullable
   private BigDecimal amount;
@@ -35,16 +34,16 @@ public class TransactionHistoryEvent {
   public TransactionHistoryEvent() {
   }
 
-  public TransactionHistoryEvent(@NotNull final Transaction transaction, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type) {
+  public TransactionHistoryEvent(@NotNull final UUID transactionId, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type) {
     this.id = UUID.randomUUID();
-    this.transaction = transaction;
+    this.transactionId = transactionId;
     this.time = time;
     this.type = type;
   }
 
-  public TransactionHistoryEvent(@NotNull final Transaction transaction, @Nullable final BigDecimal amount, @Nullable final String currency, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type, @Nullable final String reason) {
+  public TransactionHistoryEvent(@NotNull final UUID transactionId, @Nullable final BigDecimal amount, @Nullable final String currency, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type, @Nullable final String reason) {
     this.id = UUID.randomUUID();
-    this.transaction = transaction;
+    this.transactionId = transactionId;
     this.amount = amount;
     this.currency = currency;
     this.time = time;
@@ -56,12 +55,8 @@ public class TransactionHistoryEvent {
     return id;
   }
 
-  public Transaction getTransaction() {
-    return transaction;
-  }
-
   public UUID getTransactionId() {
-    return transaction.getId();
+    return transactionId;
   }
 
   @Nullable

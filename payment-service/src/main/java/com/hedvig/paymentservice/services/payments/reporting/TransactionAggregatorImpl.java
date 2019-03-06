@@ -1,9 +1,9 @@
 package com.hedvig.paymentservice.services.payments.reporting;
 
 import com.hedvig.paymentservice.domain.payments.TransactionType;
-import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,9 +12,9 @@ import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
 
 @Service
 public class TransactionAggregatorImpl implements TransactionAggregator {
@@ -29,17 +29,17 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
   public Map<YearMonth, BigDecimal> aggregateAllChargesMonthlyInSek() {
     final Map<UUID, List<TransactionHistoryEvent>> historyEventsByTxId = transactionHistoryDao.findAllAsStream()
       .collect(Collectors.groupingBy(TransactionHistoryEvent::getTransactionId));
+    final Map<UUID, Transaction> transactionsById = transactionHistoryDao.findTransactionsAsStream(historyEventsByTxId.keySet())
+      .collect(Collectors.toMap(Transaction::getId, tx -> tx));
 
     return historyEventsByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
       .filter(this::hasCompleted)
-      .filter(this::isChange)
-      .map(transactionHistoryEvents ->
+      .filter(isCharge(transactionsById))
+      .flatMap(transactionHistoryEvents ->
         transactionHistoryEvents.stream()
-          .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED))
-          .findFirst()
-          .get())
-      .collect(HashMap::new, this::accumulateTransactionsMonthly, HashMap::putAll);
+          .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED)))
+      .collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
   }
 
   private boolean hasNoFailedEvents(final List<TransactionHistoryEvent> transactionHistoryEvents) {
@@ -50,14 +50,18 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
     return transactionHistoryEvents.parallelStream().anyMatch(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED));
   }
 
-  private boolean isChange(final List<TransactionHistoryEvent> transactionHistoryEvents) {
-    return transactionHistoryEvents.get(0).getTransaction().getTransactionType().equals(TransactionType.CHARGE);
+  private Predicate<List<TransactionHistoryEvent>> isCharge(final Map<UUID, Transaction> transactionsById) {
+    return (transactionHistoryEvents) -> transactionsById.get(transactionHistoryEvents.get(0).getTransactionId())
+      .getTransactionType()
+      .equals(TransactionType.CHARGE);
   }
 
-  private void accumulateTransactionsMonthly(final Map<YearMonth, BigDecimal> monthlyAggregation, final TransactionHistoryEvent txe) {
-    final YearMonth yearMonth = YearMonth.from(txe.getTime().atOffset(ZoneOffset.UTC));
-    final BigDecimal currentValue = Optional.ofNullable(monthlyAggregation.get(yearMonth)).orElse(BigDecimal.ZERO);
-    final BigDecimal transactionValue = requireNonNull(txe.getTransaction().getMoney()).getNumber().numberValue(BigDecimal.class);
-    monthlyAggregation.put(yearMonth, currentValue.add(transactionValue));
+  private BiConsumer<Map<YearMonth, BigDecimal>, TransactionHistoryEvent> accumulateTransactionsMonthly(final Map<UUID, Transaction> transactionsById) {
+    return (monthlyAggregation, txe) -> {
+      final YearMonth yearMonth = YearMonth.from(txe.getTime().atOffset(ZoneOffset.UTC));
+      final BigDecimal currentValue = Optional.ofNullable(monthlyAggregation.get(yearMonth)).orElse(BigDecimal.ZERO);
+      final BigDecimal transactionValue = transactionsById.get(txe.getTransactionId()).getMoney().getNumber().numberValue(BigDecimal.class);
+      monthlyAggregation.put(yearMonth, currentValue.add(transactionValue));
+    };
   }
 }

@@ -128,7 +128,7 @@ public class Member {
 
       transactionHistoryDao.add(
         new TransactionHistoryEvent(
-          transaction.toTransactionEntity(),
+          transaction.getTransactionId(),
           cmd.getAmount().getNumber().numberValueExact(BigDecimal.class),
           cmd.getAmount().getCurrency().getCurrencyCode(),
           cmd.getTimestamp(),
@@ -168,7 +168,7 @@ public class Member {
 
       transactionHistoryDao.add(
         new TransactionHistoryEvent(
-          transaction.toTransactionEntity(),
+          transaction.getTransactionId(),
           cmd.getAmount().getNumber().numberValueExact(BigDecimal.class),
           cmd.getAmount().getCurrency().getCurrencyCode(),
           cmd.getTimestamp(),
@@ -204,7 +204,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        tx.toTransactionEntity(),
+        tx.getTransactionId(),
         e.getAmount().getNumber().numberValueExact(BigDecimal.class),
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
@@ -226,7 +226,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        tx.toTransactionEntity(),
+        tx.getTransactionId(),
         e.getAmount().getNumber().numberValueExact(BigDecimal.class),
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
@@ -242,7 +242,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        tx.toTransactionEntity(),
+        tx.getTransactionId(),
         e.getAmount().getNumber().numberValueExact(BigDecimal.class),
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
@@ -258,7 +258,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        tx.toTransactionEntity(),
+        tx.getTransactionId(),
         Instant.now(),
         TransactionHistoryEventType.FAILED)
     );
@@ -271,7 +271,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        tx.toTransactionEntity(),
+        tx.getTransactionId(),
         Instant.now(),
         TransactionHistoryEventType.COMPLETED)
     );
@@ -284,7 +284,7 @@ public class Member {
 
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
-        transaction.toTransactionEntity(),
+        transaction.getTransactionId(),
         e.getAmount().getNumber().numberValueExact(BigDecimal.class),
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),

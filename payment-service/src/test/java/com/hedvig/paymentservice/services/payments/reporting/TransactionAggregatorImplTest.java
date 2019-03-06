@@ -6,20 +6,28 @@ import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.javamoney.moneta.Money;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.YearMonth;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TransactionAggregatorImplTest {
+  private List<Transaction> transactions;
+
+  @Before
+  public void setUp(){
+    transactions = new ArrayList<>();
+  }
+
   @Test
   public void aggregatesChargesMonthlyCorrectly() {
     final UUID anId = UUID.randomUUID();
@@ -37,6 +45,7 @@ public class TransactionAggregatorImplTest {
     final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub);
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
+    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
 
     final Map<YearMonth, BigDecimal> monthlyAggregation = transactionAggregator.aggregateAllChargesMonthlyInSek();
 
@@ -52,8 +61,16 @@ public class TransactionAggregatorImplTest {
     when(transactionStub.getMoney()).thenReturn(Money.of(amount, "SEK"));
     when(transactionStub.getTransactionType()).thenReturn(transactionType);
 
+    final Optional<UUID> existingIdMaybe = transactions.stream()
+      .map(Transaction::getId)
+      .filter(existingTx -> existingTx.equals(transactionStub.getId()))
+      .findFirst();
+    if (!existingIdMaybe.isPresent()) {
+      transactions.add(transactionStub);
+    }
+
     return new TransactionHistoryEvent(
-      transactionStub,
+      transactionStub.getId(),
       amount,
       "SEK",
       Instant.parse(time),
