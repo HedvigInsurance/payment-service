@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.payments.reporting;
 
+import com.hedvig.paymentservice.domain.payments.TransactionType;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
@@ -32,6 +33,7 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
     return historyEventsByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
       .filter(this::hasCompleted)
+      .filter(this::isChange)
       .map(transactionHistoryEvents ->
         transactionHistoryEvents.stream()
           .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED))
@@ -46,6 +48,10 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
 
   private boolean hasCompleted(final List<TransactionHistoryEvent> transactionHistoryEvents) {
     return transactionHistoryEvents.parallelStream().anyMatch(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED));
+  }
+
+  private boolean isChange(final List<TransactionHistoryEvent> transactionHistoryEvents) {
+    return transactionHistoryEvents.get(0).getTransaction().getTransactionType().equals(TransactionType.CHARGE);
   }
 
   private void accumulateTransactionsMonthly(final Map<YearMonth, BigDecimal> monthlyAggregation, final TransactionHistoryEvent txe) {
