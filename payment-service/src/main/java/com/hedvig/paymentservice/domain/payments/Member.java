@@ -2,13 +2,19 @@ package com.hedvig.paymentservice.domain.payments;
 
 import com.hedvig.paymentservice.domain.payments.commands.*;
 import com.hedvig.paymentservice.domain.payments.events.*;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
+import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +31,9 @@ public class Member {
 
   private List<Transaction> transactions = new ArrayList<>();
   private TrustlyAccount trustlyAccount;
+
+  @Autowired
+  private TransactionHistoryDao transactionHistoryDao;
 
   public Member() {
   }
@@ -116,6 +125,17 @@ public class Member {
         transaction.getAmount().toString(),
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
+
+      transactionHistoryDao.add(
+        new TransactionHistoryEvent(
+          transaction.toTransactionEntity(),
+          cmd.getAmount().getNumber().numberValueExact(BigDecimal.class),
+          cmd.getAmount().getCurrency().getCurrencyCode(),
+          cmd.getTimestamp(),
+          TransactionHistoryEventType.ERROR,
+          "Transaction amount mismatch")
+      );
+
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(
@@ -139,12 +159,23 @@ public class Member {
   @CommandHandler
   public void cmd(PayoutCompletedCommand cmd) {
     val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
-    if (transaction.getAmount().equals(cmd.getAmount()) == false) {
+    if (!transaction.getAmount().equals(cmd.getAmount())) {
       log.error(
         "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
         transaction.getAmount().toString(),
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
+
+      transactionHistoryDao.add(
+        new TransactionHistoryEvent(
+          transaction.toTransactionEntity(),
+          cmd.getAmount().getNumber().numberValueExact(BigDecimal.class),
+          cmd.getAmount().getCurrency().getCurrencyCode(),
+          cmd.getTimestamp(),
+          TransactionHistoryEventType.ERROR,
+          "Transaction amount mismatch")
+      );
+
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(new PayoutCompletedEvent(id, cmd.getTransactionId(), cmd.getTimestamp()));
@@ -162,48 +193,104 @@ public class Member {
 
   @EventSourcingHandler
   public void on(ChargeCreatedEvent e) {
-    transactions.add(
-      new Transaction(
-        e.getTransactionId(),
-        e.getAmount(),
+    final Transaction tx = new Transaction(
+      e.getTransactionId(),
+      e.getAmount(),
+      e.getTimestamp(),
+      TransactionType.CHARGE,
+      TransactionStatus.INITIATED);
+
+    transactions.add(tx);
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        tx.toTransactionEntity(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
-        TransactionType.CHARGE,
-        TransactionStatus.INITIATED));
+        TransactionHistoryEventType.CREATED,
+        null)
+    );
   }
 
   @EventSourcingHandler
   public void on(PayoutCreatedEvent e) {
-    transactions.add(
-      new Transaction(
-        e.getTransactionId(),
-        e.getAmount(),
+    Transaction tx = new Transaction(
+      e.getTransactionId(),
+      e.getAmount(),
+      e.getTimestamp(),
+      TransactionType.PAYOUT,
+      TransactionStatus.INITIATED);
+    transactions.add(tx);
+
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        tx.toTransactionEntity(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
-        TransactionType.PAYOUT,
-        TransactionStatus.INITIATED));
+        TransactionHistoryEventType.CREATED,
+        null)
+    );
   }
 
   @EventSourcingHandler
   public void on(ChargeCompletedEvent e) {
-    val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.COMPLETED);
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        tx.toTransactionEntity(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
+        e.getTimestamp(),
+        TransactionHistoryEventType.COMPLETED,
+        null)
+    );
   }
 
   @EventSourcingHandler
-  public void on(ChargeFailedEvent w) {
-    val transaction = getSingleTransaction(transactions, w.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.FAILED);
+  public void on(ChargeFailedEvent e) {
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.FAILED);
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        tx.toTransactionEntity(),
+        Instant.now(),
+        TransactionHistoryEventType.FAILED)
+    );
   }
 
   @EventSourcingHandler
   public void on(PayoutCompletedEvent e) {
-    val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.COMPLETED);
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        tx.toTransactionEntity(),
+        Instant.now(),
+        TransactionHistoryEventType.COMPLETED)
+    );
   }
 
   @EventSourcingHandler
   public void on(PayoutFailedEvent e) {
     val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
     transaction.setTransactionStatus(TransactionStatus.FAILED);
+
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        transaction.toTransactionEntity(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
+        e.getTimestamp(),
+        TransactionHistoryEventType.FAILED,
+        null)
+    );
   }
 
   @EventSourcingHandler
@@ -227,7 +314,8 @@ public class Member {
   }
 
   private static Transaction getSingleTransaction(
-    List<Transaction> transactions, UUID transactionId, String memberId) {
+    List<Transaction> transactions, UUID transactionId, String memberId
+  ) {
     val matchingTransactions =
       transactions
         .stream()

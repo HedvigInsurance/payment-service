@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.payments.events;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public class ChargeFailedEvent {
