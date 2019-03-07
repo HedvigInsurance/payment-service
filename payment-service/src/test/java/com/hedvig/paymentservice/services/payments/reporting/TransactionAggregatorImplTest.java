@@ -1,9 +1,9 @@
 package com.hedvig.paymentservice.services.payments.reporting;
 
 import com.hedvig.paymentservice.domain.payments.TransactionType;
-import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.javamoney.moneta.Money;
 import org.junit.Before;
@@ -15,7 +15,7 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,20 +24,40 @@ public class TransactionAggregatorImplTest {
   private List<Transaction> transactions;
 
   @Before
-  public void setUp(){
+  public void setUp() {
     transactions = new ArrayList<>();
   }
 
   @Test
-  public void aggregatesChargesMonthlyCorrectly() {
+  public void aggregatesCompletedTransactions() {
     final UUID anId = UUID.randomUUID();
     final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
+      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE), // Good February tx
+      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE), // Not completed
+      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE), // Good January tx
+      buildTransactionHistoryEvent(BigDecimal.ONE, "2100-03-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE) // Good future TX
+    );
+
+    final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
+    final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub);
+
+    when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
+    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
+
+    final Map<YearMonth, BigDecimal> monthlyAggregation = transactionAggregator.aggregateAllChargesMonthlyInSek();
+
+    assertEquals(3, monthlyAggregation.size());
+    assertEquals(BigDecimal.TEN, monthlyAggregation.get(YearMonth.parse("2019-01")));
+    assertEquals(BigDecimal.valueOf(11), monthlyAggregation.get(YearMonth.parse("2019-02")));
+    assertEquals(BigDecimal.ONE, monthlyAggregation.get(YearMonth.parse("2100-03")));
+  }
+
+  @Test
+  public void doesntAggregatePayouts() {
+    final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
       buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE),
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE), // Transaction initialised on 01-31 but completed 02-01
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE),
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE),
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE),
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-03-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE),
       buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.PAYOUT)
     );
 
@@ -49,9 +69,28 @@ public class TransactionAggregatorImplTest {
 
     final Map<YearMonth, BigDecimal> monthlyAggregation = transactionAggregator.aggregateAllChargesMonthlyInSek();
 
-    assertEquals(BigDecimal.TEN, monthlyAggregation.get(YearMonth.parse("2019-01")));
-    assertEquals(BigDecimal.valueOf(11), monthlyAggregation.get(YearMonth.parse("2019-02")));
-    assertEquals(BigDecimal.ONE, monthlyAggregation.get(YearMonth.parse("2019-03")));
+    assertEquals(1, monthlyAggregation.size());
+    assertEquals(BigDecimal.TEN, monthlyAggregation.get(YearMonth.parse("2019-02")));
+  }
+
+  @Test
+  public void doesntAggregateFailedCharges_evenIfTheyreReportedAsCompleted_maybeWrongIdk() {
+    final UUID anId = UUID.randomUUID();
+
+    final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
+      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE),
+      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.FAILED, null, TransactionType.CHARGE)
+    );
+
+    final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
+    final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub);
+
+    when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
+    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
+
+    final Map<YearMonth, BigDecimal> monthlyAggregation = transactionAggregator.aggregateAllChargesMonthlyInSek();
+
+    assertEquals(0, monthlyAggregation.size());
   }
 
   private TransactionHistoryEvent buildTransactionHistoryEvent(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType) {
