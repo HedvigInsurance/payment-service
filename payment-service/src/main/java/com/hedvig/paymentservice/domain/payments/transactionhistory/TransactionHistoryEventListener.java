@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.domain.payments.backfill;
+package com.hedvig.paymentservice.domain.payments.transactionhistory;
 
 import com.hedvig.paymentservice.domain.payments.events.*;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
@@ -33,8 +33,7 @@ public class TransactionHistoryEventListener {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.CREATED,
-        null),
-      true
+        null)
     );
   }
 
@@ -47,8 +46,7 @@ public class TransactionHistoryEventListener {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.CREATED,
-        null),
-      true
+        null)
     );
   }
 
@@ -61,8 +59,7 @@ public class TransactionHistoryEventListener {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.COMPLETED,
-        null),
-      true
+        null)
     );
   }
 
@@ -78,8 +75,7 @@ public class TransactionHistoryEventListener {
         tx.getMoney().getCurrency().getCurrencyCode(),
         Instant.now(),
         TransactionHistoryEventType.COMPLETED,
-        null),
-      true
+        null)
     );
   }
 
@@ -89,8 +85,7 @@ public class TransactionHistoryEventListener {
       new TransactionHistoryEvent(
         e.getTransactionId(),
         e.getTimestamp(),
-        TransactionHistoryEventType.COMPLETED),
-      true
+        TransactionHistoryEventType.COMPLETED)
     );
   }
 
@@ -103,8 +98,7 @@ public class TransactionHistoryEventListener {
         e.getAmount().getCurrency().getCurrencyCode(),
         e.getTimestamp(),
         TransactionHistoryEventType.FAILED,
-        null),
-      true
+        null)
     );
   }
 

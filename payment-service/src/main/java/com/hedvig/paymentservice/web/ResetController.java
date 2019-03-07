@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping(path = "/reset")
 public class ResetController {
-  private static final String TRANSACTION_HISTORY_BACKFILL = "com.hedvig.paymentservice.domain.payments.backfill";
+  private static final String TRANSACTION_HISTORY_PROCESSOR_NAME = "com.hedvig.paymentservice.domain.payments.transactionhistory";
   private static final String MEMBER_RESET_PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
@@ -24,7 +24,7 @@ public class ResetController {
   @PutMapping("transactionHistory")
   public void backfillTransactionHistory() {
     eventProcessingConfiguration
-      .eventProcessor(TRANSACTION_HISTORY_BACKFILL, TrackingEventProcessor.class)
+      .eventProcessor(TRANSACTION_HISTORY_PROCESSOR_NAME, TrackingEventProcessor.class)
       .ifPresent(trackingEventProcessor -> {
         trackingEventProcessor.shutDown();
         trackingEventProcessor.resetTokens();
