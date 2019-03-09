@@ -40,6 +40,7 @@ import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
@@ -217,7 +218,7 @@ class TrustlyService(
   }
 
   private fun createPaymentRequest(hedvigOrderId: UUID, request: PaymentRequest): Request {
-    val formatter = DecimalFormat("#0.00")
+    val formatter = DecimalFormat("#0.00", DecimalFormatSymbols(Locale.ENGLISH))
     val amount = formatter.format(request.amount.number.doubleValueExact())
     val build = Charge.Build(
       request.accountId,
