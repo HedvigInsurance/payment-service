@@ -117,6 +117,15 @@ public class Member {
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
 
+      apply(
+        new ChargeErroredEvent(
+          cmd.getMemberId(),
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          String.format("Transaction amounts differ (expected %s but was %s)", transaction.getAmount(), cmd.getAmount()),
+          cmd.getTimestamp()
+        ));
+
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(
@@ -132,6 +141,7 @@ public class Member {
         String.format(
           "Could not find matching transaction for ChargeFailedCommand with memberId: %s and transactionId: %s",
           id, cmd.getTransactionId());
+
       throw new RuntimeException(s);
     }
     apply(new ChargeFailedEvent(this.id, cmd.getTransactionId()));
@@ -146,6 +156,15 @@ public class Member {
         transaction.getAmount().toString(),
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
+
+      apply(
+        new PayoutErroredEvent(
+          cmd.getMemberId(),
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          String.format("Transaction amounts differ (expected %s but was %s)", transaction.getAmount(), cmd.getAmount()),
+          cmd.getTimestamp()
+        ));
 
       throw new RuntimeException("Transaction amount mismatch");
     }

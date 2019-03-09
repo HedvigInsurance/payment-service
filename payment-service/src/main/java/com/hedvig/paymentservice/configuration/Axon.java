@@ -22,5 +22,4 @@ public class Axon {
 
     config.registerSubscribingEventProcessor("SegmentProcessorGroupLive");
   }
-
 }

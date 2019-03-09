@@ -1,21 +1,21 @@
 package com.hedvig.paymentservice.domain.payments.transactionhistory;
 
 import com.hedvig.paymentservice.domain.payments.events.*;
-import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
+import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ResetHandler;
+import org.axonframework.eventhandling.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import static java.util.Collections.singletonList;
-
 @Service
+@ProcessingGroup("TransactionHistory")
 public class TransactionHistoryEventListener {
   private TransactionHistoryDao transactionHistoryDao;
 
@@ -64,18 +64,27 @@ public class TransactionHistoryEventListener {
   }
 
   @EventHandler
-  public void on(final ChargeFailedEvent e) {
-    final Transaction tx = transactionHistoryDao.findTransactionsAsStream(singletonList(e.getTransactionId()))
-      .findFirst()
-      .get();
+  public void on(final ChargeFailedEvent e, @Timestamp final Instant time) {
     transactionHistoryDao.add(
       new TransactionHistoryEvent(
         e.getTransactionId(),
-        tx.getMoney().getNumber().numberValueExact(BigDecimal.class),
-        tx.getMoney().getCurrency().getCurrencyCode(),
-        Instant.now(),
-        TransactionHistoryEventType.COMPLETED,
-        null)
+        time,
+        TransactionHistoryEventType.FAILED
+      )
+    );
+  }
+
+  @EventHandler
+  public void on(final ChargeErroredEvent e) {
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        e.getTransactionId(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
+        e.getTimestamp(),
+        TransactionHistoryEventType.ERROR,
+        e.getReason()
+      )
     );
   }
 
@@ -99,6 +108,20 @@ public class TransactionHistoryEventListener {
         e.getTimestamp(),
         TransactionHistoryEventType.FAILED,
         null)
+    );
+  }
+
+  @EventHandler
+  public void on(final PayoutErroredEvent e) {
+    transactionHistoryDao.add(
+      new TransactionHistoryEvent(
+        e.getTransactionId(),
+        e.getAmount().getNumber().numberValueExact(BigDecimal.class),
+        e.getAmount().getCurrency().getCurrencyCode(),
+        e.getTimestamp(),
+        TransactionHistoryEventType.ERROR,
+        e.getReason()
+      )
     );
   }
 

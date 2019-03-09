@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventRepository;
 import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
+import com.hedvig.paymentservice.services.exceptions.DuplicateTransactionHistoryEventException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,7 @@ public class TransactionHistoryDao {
       .anyMatch(type -> transactionHistoryEvent.getType().equals(type));
 
     if (thisTransactionHasEventAlready) {
-      log.warn(String.format(
+      throw new DuplicateTransactionHistoryEventException(String.format(
         "Transaction %s already has an event of type %s",
         transactionHistoryEvent.getTransactionId(),
         transactionHistoryEvent.getType()));
