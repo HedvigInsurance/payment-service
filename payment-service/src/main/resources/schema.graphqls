@@ -6,6 +6,7 @@ schema {
 type Query {
   bankAccount: BankAccount
   chargeDate: LocalDate!
+  nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus!
 }
 

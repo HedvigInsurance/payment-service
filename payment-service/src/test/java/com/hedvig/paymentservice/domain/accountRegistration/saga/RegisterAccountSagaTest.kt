@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.accountRegistration.saga
 
+import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationConfirmationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationNotificationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationResponseCommand
@@ -11,6 +12,7 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEve
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent
 import org.axonframework.test.saga.SagaTestFixture
 import org.junit.Before
@@ -241,6 +243,34 @@ class RegisterAccountSagaTest {
         )
       )
       .expectNoDispatchedCommands()
+      .expectNoScheduledEvents()
+      .expectActiveSagas(0)
+  }
+
+  @Test
+  fun given_RegisterAccountRequestCancellationEvent_when_OrderCanceledEventArrives_expect_Nothing() {
+    fixture
+      .givenAPublished(
+        AccountRegistrationRequestCreatedEvent(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID,
+          TEST_TRUSTLY_ORDER_ID,
+          TEST_TRUSTLY_URL
+        )
+      )
+      .whenPublishingA(
+        OrderCanceledEvent(
+          TEST_HEDVIG_ORDER_ID
+        )
+      )
+      .expectDispatchedCommands(
+        ReceiveAccountRegistrationCancellationCommand(
+          TEST_ACCOUNT_REGISTRATION_ID,
+          TEST_HEDVIG_ORDER_ID,
+          TEST_MEMBER_ID
+        )
+      )
       .expectNoScheduledEvents()
       .expectActiveSagas(0)
   }

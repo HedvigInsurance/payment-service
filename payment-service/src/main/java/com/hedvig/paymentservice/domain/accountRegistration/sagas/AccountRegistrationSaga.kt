@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.accountRegistration.sagas
 
+import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationConfirmationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationNotificationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationResponseCommand
@@ -10,6 +11,7 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEve
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.eventhandling.saga.EndSaga
@@ -33,10 +35,13 @@ class AccountRegistrationSaga {
 
   private lateinit var accountRegistrationId: UUID
 
+  private lateinit var memberId: String
+
   @StartSaga
   @SagaEventHandler(associationProperty = ACCOUNT_REGISTRATION_ID)
   fun on(e: AccountRegistrationRequestCreatedEvent) {
     accountRegistrationId = e.accountRegistrationId
+    memberId = e.memberId
 
     SagaLifecycle.associateWith(HEDVIG_ORDER_ID, e.hedvigOrderId.toString())
 
@@ -79,6 +84,18 @@ class AccountRegistrationSaga {
   fun on(e: TrustlyAccountUpdatedEvent) {
     commandGateway.sendAndWait<Any>(ReceiveAccountRegistrationConfirmationCommand(accountRegistrationId, e.memberId))
 
+  }
+
+  @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
+  @EndSaga
+  fun on(e: OrderCanceledEvent) {
+    commandGateway.sendAndWait<Any>(
+      ReceiveAccountRegistrationCancellationCommand(
+        accountRegistrationId,
+        e.hedvigOrderId,
+        memberId
+      )
+    )
   }
 
   companion object {
