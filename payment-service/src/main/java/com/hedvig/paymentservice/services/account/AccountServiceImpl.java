@@ -63,7 +63,7 @@ public class AccountServiceImpl implements AccountService {
   public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getDirectDebitStatus(String memberId) {
     if (memberId == null) {
       log.error("registerAccountProcessingStatus - hedvig.token is missing");
-      return null;
+      return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
     }
 
     AccountRegistration accountRegistration = accountRegistrationRepository.
