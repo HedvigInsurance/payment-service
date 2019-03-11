@@ -36,7 +36,7 @@ public class Query implements GraphQLQueryResolver {
 
   public DirectDebitStatus directDebitStatus(DataFetchingEnvironment env) {
     String memberId = getToken(env);
-    return accountService.getdirectDebitStatus(memberId);
+    return accountService.getDirectDebitStatus(memberId);
   }
 
   private String getToken(DataFetchingEnvironment dfe) {

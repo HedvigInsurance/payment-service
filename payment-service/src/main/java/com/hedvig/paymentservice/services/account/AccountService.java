@@ -10,5 +10,5 @@ public interface AccountService {
 
   LocalDate getNextChargeDate(String memberId);
 
-  DirectDebitStatus getdirectDebitStatus(String memberId);
+  DirectDebitStatus getDirectDebitStatus(String memberId);
 }

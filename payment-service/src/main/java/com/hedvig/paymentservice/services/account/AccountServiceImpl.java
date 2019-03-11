@@ -61,7 +61,7 @@ public class AccountServiceImpl implements AccountService {
     return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
   }
 
-  public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getdirectDebitStatus(String memberId) {
+  public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getDirectDebitStatus(String memberId) {
     if (memberId == null) {
       log.error("registerAccountProcessingStatus - hedvig.token is missing");
       return null;
