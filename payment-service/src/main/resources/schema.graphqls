@@ -8,6 +8,7 @@ type Query {
   chargeDate: LocalDate!
   nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus!
+  directDebitStatus: DirectDebitStatus!
 }
 
 type Mutation{
