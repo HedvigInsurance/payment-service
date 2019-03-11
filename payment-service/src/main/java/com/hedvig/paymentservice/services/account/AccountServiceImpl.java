@@ -46,7 +46,6 @@ public class AccountServiceImpl implements AccountService {
 
   //TODO: Catch Red days - Weekends
   public LocalDate getNextChargeDate(String memberId) {
-
     if (memberId == null) {
       log.error("registerAccountProcessingStatus - hedvig.token is missing");
       return null;
@@ -67,7 +66,10 @@ public class AccountServiceImpl implements AccountService {
       return null;
     }
 
-    AccountRegistration accountRegistration = accountRegistrationRepository.findByMemberId(memberId).stream().max(Comparator.comparing(AccountRegistration::getInitiated)).orElse(null);
+    AccountRegistration accountRegistration = accountRegistrationRepository.
+      findByMemberId(memberId).stream()
+      .max(Comparator.comparing(AccountRegistration::getInitiated))
+      .orElse(null);
 
     Optional<Member> optionalMember = memberRepository.findById(memberId);
 
