@@ -7,11 +7,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import javax.money.MonetaryAmount;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
+import javax.persistence.*;
+
 import org.javamoney.moneta.Money;
 
 @Entity
@@ -29,6 +26,9 @@ public class Transaction {
 
   @Enumerated(EnumType.STRING)
   private TransactionStatus transactionStatus;
+
+  @ManyToOne(targetEntity = Member.class, fetch = FetchType.LAZY)
+  private Member member;
 
   public MonetaryAmount getMoney() {
     return Money.of(this.amount, this.currency);
@@ -61,6 +61,10 @@ public class Transaction {
     return this.transactionStatus;
   }
 
+  public Member getMember() {
+    return member;
+  }
+
   public void setId(UUID id) {
     this.id = id;
   }
@@ -83,6 +87,11 @@ public class Transaction {
 
   public void setTransactionStatus(TransactionStatus transactionStatus) {
     this.transactionStatus = transactionStatus;
+  }
+
+  public Transaction setMember(final Member member) {
+    this.member = member;
+    return this;
   }
 
   public boolean equals(Object o) {

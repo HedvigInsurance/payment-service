@@ -15,31 +15,47 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class TransactionAggregatorImpl implements TransactionAggregator {
   private final TransactionHistoryDao transactionHistoryDao;
+  private final ChargeSourceGuesser chargeSourceGuesser;
 
   @Autowired
-  public TransactionAggregatorImpl(final TransactionHistoryDao transactionHistoryDao) {
+  public TransactionAggregatorImpl(final TransactionHistoryDao transactionHistoryDao, final ChargeSourceGuesser chargeSourceGuesser) {
     this.transactionHistoryDao = transactionHistoryDao;
+    this.chargeSourceGuesser = chargeSourceGuesser;
   }
 
   @Override
-  public Map<YearMonth, BigDecimal> aggregateAllChargesMonthlyInSek() {
+  public MonthlyTransactionsAggregations aggregateAllChargesMonthlyInSek() {
     final Map<UUID, List<TransactionHistoryEvent>> historyEventsByTxId = transactionHistoryDao.findAllAsStream()
       .collect(Collectors.groupingBy(TransactionHistoryEvent::getTransactionId));
     final Map<UUID, Transaction> transactionsById = transactionHistoryDao.findTransactionsAsStream(historyEventsByTxId.keySet())
       .collect(Collectors.toMap(Transaction::getId, tx -> tx));
+    final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesInsuranceTypes(transactionsById.values());
 
-    return historyEventsByTxId.values().stream()
+    final List<TransactionHistoryEvent> allTxEvents = historyEventsByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
       .filter(this::hasCompleted)
       .filter(isCharge(transactionsById))
       .flatMap(transactionHistoryEvents ->
         transactionHistoryEvents.stream()
           .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED)))
+      .collect(toList());
+
+    final Map<YearMonth, BigDecimal> studentAggregation = allTxEvents.stream()
+      .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.STUDENT_INSURANCE))
       .collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
+    final Map<YearMonth, BigDecimal> householdAggregation = allTxEvents.stream()
+      .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE))
+      .collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
+    final Map<YearMonth, BigDecimal> totalAggregation = allTxEvents.stream().collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
+
+    return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
   }
 
   private boolean hasNoFailedEvents(final List<TransactionHistoryEvent> transactionHistoryEvents) {
