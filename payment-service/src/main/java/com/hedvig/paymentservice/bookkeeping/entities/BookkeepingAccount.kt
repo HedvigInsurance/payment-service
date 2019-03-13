@@ -14,6 +14,7 @@ data class BookkeepingAccount(
   @ManyToOne
   val member: Member,
 
+  @Enumerated(EnumType.STRING)
   val type: BookkeepingAccountType,
 
   val createdAt: Instant

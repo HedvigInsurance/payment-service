@@ -9,6 +9,6 @@ import java.util.*
 
 @Repository
 interface BookkeepingAccountRepository : CrudRepository<BookkeepingAccount, UUID> {
-  @Query("FROM BookkeepingAccount WHERE member.id = :memberId AND type = :type")
+  @Query("FROM BookkeepingAccount WHERE member_id = :memberId AND type = :type")
   fun findAccountByMemberAndType(memberId: String, type: BookkeepingAccountType): BookkeepingAccount?
 }

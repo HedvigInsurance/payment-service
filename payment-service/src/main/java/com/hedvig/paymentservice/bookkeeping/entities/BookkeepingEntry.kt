@@ -3,9 +3,7 @@ package com.hedvig.paymentservice.bookkeeping.entities
 import java.math.BigDecimal
 import java.time.Instant
 import java.util.*
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 @Entity
 data class BookkeepingEntry(
@@ -15,6 +13,7 @@ data class BookkeepingEntry(
   @ManyToOne
   val bookkeepingAccount: BookkeepingAccount,
 
+  @Enumerated(EnumType.STRING)
   val type: BookkeepingEntryType,
 
   val reversesEntry: UUID?,
@@ -25,6 +24,7 @@ data class BookkeepingEntry(
 
   val reference: String,
 
+  @Enumerated(EnumType.STRING)
   val source: BookkeepingEntrySource,
 
   val madeByHedvigStaff: String?,
