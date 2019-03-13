@@ -28,10 +28,10 @@ public class MeerkatImpl implements Meerkat {
       }
       return SanctionStatus.Undetermined;
     } catch (RestClientResponseException ex) {
-      log.error("Could not check sanction list for member {} , {}", fullName, ex);
+      log.error("Could not check sanction list for memberId {} , {}", fullName, ex);
       return SanctionStatus.Undetermined;
     } catch (NullPointerException ex){
-      log.error("Could not check sanction list, response null for member {} , {}", fullName, ex);
+      log.error("Could not check sanction list, response null for memberId {} , {}", fullName, ex);
       return SanctionStatus.Undetermined;
     }
   }

@@ -38,7 +38,7 @@ class LiveEventListener(
           val transaction = m.getTransaction(evt.transactionId)
 
           if (transaction == null) {
-            log.error("Could not send 'Charge Failed' event transaction not found for member {}, {}", value("memberId", evt.memberId), evt.transactionId)
+            log.error("Could not send 'Charge Failed' event transaction not found for memberId {}, {}", value("memberId", evt.memberId), evt.transactionId)
           } else {
 
             val money = transaction.money
@@ -52,7 +52,7 @@ class LiveEventListener(
             segmentAnalytics.track("Charge Failed", properties, m.id, integrationSettings)
           }
         },
-        { log.error("Could send 'Charge Failed' event member not found: {} ", value("memberId", evt.memberId)) })
+        { log.error("Could send 'Charge Failed' event memberId not found: {} ", value("memberId", evt.memberId)) })
 
     } catch (e: Exception) {
       log.error("Caught exception when sending 'Charge Failed' event", e)

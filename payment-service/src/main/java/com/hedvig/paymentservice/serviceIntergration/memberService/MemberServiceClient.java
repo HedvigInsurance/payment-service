@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @FeignClient(
     name = "memberServiceClient",
-    url = "${hedvig.member-service.url:member-service}",
+    url = "${hedvig.memberId-service.url:memberId-service}",
     configuration = FeignConfiguration.class)
 public interface MemberServiceClient {
 
-  @RequestMapping(value = "/i/member/{memberId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/i/memberId/{memberId}", method = RequestMethod.GET)
   ResponseEntity<Member> getMember(@PathVariable("memberId") String memberId);
 }

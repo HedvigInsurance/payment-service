@@ -30,7 +30,7 @@ public class MemberServiceImpl implements MemberService {
       if (ex.getRawStatusCode() == 404) {
         return Optional.empty();
       }
-      log.error("Could not find member {} , {}", memberId, ex);
+      log.error("Could not find memberId {} , {}", memberId, ex);
       throw ex;
     }
   }

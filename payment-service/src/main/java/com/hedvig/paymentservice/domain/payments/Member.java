@@ -38,19 +38,19 @@ public class Member {
   public boolean cmd(CreateChargeCommand cmd) {
 
     if (trustlyAccount == null) {
-      log.info("Cannot charge account - no account set up in Trustly");
+      log.info("Cannot charge bookkeepingAccount - no bookkeepingAccount set up in Trustly");
       apply(
         new ChargeCreationFailedEvent(
           this.id,
           cmd.getTransactionId(),
           cmd.getAmount(),
           cmd.getTimestamp(),
-          "account id not set"));
+          "bookkeepingAccount id not set"));
       return false;
     }
 
     if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
-      log.info("Cannot charge account - direct debit mandate not received in Trustly");
+      log.info("Cannot charge bookkeepingAccount - direct debit mandate not received in Trustly");
       apply(
         new ChargeCreationFailedEvent(
           this.id,
@@ -75,7 +75,7 @@ public class Member {
   @CommandHandler
   public boolean cmd(CreatePayoutCommand cmd) {
     if (trustlyAccount == null) {
-      log.info("Cannot payout account - no account set up in Trustly");
+      log.info("Cannot payout bookkeepingAccount - no bookkeepingAccount set up in Trustly");
       apply(
         new PayoutCreationFailedEvent(
           id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));

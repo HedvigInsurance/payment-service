@@ -45,7 +45,7 @@ class AccountRegistrationEventListener(
       registerAccount.status = AccountRegistrationStatus.REQUESTED
       repository.save(registerAccount)
     } else {
-      logger.error { "AccountRegistrationResponseReceivedEvent - Cannot find register account for accountRegistrationId: ${e.accountRegistrationId}" }
+      logger.error { "AccountRegistrationResponseReceivedEvent - Cannot find register bookkeepingAccount for accountRegistrationId: ${e.accountRegistrationId}" }
     }
   }
 
@@ -58,7 +58,7 @@ class AccountRegistrationEventListener(
       registerAccount.status = AccountRegistrationStatus.IN_PROGRESS
       repository.save(registerAccount)
     } else {
-      logger.error { "AccountRegistrationNotificationReceivedEvent - Cannot find register account for accountRegistrationId: ${e.accountRegistrationId}" }
+      logger.error { "AccountRegistrationNotificationReceivedEvent - Cannot find register bookkeepingAccount for accountRegistrationId: ${e.accountRegistrationId}" }
     }
   }
 
@@ -71,7 +71,7 @@ class AccountRegistrationEventListener(
       registerAccount.status = AccountRegistrationStatus.CONFIRMED
       repository.save(registerAccount)
     } else {
-      logger.error { "AccountRegistrationConfirmationReceivedEvent - Cannot find register account for accountRegistrationId: ${e.accountRegistrationId}" }
+      logger.error { "AccountRegistrationConfirmationReceivedEvent - Cannot find register bookkeepingAccount for accountRegistrationId: ${e.accountRegistrationId}" }
     }
   }
 
@@ -84,7 +84,7 @@ class AccountRegistrationEventListener(
       registerAccount.status = AccountRegistrationStatus.CANCELLED
       repository.save(registerAccount)
     } else {
-      logger.error { "AccountRegistrationCancellationReceivedEvent - Cannot find register account for accountRegistrationId: ${e.accountRegistrationId}" }
+      logger.error { "AccountRegistrationCancellationReceivedEvent - Cannot find register bookkeepingAccount for accountRegistrationId: ${e.accountRegistrationId}" }
     }
   }
 }

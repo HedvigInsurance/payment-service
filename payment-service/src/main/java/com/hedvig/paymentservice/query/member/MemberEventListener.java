@@ -51,7 +51,7 @@ public class MemberEventListener {
     val member =
       memberRepository
         .findById(e.getMemberId())
-        .orElseThrow(() -> new RuntimeException("Could not find member"));
+        .orElseThrow(() -> new RuntimeException("Could not find memberId"));
     val transaction = new Transaction();
     transaction.setId(e.getTransactionId());
     transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
@@ -70,7 +70,7 @@ public class MemberEventListener {
     val member =
       memberRepository
         .findById(e.getMemberId())
-        .orElseThrow(() -> new RuntimeException("Could not find member"));
+        .orElseThrow(() -> new RuntimeException("Could not find memberId"));
     val transactions = member.getTransactions();
     val transaction = transactions.get(e.getTransactionId());
     transaction.setTransactionStatus(TransactionStatus.FAILED);
@@ -82,7 +82,7 @@ public class MemberEventListener {
     val member =
       memberRepository
         .findById(e.getMemberId())
-        .orElseThrow(() -> new RuntimeException("Could not find member"));
+        .orElseThrow(() -> new RuntimeException("Could not find memberId"));
     val transaction = new Transaction();
     transaction.setId(e.getTransactionId());
     transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
@@ -100,7 +100,7 @@ public class MemberEventListener {
   public void on(ChargeCompletedEvent e) {
     val maybeMember = memberRepository.findById(e.getMemberId());
     if (maybeMember.isPresent() == false) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
     val member = maybeMember.get();
@@ -115,7 +115,7 @@ public class MemberEventListener {
   public void on(PayoutCompletedEvent e) {
     val maybeMember = memberRepository.findById(e.getMemberId());
     if (maybeMember.isPresent() == false) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 
@@ -129,7 +129,7 @@ public class MemberEventListener {
   public void on(PayoutFailedEvent e) {
     val maybeMember = memberRepository.findById(e.getMemberId());
     if (maybeMember.isPresent() == false) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
     val member = maybeMember.get();
@@ -144,7 +144,7 @@ public class MemberEventListener {
     Optional<Member> member = memberRepository.findById(e.getMemberId());
 
     if (!member.isPresent()) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 
@@ -162,7 +162,7 @@ public class MemberEventListener {
     Optional<Member> member = memberRepository.findById(e.getMemberId());
 
     if (!member.isPresent()) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 
@@ -180,7 +180,7 @@ public class MemberEventListener {
     Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
 
     if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 
@@ -193,7 +193,7 @@ public class MemberEventListener {
     Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
 
     if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 
@@ -206,7 +206,7 @@ public class MemberEventListener {
     Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
 
     if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
+      log.error("Could not find memberId");
       return;
     }
 

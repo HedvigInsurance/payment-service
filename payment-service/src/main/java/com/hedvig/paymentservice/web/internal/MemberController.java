@@ -109,7 +109,7 @@ public class MemberController {
 
     if (memberIds.size() != members.size()) {
       log.info(
-          "List size mismatch: memberIds.size = {}, members.size = {} The rest of the member ids with be replaced with false!",
+          "List size mismatch: memberIds.size = {}, members.size = {} The rest of the memberId ids with be replaced with false!",
           memberIds.size(),
           members.size());
 

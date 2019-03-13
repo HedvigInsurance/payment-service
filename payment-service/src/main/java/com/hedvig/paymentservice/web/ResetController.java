@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/reset")
 public class ResetController {
 
-  private static String PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
+  private static String PROCESSOR_NAME = "com.hedvig.paymentservice.query.memberId";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
 
@@ -21,7 +21,7 @@ public class ResetController {
     this.eventProcessingConfiguration = eventProcessingConfiguration;
   }
 
-  @PutMapping("/member")
+  @PutMapping("/memberId")
   public void resetMember() {
     eventProcessingConfiguration
       .eventProcessor(PROCESSOR_NAME, TrackingEventProcessor.class)
