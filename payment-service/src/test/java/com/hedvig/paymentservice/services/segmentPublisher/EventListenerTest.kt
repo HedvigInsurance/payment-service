@@ -61,24 +61,6 @@ class EventListenerTest {
     assertThat(builtMessage.traits()).containsEntry("is_direct_debit_activated", false as Any)
   }
 
-  @Test
-  fun DirectDebitPendingConnectionEvent_withDirectDebitMandateInProgress_setsIsDirectDebitActivatedToFalse() {
-    val evt = DirectDebitPendingConnectionEvent(
-      MEMBER_ID,
-      HEDVIG_ORDER_ID,
-      TRUSTLY_ACCOUNT_ID
-    )
-
-    val sut = EventListener(segmentAnalyticsMock)
-    sut.on(evt)
-    then<Analytics>(segmentAnalyticsMock).should().enqueue(enqueueCaptor.capture())
-
-    val builtMessage = enqueueCaptor.value.build() as IdentifyMessage
-
-    assertThat(builtMessage.userId()).isEqualTo(MEMBER_ID)
-    assertThat(builtMessage.traits()).containsEntry("is_direct_debit_activated", false as Any)
-  }
-
   companion object {
     const val MEMBER_ID: String = "1234"
     const val HEDVIG_ORDER_ID: String = "ME GUSTA HEDVIG"

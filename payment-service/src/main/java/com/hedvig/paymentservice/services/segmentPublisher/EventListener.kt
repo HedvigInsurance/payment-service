@@ -23,13 +23,6 @@ class EventListener(private val segmentAnalytics: Analytics) {
     segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
   }
 
-  @EventHandler
-  fun on(evt: DirectDebitPendingConnectionEvent) {
-    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", false)
-
-    segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
-  }
-
 
   @EventHandler
   fun on(evt: DirectDebitDisconnectedEvent) {
