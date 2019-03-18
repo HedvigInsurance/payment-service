@@ -410,6 +410,7 @@ class TrustlyService(
         val cancelData = notification.params.data as CancelNotificationData
 
         gateway.sendAndWait<Any>(
+
           CancelNotificationReceivedCommand(
             requestId,
             cancelData.notificationId,
