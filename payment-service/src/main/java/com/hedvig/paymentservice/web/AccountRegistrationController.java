@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web;
 
 
+import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository;
@@ -40,10 +41,8 @@ public class AccountRegistrationController {
 
     list.forEach(r ->
       commandGateway.sendAndWait(
-        new CancelNotificationReceivedCommand(
+        new ReceiveAccountRegistrationCancellationCommand(r.getAccountRegistrationId(),
           r.getHedvigOrderId(),
-          UUID.randomUUID().toString(),
-          r.getTrustlyOrderId(),
           r.getMemberId())));
 
     log.info("Cancel triggered!");
