@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.payments.reporting;
 
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -26,7 +27,7 @@ public class ChargeSourceGuesserImpl implements ChargeSourceGuesser {
   @Override
   public Map<UUID, ChargeSource> guessChargesInsuranceTypes(final Collection<Transaction> transactions) {
     return productPricingService.guessPolicyTypes(transactions).entrySet().stream()
-      .map(entry -> Pair.of(entry.getKey(), ChargeSource.from(entry.getValue())))
+      .map(entry -> Pair.of(entry.getKey(), ChargeSource.from(entry.getValue().map(PolicyGuessResponseDto::getProductType))))
       .peek(entry -> {
         if (entry.getSecond().equals(ChargeSource.UNSURE)) {
           log.error("Unsure about insurance type for transaction {}", entry.getFirst());

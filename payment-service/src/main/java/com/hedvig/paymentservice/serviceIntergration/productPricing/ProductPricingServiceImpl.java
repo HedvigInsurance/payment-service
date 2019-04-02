@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.serviceIntergration.productPricing;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.InsuranceStatus;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyType;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class ProductPricingServiceImpl implements ProductPricingService {
   }
 
   @Override
-  public Map<UUID, Optional<PolicyType>> guessPolicyTypes(final Collection<Transaction> transactions) {
+  public Map<UUID, Optional<PolicyGuessResponseDto>> guessPolicyTypes(final Collection<Transaction> transactions) {
     final Collection<PolicyGuessRequestDto> policyGuessDtos = transactions.stream()
       .map(PolicyGuessRequestDto::from)
       .collect(toList());

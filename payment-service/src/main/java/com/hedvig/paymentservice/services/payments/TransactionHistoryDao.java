@@ -47,7 +47,7 @@ public class TransactionHistoryDao {
   }
 
   public Stream<Transaction> findTransactionsAsStream(final Iterable<UUID> transactionIds) {
-    return StreamSupport.stream(transactionRepository.findAllById(transactionIds).spliterator(), false);
+    return StreamSupport.stream(transactionRepository.findAllWithMemberByIds(transactionIds).spliterator(), false);
   }
 
   public void dangerouslyReset() {

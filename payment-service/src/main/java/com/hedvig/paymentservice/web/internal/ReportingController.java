@@ -17,7 +17,7 @@ public class ReportingController {
     this.transactionAggregator = transactionAggregator;
   }
 
-  @GetMapping(path = {"monthlyEarnedGrossPremium"})
+  @GetMapping(path = "monthlyPaidGrossPremium")
   public MonthlyTransactionsAggregations getMonthlyEarnedGrossPremium() {
     return transactionAggregator.aggregateAllChargesMonthlyInSek();
   }

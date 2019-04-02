@@ -27,7 +27,8 @@ public class Transaction {
   @Enumerated(EnumType.STRING)
   private TransactionStatus transactionStatus;
 
-  @ManyToOne(targetEntity = Member.class, fetch = FetchType.LAZY)
+  @ManyToOne(targetEntity = Member.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @PrimaryKeyJoinColumn(referencedColumnName = "id")
   private Member member;
 
   public MonetaryAmount getMoney() {

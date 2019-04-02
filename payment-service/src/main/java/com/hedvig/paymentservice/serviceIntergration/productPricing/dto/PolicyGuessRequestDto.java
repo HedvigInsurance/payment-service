@@ -2,7 +2,6 @@ package com.hedvig.paymentservice.serviceIntergration.productPricing.dto;
 
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.UUID;
