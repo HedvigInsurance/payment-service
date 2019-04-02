@@ -3,19 +3,18 @@ package com.hedvig.paymentservice.serviceIntergration.productPricing.dto;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 
 import java.math.BigDecimal;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 public class PolicyGuessRequestDto {
   private final UUID id;
   private final String memberId;
-  private final BigDecimal amount;
-  private final Instant date;
+  private final LocalDate date;
 
-  public PolicyGuessRequestDto(final UUID id, final String memberId, final BigDecimal amount, final Instant date) {
+  public PolicyGuessRequestDto(final UUID id, final String memberId, final LocalDate date) {
     this.id = id;
     this.memberId = memberId;
-    this.amount = amount;
     this.date = date;
   }
 
@@ -27,11 +26,7 @@ public class PolicyGuessRequestDto {
     return memberId;
   }
 
-  public BigDecimal getAmount() {
-    return amount;
-  }
-
-  public Instant getDate() {
+  public LocalDate getDate() {
     return date;
   }
 
@@ -39,7 +34,7 @@ public class PolicyGuessRequestDto {
     return new PolicyGuessRequestDto(
       transaction.getId(),
       transaction.getMember().getId(),
-      transaction.getMoney().getNumber().numberValueExact(BigDecimal.class),
-      transaction.getTimestamp());
+      transaction.getTimestamp().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate()
+    );
   }
 }
