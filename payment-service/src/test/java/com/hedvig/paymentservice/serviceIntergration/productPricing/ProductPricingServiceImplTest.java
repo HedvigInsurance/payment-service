@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,11 +44,12 @@ public class ProductPricingServiceImplTest {
     final ProductPricingClient clientStub = mock(ProductPricingClient.class);
     final ProductPricingService service = new ProductPricingServiceImpl(clientStub);
 
+    final YearMonth period = YearMonth.of(2019, 2);
     final ArgumentCaptor<List<PolicyGuessRequestDto>> captor = ArgumentCaptor.forClass(List.class);
-    when(clientStub.guessPolicyTypes(any())).thenReturn(mock(ResponseEntity.class));
-    service.guessPolicyTypes(transactions);
+    when(clientStub.guessPolicyTypes(any(), eq(period))).thenReturn(mock(ResponseEntity.class));
+    service.guessPolicyTypes(transactions, period);
 
-    verify(clientStub).guessPolicyTypes(captor.capture());
+    verify(clientStub).guessPolicyTypes(captor.capture(), eq(period));
     assertEquals(transaction1.getId(), captor.getValue().get(0).getId());
     assertEquals(transaction2.getId(), captor.getValue().get(1).getId());
   }

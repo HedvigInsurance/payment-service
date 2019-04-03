@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
+import java.time.YearMonth;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -25,12 +26,15 @@ public class ChargeSourceGuesserImpl implements ChargeSourceGuesser {
   }
 
   @Override
-  public Map<UUID, ChargeSource> guessChargesInsuranceTypes(final Collection<Transaction> transactions) {
-    return productPricingService.guessPolicyTypes(transactions).entrySet().stream()
+  public Map<UUID, ChargeSource> guessChargesMetadata(final Collection<Transaction> transactions, final YearMonth period) {
+    log.info("Guessing charge metadata for {} transactions", transactions.size());
+    return productPricingService.guessPolicyTypes(transactions, period).entrySet().stream()
       .map(entry -> Pair.of(entry.getKey(), ChargeSource.from(entry.getValue().map(PolicyGuessResponseDto::getProductType))))
       .peek(entry -> {
         if (entry.getSecond().equals(ChargeSource.UNSURE)) {
           log.error("Unsure about insurance type for transaction {}", entry.getFirst());
+        } else {
+          log.info("Guessed transaction {} to be {}", entry.getFirst(), entry.getSecond());
         }
       })
       .collect(toMap(Pair::getFirst, Pair::getSecond));

@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyTy
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -24,9 +25,9 @@ public class ChargeSourceGuesserImplTest {
     final Map<UUID, Optional<PolicyGuessResponseDto>> policyTypes = new HashMap<>();
     final UUID policyId = UUID.randomUUID();
     policyTypes.put(policyId, Optional.of(new PolicyGuessResponseDto(PolicyType.BRF, LocalDate.of(2019, 1, 1))));
-    when(productPricingServiceStub.guessPolicyTypes(any())).thenReturn(policyTypes);
+    when(productPricingServiceStub.guessPolicyTypes(any(), any())).thenReturn(policyTypes);
 
-    final Map<UUID, ChargeSource> result = chargeSourceGuesser.guessChargesInsuranceTypes(transactions);
+    final Map<UUID, ChargeSource> result = chargeSourceGuesser.guessChargesMetadata(transactions, YearMonth.now());
     assertEquals(result.size(), 1);
     assertEquals(result.get(policyId), ChargeSource.HOUSEHOLD_INSURANCE);
   }

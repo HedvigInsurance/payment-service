@@ -10,13 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 
@@ -42,7 +41,7 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
       .stream()
       .filter(isWithinPeriod(period))
       .collect(toMap(Transaction::getId, tx -> tx));
-    final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesInsuranceTypes(transactionsById.values());
+    final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesMetadata(transactionsById.values(), period);
 
     final List<TransactionHistoryEvent> allTxEvents = historyEventsByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
@@ -53,19 +52,28 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
           .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED)))
       .collect(toList());
 
-    final BigDecimal studentAggregation = allTxEvents.stream()
+    final Map<Year, BigDecimal> studentAggregation = aggregateByUnderwritingYear(
+      allTxEvents.stream()
       .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.STUDENT_INSURANCE))
-      .map(TransactionHistoryEvent::getAmount)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-    final BigDecimal householdAggregation = allTxEvents.stream()
+    );
+    final Map<Year, BigDecimal> householdAggregation = aggregateByUnderwritingYear(allTxEvents.stream()
       .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE))
-      .map(TransactionHistoryEvent::getAmount)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-    final BigDecimal totalAggregation = allTxEvents.stream()
-      .map(TransactionHistoryEvent::getAmount)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+    );
+    final Map<Year, BigDecimal> totalAggregation = aggregateByUnderwritingYear(allTxEvents.stream());
     return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
+  }
+
+  private Map<Year, BigDecimal> aggregateByUnderwritingYear(final Stream<TransactionHistoryEvent> txes) {
+    return txes
+      .collect(groupingBy(txe -> Year.from(txe.getTime().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate())))
+      .entrySet().stream()
+      .collect(toMap(
+        Map.Entry::getKey,
+        entry -> entry.getValue().stream()
+          .map(TransactionHistoryEvent::getAmount)
+          .filter(Objects::nonNull)
+          .reduce(BigDecimal.ZERO, BigDecimal::add)
+      ));
   }
 
   private Predicate<Transaction> isWithinPeriod(final YearMonth period) {

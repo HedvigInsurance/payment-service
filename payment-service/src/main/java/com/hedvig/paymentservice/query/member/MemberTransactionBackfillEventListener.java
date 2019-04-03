@@ -28,13 +28,13 @@ public class MemberTransactionBackfillEventListener {
   @EventHandler
   public void on(ChargeCreatedEvent e) {
     saveMemberOnTransaction(e.getMemberId(), e.getTransactionId());
-    log.info("Backfilled transaction {} for member {} for charge created event", e.getTransactionId(), e.getMemberId());
+    log.info("Backfilled transaction {} for member {} for charge created event at {}", e.getTransactionId(), e.getMemberId(), e.getTimestamp());
   }
 
   @EventHandler
   public void on(PayoutCreatedEvent e) {
     saveMemberOnTransaction(e.getMemberId(), e.getTransactionId());
-    log.info("Backfilled transaction {} for member {} for payout created event", e.getTransactionId(), e.getMemberId());
+    log.info("Backfilled transaction {} for member {} for payout created event at {}", e.getTransactionId(), e.getMemberId(), e.getTimestamp());
   }
 
   private void saveMemberOnTransaction(final String memberId, final UUID transactionId) {

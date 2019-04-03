@@ -4,12 +4,12 @@ import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.InsuranceStatus;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyType;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.time.YearMonth;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -43,10 +43,13 @@ public class ProductPricingServiceImpl implements ProductPricingService {
   }
 
   @Override
-  public Map<UUID, Optional<PolicyGuessResponseDto>> guessPolicyTypes(final Collection<Transaction> transactions) {
+  public Map<UUID, Optional<PolicyGuessResponseDto>> guessPolicyTypes(
+    final Collection<Transaction> transactions,
+    final YearMonth period
+  ) {
     final Collection<PolicyGuessRequestDto> policyGuessDtos = transactions.stream()
       .map(PolicyGuessRequestDto::from)
       .collect(toList());
-    return client.guessPolicyTypes(policyGuessDtos).getBody();
+    return client.guessPolicyTypes(policyGuessDtos, period).getBody();
   }
 }

@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Stream;
@@ -50,11 +51,11 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
-    assertThat(aggregations.getTotal()).isEqualTo(BigDecimal.valueOf(11));
+    assertThat(aggregations.getTotal().get(Year.of(2019))).isEqualTo(BigDecimal.valueOf(11));
   }
 
   @Test
@@ -72,10 +73,10 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
-    assertThat(BigDecimal.TEN).isEqualTo(aggregations.getTotal());
+    assertThat(aggregations.getTotal().get(Year.of(2019))).isEqualTo(BigDecimal.TEN);
   }
 
   @Test
@@ -95,11 +96,11 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
-    assertThat(aggregations.getTotal()).isEqualTo(BigDecimal.ZERO);
+    assertThat(aggregations.getTotal()).hasSize(0);
   }
 
   private TransactionHistoryEvent buildTransactionHistoryEvent(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final ChargeSource chargeSource) {
