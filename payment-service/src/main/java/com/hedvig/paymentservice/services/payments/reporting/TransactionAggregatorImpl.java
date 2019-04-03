@@ -9,15 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.BiConsumer;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 @Service
 public class TransactionAggregatorImpl implements TransactionAggregator {
@@ -31,11 +32,16 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
   }
 
   @Override
-  public MonthlyTransactionsAggregations aggregateAllChargesMonthlyInSek() {
+  public MonthlyTransactionsAggregations aggregateAllChargesMonthlyInSek(final YearMonth period) {
     final Map<UUID, List<TransactionHistoryEvent>> historyEventsByTxId = transactionHistoryDao.findAllAsStream()
-      .collect(Collectors.groupingBy(TransactionHistoryEvent::getTransactionId));
-    final Map<UUID, Transaction> transactionsById = transactionHistoryDao.findTransactionsAsStream(historyEventsByTxId.keySet())
-      .collect(Collectors.toMap(Transaction::getId, tx -> tx));
+      .collect(groupingBy(TransactionHistoryEvent::getTransactionId));
+    final Map<UUID, Transaction> transactionsById = transactionHistoryDao.findWithinPeriodAndWithTransactionIds(
+      period,
+      historyEventsByTxId.keySet()
+    )
+      .stream()
+      .filter(isWithinPeriod(period))
+      .collect(toMap(Transaction::getId, tx -> tx));
     final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesInsuranceTypes(transactionsById.values());
 
     final List<TransactionHistoryEvent> allTxEvents = historyEventsByTxId.values().stream()
@@ -47,15 +53,26 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
           .filter(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED)))
       .collect(toList());
 
-    final Map<YearMonth, BigDecimal> studentAggregation = allTxEvents.stream()
+    final BigDecimal studentAggregation = allTxEvents.stream()
       .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.STUDENT_INSURANCE))
-      .collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
-    final Map<YearMonth, BigDecimal> householdAggregation = allTxEvents.stream()
+      .map(TransactionHistoryEvent::getAmount)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    final BigDecimal householdAggregation = allTxEvents.stream()
       .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE))
-      .collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
-    final Map<YearMonth, BigDecimal> totalAggregation = allTxEvents.stream().collect(HashMap::new, accumulateTransactionsMonthly(transactionsById), Map::putAll);
+      .map(TransactionHistoryEvent::getAmount)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    final BigDecimal totalAggregation = allTxEvents.stream()
+      .map(TransactionHistoryEvent::getAmount)
+      .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
+  }
+
+  private Predicate<Transaction> isWithinPeriod(final YearMonth period) {
+    return transaction -> {
+      final LocalDate txeDate = transaction.getTimestamp().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate();
+      return YearMonth.from(txeDate).equals(period);
+    };
   }
 
   private boolean hasNoFailedEvents(final List<TransactionHistoryEvent> transactionHistoryEvents) {
@@ -71,17 +88,12 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
   }
 
   private Predicate<List<TransactionHistoryEvent>> isCharge(final Map<UUID, Transaction> transactionsById) {
-    return (transactionHistoryEvents) -> transactionsById.get(transactionHistoryEvents.get(0).getTransactionId())
-      .getTransactionType()
-      .equals(TransactionType.CHARGE);
-  }
-
-  private BiConsumer<Map<YearMonth, BigDecimal>, TransactionHistoryEvent> accumulateTransactionsMonthly(final Map<UUID, Transaction> transactionsById) {
-    return (monthlyAggregation, txe) -> {
-      final YearMonth yearMonth = YearMonth.from(txe.getTime().atOffset(ZoneOffset.UTC));
-      final BigDecimal currentValue = Optional.ofNullable(monthlyAggregation.get(yearMonth)).orElse(BigDecimal.ZERO);
-      final BigDecimal transactionValue = transactionsById.get(txe.getTransactionId()).getMoney().getNumber().numberValue(BigDecimal.class);
-      monthlyAggregation.put(yearMonth, currentValue.add(transactionValue));
-    };
+    return (transactionHistoryEvents) -> Optional.ofNullable(transactionsById.get(transactionHistoryEvents.get(0).getTransactionId()))
+      .map(
+        transaction -> transaction
+          .getTransactionType()
+          .equals(TransactionType.CHARGE)
+      )
+      .orElse(false);
   }
 }

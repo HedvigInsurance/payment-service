@@ -5,7 +5,10 @@ import com.hedvig.paymentservice.services.payments.reporting.TransactionAggregat
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.YearMonth;
 
 @RestController
 @RequestMapping("/_/reporting")
@@ -18,7 +21,7 @@ public class ReportingController {
   }
 
   @GetMapping(path = "monthlyPaidGrossPremium")
-  public MonthlyTransactionsAggregations getMonthlyEarnedGrossPremium() {
-    return transactionAggregator.aggregateAllChargesMonthlyInSek();
+  public MonthlyTransactionsAggregations getMonthlyEarnedGrossPremium(@RequestParam("period") final YearMonth period) {
+    return transactionAggregator.aggregateAllChargesMonthlyInSek(period);
   }
 }

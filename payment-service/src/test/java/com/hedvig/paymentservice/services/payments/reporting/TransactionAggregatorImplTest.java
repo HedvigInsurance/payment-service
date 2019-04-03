@@ -15,18 +15,19 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TransactionAggregatorImplTest {
-  private List<Transaction> transactions;
+  private Set<Transaction> transactions;
   private Map<UUID, ChargeSource> transactionSources;
 
   @Before
   public void setUp() {
-    transactions = new ArrayList<>();
+    transactions = new HashSet<>();
     transactionSources = new HashMap<>();
   }
 
@@ -38,32 +39,22 @@ public class TransactionAggregatorImplTest {
       buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
       buildTransactionHistoryEvent(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
       buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Not completed
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Good January tx
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2100-03-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE) // Good future TX
+      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE) // Good, but in January tx
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
     final ChargeSourceGuesser chargeSourceGuesserStub = mock(ChargeSourceGuesser.class);
     final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub, chargeSourceGuesserStub);
 
+    final YearMonth period = YearMonth.of(2019, 1);
+
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
-    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
+    when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
     when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
 
-    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek();
+    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
-    assertEquals(3, aggregations.getTotal().size());
-    assertEquals(BigDecimal.TEN, aggregations.getTotal().get(YearMonth.parse("2019-01")));
-    assertEquals(BigDecimal.valueOf(11), aggregations.getTotal().get(YearMonth.parse("2019-02")));
-    assertEquals(BigDecimal.ONE, aggregations.getTotal().get(YearMonth.parse("2100-03")));
-
-    assertEquals(3, aggregations.getHousehold().size());
-    assertEquals(BigDecimal.TEN, aggregations.getHousehold().get(YearMonth.parse("2019-01")));
-    assertEquals(BigDecimal.TEN, aggregations.getHousehold().get(YearMonth.parse("2019-02")));
-    assertEquals(BigDecimal.ONE, aggregations.getHousehold().get(YearMonth.parse("2100-03")));
-
-    assertEquals(1, aggregations.getStudent().size());
-    assertEquals(BigDecimal.ONE, aggregations.getStudent().get(YearMonth.parse("2019-02")));
+    assertThat(aggregations.getTotal()).isEqualTo(BigDecimal.valueOf(11));
   }
 
   @Test
@@ -77,15 +68,14 @@ public class TransactionAggregatorImplTest {
     final ChargeSourceGuesser chargeSourceGuesserStub = mock(ChargeSourceGuesser.class);
     final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub, chargeSourceGuesserStub);
 
+    final YearMonth period = YearMonth.of(2019, 2);
+
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
-    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
+    when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
     when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
 
-    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek();
-    assertEquals(1, aggregations.getHousehold().size());
-    assertEquals(1, aggregations.getTotal().size());
-    assertEquals(0, aggregations.getStudent().size());
-    assertEquals(BigDecimal.TEN, aggregations.getTotal().get(YearMonth.parse("2019-02")));
+    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
+    assertThat(BigDecimal.TEN).isEqualTo(aggregations.getTotal());
   }
 
   @Test
@@ -101,14 +91,15 @@ public class TransactionAggregatorImplTest {
     final ChargeSourceGuesser chargeSourceGuesserStub = mock(ChargeSourceGuesser.class);
     final TransactionAggregator transactionAggregator = new TransactionAggregatorImpl(transactionHistoryDaoStub, chargeSourceGuesserStub);
 
+    final YearMonth period = YearMonth.of(2019, 2);
+
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
-    when(transactionHistoryDaoStub.findTransactionsAsStream(any())).thenReturn(transactions.stream());
+    when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
     when(chargeSourceGuesserStub.guessChargesInsuranceTypes(any())).thenReturn(transactionSources);
 
-//    final Map<YearMonth, BigDecimal> monthlyAggregation = transactionAggregator.aggregateAllChargesMonthlyInSek();
-    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek();
+    final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
-    assertEquals(0, aggregations.getTotal().size());
+    assertThat(aggregations.getTotal()).isEqualTo(BigDecimal.ZERO);
   }
 
   private TransactionHistoryEvent buildTransactionHistoryEvent(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final ChargeSource chargeSource) {
