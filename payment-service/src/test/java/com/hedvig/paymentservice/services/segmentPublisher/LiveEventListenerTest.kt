@@ -130,7 +130,6 @@ class LiveEventListenerTest {
     transaction.transactionType = TransactionType.CHARGE
     transaction.setCurrency("SEK")
     transaction.timestamp = Instant.parse("2018-09-11T23:00:00Z")
-//    transaction.member = this;
     this.transactions[transaction.id] = transaction
   }
 

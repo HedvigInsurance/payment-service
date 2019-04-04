@@ -14,10 +14,10 @@ public enum ChargeSource {
       return ChargeSource.UNSURE;
     }
 
-    if (policyType.get().equals(PolicyType.BRF) || policyType.get().equals(PolicyType.RENT)) {
-      return ChargeSource.HOUSEHOLD_INSURANCE;
+    if (policyType.get().equals(PolicyType.STUDENT_BRF) || policyType.get().equals(PolicyType.STUDENT_RENT)) {
+      return ChargeSource.STUDENT_INSURANCE;
     }
 
-    return ChargeSource.STUDENT_INSURANCE;
+    return ChargeSource.HOUSEHOLD_INSURANCE;
   }
 }
