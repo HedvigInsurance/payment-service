@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.services.payments;
 
 import com.hedvig.paymentservice.query.member.entities.Transaction;
-import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventRepository;
 import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
 import com.hedvig.paymentservice.services.exceptions.DuplicateTransactionHistoryEventException;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Set;
@@ -32,22 +31,22 @@ public class TransactionHistoryDao {
   }
 
   @Transactional
-  public void add(final TransactionHistoryEvent transactionHistoryEvent) {
-    final boolean thisTransactionHasEventAlready = StreamSupport.stream(transactionHistoryEventRepository.findAllForTransaction(transactionHistoryEvent.getTransactionId()).spliterator(), false)
-      .map(TransactionHistoryEvent::getType)
-      .anyMatch(type -> transactionHistoryEvent.getType().equals(type));
+  public void add(final TransactionHistoryEntity transactionHistoryEntity) {
+    final boolean thisTransactionHasEventAlready = StreamSupport.stream(transactionHistoryEventRepository.findAllForTransaction(transactionHistoryEntity.getTransactionId()).spliterator(), false)
+      .map(TransactionHistoryEntity::getType)
+      .anyMatch(type -> transactionHistoryEntity.getType().equals(type));
 
     if (thisTransactionHasEventAlready) {
       throw new DuplicateTransactionHistoryEventException(String.format(
         "Transaction %s already has an event of type %s",
-        transactionHistoryEvent.getTransactionId(),
-        transactionHistoryEvent.getType()));
+        transactionHistoryEntity.getTransactionId(),
+        transactionHistoryEntity.getType()));
     }
 
-    transactionHistoryEventRepository.save(transactionHistoryEvent);
+    transactionHistoryEventRepository.save(transactionHistoryEntity);
   }
 
-  public Stream<TransactionHistoryEvent> findAllAsStream() {
+  public Stream<TransactionHistoryEntity> findAllAsStream() {
     return StreamSupport.stream(transactionHistoryEventRepository.findAll().spliterator(), false);
   }
 

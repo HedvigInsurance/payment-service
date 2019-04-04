@@ -2,7 +2,7 @@ package com.hedvig.paymentservice.services.payments.reporting;
 
 import com.hedvig.paymentservice.domain.payments.TransactionType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
-import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,18 +32,18 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
 
   @Override
   public MonthlyTransactionsAggregations aggregateAllChargesMonthlyInSek(final YearMonth period) {
-    final Map<UUID, List<TransactionHistoryEvent>> historyEventsByTxId = transactionHistoryDao.findAllAsStream()
-      .collect(groupingBy(TransactionHistoryEvent::getTransactionId));
+    final Map<UUID, List<TransactionHistoryEntity>> historyEntitiesByTxId = transactionHistoryDao.findAllAsStream()
+      .collect(groupingBy(TransactionHistoryEntity::getTransactionId));
     final Map<UUID, Transaction> transactionsById = transactionHistoryDao.findWithinPeriodAndWithTransactionIds(
       period,
-      historyEventsByTxId.keySet()
+      historyEntitiesByTxId.keySet()
     )
       .stream()
       .filter(isWithinPeriod(period))
       .collect(toMap(Transaction::getId, tx -> tx));
     final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesMetadata(transactionsById.values(), period);
 
-    final List<TransactionHistoryEvent> allTxEvents = historyEventsByTxId.values().stream()
+    final List<TransactionHistoryEntity> allTxEvents = historyEntitiesByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
       .filter(this::hasCompleted)
       .filter(isCharge(transactionsById))
@@ -63,14 +63,14 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
     return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
   }
 
-  private Map<Year, BigDecimal> aggregateByUnderwritingYear(final Stream<TransactionHistoryEvent> txes) {
+  private Map<Year, BigDecimal> aggregateByUnderwritingYear(final Stream<TransactionHistoryEntity> txes) {
     return txes
       .collect(groupingBy(txe -> Year.from(txe.getTime().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate())))
       .entrySet().stream()
       .collect(toMap(
         Map.Entry::getKey,
         entry -> entry.getValue().stream()
-          .map(TransactionHistoryEvent::getAmount)
+          .map(TransactionHistoryEntity::getAmount)
           .filter(Objects::nonNull)
           .reduce(BigDecimal.ZERO, BigDecimal::add)
       ));
@@ -83,7 +83,7 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
     };
   }
 
-  private boolean hasNoFailedEvents(final List<TransactionHistoryEvent> transactionHistoryEvents) {
+  private boolean hasNoFailedEvents(final List<TransactionHistoryEntity> transactionHistoryEvents) {
     return transactionHistoryEvents.parallelStream().noneMatch(
       event ->
         event.getType().equals(TransactionHistoryEventType.FAILED)
@@ -91,11 +91,11 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
     );
   }
 
-  private boolean hasCompleted(final List<TransactionHistoryEvent> transactionHistoryEvents) {
+  private boolean hasCompleted(final List<TransactionHistoryEntity> transactionHistoryEvents) {
     return transactionHistoryEvents.parallelStream().anyMatch(event -> event.getType().equals(TransactionHistoryEventType.COMPLETED));
   }
 
-  private Predicate<List<TransactionHistoryEvent>> isCharge(final Map<UUID, Transaction> transactionsById) {
+  private Predicate<List<TransactionHistoryEntity>> isCharge(final Map<UUID, Transaction> transactionsById) {
     return (transactionHistoryEvents) -> Optional.ofNullable(transactionsById.get(transactionHistoryEvents.get(0).getTransactionId()))
       .map(
         transaction -> transaction

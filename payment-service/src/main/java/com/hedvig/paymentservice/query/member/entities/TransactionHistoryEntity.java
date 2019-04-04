@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-public class TransactionHistoryEvent {
+public class TransactionHistoryEntity {
   @Id
   private UUID id;
 
@@ -31,17 +31,17 @@ public class TransactionHistoryEvent {
   @Nullable
   private String reason = null;
 
-  public TransactionHistoryEvent() {
+  public TransactionHistoryEntity() {
   }
 
-  public TransactionHistoryEvent(@NotNull final UUID transactionId, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type) {
+  public TransactionHistoryEntity(@NotNull final UUID transactionId, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type) {
     this.id = UUID.randomUUID();
     this.transactionId = transactionId;
     this.time = time;
     this.type = type;
   }
 
-  public TransactionHistoryEvent(@NotNull final UUID transactionId, @Nullable final BigDecimal amount, @Nullable final String currency, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type, @Nullable final String reason) {
+  public TransactionHistoryEntity(@NotNull final UUID transactionId, @Nullable final BigDecimal amount, @Nullable final String currency, @NotNull final Instant time, @NotNull final TransactionHistoryEventType type, @Nullable final String reason) {
     this.id = UUID.randomUUID();
     this.transactionId = transactionId;
     this.amount = amount;

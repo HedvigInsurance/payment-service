@@ -2,7 +2,7 @@ package com.hedvig.paymentservice.services.payments.reporting;
 
 import com.hedvig.paymentservice.domain.payments.TransactionType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
-import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.javamoney.moneta.Money;
@@ -35,12 +35,12 @@ public class TransactionAggregatorImplTest {
   @Test
   public void aggregatesCompletedTransactions() {
     final UUID anId = UUID.randomUUID();
-    final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Good February tx
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Not completed
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE) // Good, but in January tx
+    final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Good February tx
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Not completed
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE) // Good, but in January tx
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -60,9 +60,9 @@ public class TransactionAggregatorImplTest {
 
   @Test
   public void doesntAggregatePayouts() {
-    final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
-      buildTransactionHistoryEvent(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.PAYOUT, ChargeSource.HOUSEHOLD_INSURANCE)
+    final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.PAYOUT, ChargeSource.HOUSEHOLD_INSURANCE)
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -83,9 +83,9 @@ public class TransactionAggregatorImplTest {
   public void doesntAggregateFailedCharges_evenIfTheyreReportedAsCompleted_maybeWrongIdk() {
     final UUID anId = UUID.randomUUID();
 
-    final Stream<TransactionHistoryEvent> transactionHistory = Stream.of(
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
-      buildTransactionHistoryEvent(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.FAILED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE)
+    final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.FAILED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE)
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -103,7 +103,7 @@ public class TransactionAggregatorImplTest {
     assertThat(aggregations.getTotal()).hasSize(0);
   }
 
-  private TransactionHistoryEvent buildTransactionHistoryEvent(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final ChargeSource chargeSource) {
+  private TransactionHistoryEntity buildTransactionHistoryEntity(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final ChargeSource chargeSource) {
     final Transaction transactionStub = mock(Transaction.class);
     when(transactionStub.getId()).thenReturn(transactionId == null ? UUID.randomUUID() : transactionId);
     when(transactionStub.getTimestamp()).thenReturn(Instant.parse(transactionTime == null ? time : transactionTime));
@@ -119,7 +119,7 @@ public class TransactionAggregatorImplTest {
     }
     transactionSources.put(transactionId, chargeSource);
 
-    return new TransactionHistoryEvent(
+    return new TransactionHistoryEntity(
       transactionStub.getId(),
       amount,
       "SEK",
