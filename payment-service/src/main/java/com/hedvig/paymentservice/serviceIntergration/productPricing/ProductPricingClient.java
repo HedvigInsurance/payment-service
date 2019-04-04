@@ -24,7 +24,7 @@ public interface ProductPricingClient {
   ResponseEntity<InsuranceStatus> getInsuranceStatus(@PathVariable("memberId") String memberId);
 
 
-  @PostMapping(path = "/_/insurance/policies/guess-types/{period}")
+  @PostMapping(path = "/report/policies/guess-types/{period}")
   ResponseEntity<Map<UUID, Optional<PolicyGuessResponseDto>>> guessPolicyTypes(
     @RequestBody Collection<PolicyGuessRequestDto> policiesToGuesses,
     @RequestParam("period") YearMonth period
