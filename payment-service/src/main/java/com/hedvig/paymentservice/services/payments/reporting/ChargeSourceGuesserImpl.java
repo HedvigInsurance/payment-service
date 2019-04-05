@@ -5,12 +5,12 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPrici
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.time.YearMonth;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toMap;
@@ -26,17 +26,22 @@ public class ChargeSourceGuesserImpl implements ChargeSourceGuesser {
   }
 
   @Override
-  public Map<UUID, ChargeSource> guessChargesMetadata(final Collection<Transaction> transactions, final YearMonth period) {
+  public Map<UUID, Optional<PolicyGuessResponseDto>> guessChargesMetadata(final Collection<Transaction> transactions, final YearMonth period) {
     log.info("Guessing charge metadata for {} transactions", transactions.size());
+
     return productPricingService.guessPolicyTypes(transactions, period).entrySet().stream()
-      .map(entry -> Pair.of(entry.getKey(), ChargeSource.from(entry.getValue().map(PolicyGuessResponseDto::getProductType))))
       .peek(entry -> {
-        if (entry.getSecond().equals(ChargeSource.UNSURE)) {
-          log.error("Unsure about insurance type for transaction {}", entry.getFirst());
+        if (!entry.getValue().isPresent()) {
+          log.error("Unsure about guess for transaction {}", entry.getKey());
         } else {
-          log.info("Guessed transaction {} to be {}", entry.getFirst(), entry.getSecond());
+          log.info(
+            "Guessed transaction {} to be {} of {}",
+            entry.getKey(),
+            entry.getValue().get().getProductType(),
+            entry.getValue().get().getInceptionInStockholm()
+          );
         }
       })
-      .collect(toMap(Pair::getFirst, Pair::getSecond));
+      .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }
