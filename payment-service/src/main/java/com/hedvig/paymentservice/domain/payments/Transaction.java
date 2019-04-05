@@ -1,10 +1,11 @@
 package com.hedvig.paymentservice.domain.payments;
 
-import java.time.Instant;
-import java.util.UUID;
-import javax.money.MonetaryAmount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+
+import javax.money.MonetaryAmount;
+import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor

@@ -59,6 +59,7 @@ public class MemberEventListener {
     transaction.setTimestamp(e.getTimestamp());
     transaction.setTransactionType(TransactionType.CHARGE);
     transaction.setTransactionStatus(TransactionStatus.INITIATED);
+    transaction.setMember(member);
 
     val transactions = member.getTransactions();
     transactions.put(transaction.getId(), transaction);
@@ -90,6 +91,7 @@ public class MemberEventListener {
     transaction.setTimestamp(e.getTimestamp());
     transaction.setTransactionType(TransactionType.PAYOUT);
     transaction.setTransactionStatus(TransactionStatus.INITIATED);
+    transaction.setMember(member);
 
     val transactions = member.getTransactions();
     transactions.put(e.getTransactionId(), transaction);

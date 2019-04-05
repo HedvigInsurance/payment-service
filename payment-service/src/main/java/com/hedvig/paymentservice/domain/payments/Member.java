@@ -116,6 +116,16 @@ public class Member {
         transaction.getAmount().toString(),
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
+
+      apply(
+        new ChargeErroredEvent(
+          cmd.getMemberId(),
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          String.format("Transaction amounts differ (expected %s but was %s)", transaction.getAmount(), cmd.getAmount()),
+          cmd.getTimestamp()
+        ));
+
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(
@@ -131,6 +141,7 @@ public class Member {
         String.format(
           "Could not find matching transaction for ChargeFailedCommand with memberId: %s and transactionId: %s",
           id, cmd.getTransactionId());
+
       throw new RuntimeException(s);
     }
     apply(new ChargeFailedEvent(this.id, cmd.getTransactionId()));
@@ -139,12 +150,22 @@ public class Member {
   @CommandHandler
   public void cmd(PayoutCompletedCommand cmd) {
     val transaction = getSingleTransaction(transactions, cmd.getTransactionId(), id);
-    if (transaction.getAmount().equals(cmd.getAmount()) == false) {
+    if (!transaction.getAmount().equals(cmd.getAmount())) {
       log.error(
         "CRITICAL: Transaction amounts differ for transactionId: {} - our amount: {}, amount from payment provider: {}",
         transaction.getAmount().toString(),
         cmd.getAmount().toString(),
         transaction.getTransactionId().toString());
+
+      apply(
+        new PayoutErroredEvent(
+          cmd.getMemberId(),
+          cmd.getTransactionId(),
+          cmd.getAmount(),
+          String.format("Transaction amounts differ (expected %s but was %s)", transaction.getAmount(), cmd.getAmount()),
+          cmd.getTimestamp()
+        ));
+
       throw new RuntimeException("Transaction amount mismatch");
     }
     apply(new PayoutCompletedEvent(id, cmd.getTransactionId(), cmd.getTimestamp()));
@@ -162,42 +183,43 @@ public class Member {
 
   @EventSourcingHandler
   public void on(ChargeCreatedEvent e) {
-    transactions.add(
-      new Transaction(
-        e.getTransactionId(),
-        e.getAmount(),
-        e.getTimestamp(),
-        TransactionType.CHARGE,
-        TransactionStatus.INITIATED));
+    final Transaction tx = new Transaction(
+      e.getTransactionId(),
+      e.getAmount(),
+      e.getTimestamp(),
+      TransactionType.CHARGE,
+      TransactionStatus.INITIATED);
+
+    transactions.add(tx);
   }
 
   @EventSourcingHandler
   public void on(PayoutCreatedEvent e) {
-    transactions.add(
-      new Transaction(
-        e.getTransactionId(),
-        e.getAmount(),
-        e.getTimestamp(),
-        TransactionType.PAYOUT,
-        TransactionStatus.INITIATED));
+    Transaction tx = new Transaction(
+      e.getTransactionId(),
+      e.getAmount(),
+      e.getTimestamp(),
+      TransactionType.PAYOUT,
+      TransactionStatus.INITIATED);
+    transactions.add(tx);
   }
 
   @EventSourcingHandler
   public void on(ChargeCompletedEvent e) {
-    val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.COMPLETED);
   }
 
   @EventSourcingHandler
-  public void on(ChargeFailedEvent w) {
-    val transaction = getSingleTransaction(transactions, w.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.FAILED);
+  public void on(ChargeFailedEvent e) {
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.FAILED);
   }
 
   @EventSourcingHandler
   public void on(PayoutCompletedEvent e) {
-    val transaction = getSingleTransaction(transactions, e.getTransactionId(), id);
-    transaction.setTransactionStatus(TransactionStatus.COMPLETED);
+    val tx = getSingleTransaction(transactions, e.getTransactionId(), id);
+    tx.setTransactionStatus(TransactionStatus.COMPLETED);
   }
 
   @EventSourcingHandler
@@ -227,7 +249,8 @@ public class Member {
   }
 
   private static Transaction getSingleTransaction(
-    List<Transaction> transactions, UUID transactionId, String memberId) {
+    List<Transaction> transactions, UUID transactionId, String memberId
+  ) {
     val matchingTransactions =
       transactions
         .stream()
