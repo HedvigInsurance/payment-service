@@ -15,7 +15,7 @@ public class Member {
   @Id
   public String id;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "member", orphanRemoval = true)
   @MapKey
   Map<UUID, Transaction> transactions = new HashMap<>();
 
