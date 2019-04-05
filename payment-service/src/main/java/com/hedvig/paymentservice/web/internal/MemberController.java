@@ -50,6 +50,7 @@ public class MemberController {
     return ResponseEntity.accepted().body("");
   }
 
+  @Deprecated
   @PostMapping(path = "{memberId}/payout")
   public ResponseEntity<?> payoutMember(
       @PathVariable String memberId, @RequestBody PayoutRequest request) {

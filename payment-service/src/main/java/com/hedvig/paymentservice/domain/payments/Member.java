@@ -77,8 +77,8 @@ public class Member {
     if (trustlyAccount == null) {
       log.info("Cannot payout account - no account set up in Trustly");
       apply(
-        new PayoutCreationFailedEvent(
-          id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp()));
+        new PayoutCreationFailedEvent(id, cmd.getTransactionId(), cmd.getAmount(), cmd.getTimestamp())
+      );
       return false;
     }
 
@@ -93,7 +93,10 @@ public class Member {
         cmd.getFirstName(),
         cmd.getLastName(),
         cmd.getTimestamp(),
-        trustlyAccount.getAccountId()));
+        cmd.getCategory(),
+        trustlyAccount.getAccountId()
+      )
+    );
     return true;
   }
 

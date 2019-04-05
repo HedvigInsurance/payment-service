@@ -1,22 +1,22 @@
 package com.hedvig.paymentservice.web.v2;
 
+import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat;
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus;
 import com.hedvig.paymentservice.services.payments.PaymentService;
+import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Slf4j
 @RestController
@@ -27,9 +27,12 @@ public class MemberControllerV2 {
   private final MemberService memberService;
   private final Meerkat meerkat;
 
-  public MemberControllerV2(PaymentService paymentService,
+  @Autowired
+  public MemberControllerV2(
+      PaymentService paymentService,
       MemberService memberService,
-      Meerkat meerkat) {
+      Meerkat meerkat
+  ) {
     this.paymentService = paymentService;
     this.memberService = memberService;
     this.meerkat = meerkat;
@@ -37,7 +40,10 @@ public class MemberControllerV2 {
 
   @PostMapping(path = "{memberId}/payout")
   public ResponseEntity<UUID> payoutMember(
-      @PathVariable String memberId, @RequestBody PayoutRequestDTO request) {
+      @PathVariable String memberId,
+      @RequestParam(name="category", required = false, defaultValue = "CLAIM") TransactionCategory category,
+      @RequestBody PayoutRequestDTO request
+  ) {
 
     Optional<Member> optionalMember = memberService.getMember(memberId);
     if (!optionalMember.isPresent()) {
@@ -47,7 +53,7 @@ public class MemberControllerV2 {
     val member = optionalMember.get();
 
     SanctionStatus memberStatus = meerkat
-        .getMemberSanctionStatus(member.getFirstName() + " " + member.getLastName());
+        .getMemberSanctionStatus(member.getFirstName() + ' ' + member.getLastName());
 
     if (memberStatus.equals(SanctionStatus.FullHit)) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -59,9 +65,11 @@ public class MemberControllerV2 {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    Optional<UUID> result = paymentService.payoutMember(memberId, member, request.getAmount());
+    PayoutMemberRequestDTO payoutMemberRequest = new PayoutMemberRequestDTO(request.getAmount(), category);
+
+    Optional<UUID> result = paymentService.payoutMember(memberId, member, payoutMemberRequest);
 
     return result.map(uuid -> ResponseEntity.accepted().body(uuid))
-        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
   }
 }
