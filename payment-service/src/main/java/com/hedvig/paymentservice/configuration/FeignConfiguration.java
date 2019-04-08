@@ -10,8 +10,8 @@ public class FeignConfiguration {
 
   @Bean
   public Request.Options opts(
-      @Value("${feign.connectTimeoutMillis:120000}") int connectTimeoutMillis,
-      @Value("${feign.readTimeoutMillis:120000}") int readTimeoutMillis) {
+      @Value("${feign.connectTimeoutMillis:30000}") int connectTimeoutMillis,
+      @Value("${feign.readTimeoutMillis:30000}") int readTimeoutMillis) {
     return new Request.Options(connectTimeoutMillis, readTimeoutMillis);
   }
 }
