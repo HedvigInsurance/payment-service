@@ -19,6 +19,8 @@ public class CreatePayoutCommand {
   String lastName;
   UUID transactionId;
   MonetaryAmount amount;
-  TransactionCategory category;
   Instant timestamp;
+  TransactionCategory category;
+  String referenceId;
+  String note;
 }

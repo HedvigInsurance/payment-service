@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import javax.annotation.Nullable;
+
 @Slf4j
 @RestController
 @RequestMapping(path = "/v2/_/members/")
@@ -42,6 +44,8 @@ public class MemberControllerV2 {
   public ResponseEntity<UUID> payoutMember(
       @PathVariable String memberId,
       @RequestParam(name="category", required = false, defaultValue = "CLAIM") TransactionCategory category,
+      @Nullable @RequestParam(name="referenceId", required = false) String referenceId,
+      @Nullable @RequestParam(name="note", required = false) String note,
       @RequestBody PayoutRequestDTO request
   ) {
 
@@ -65,7 +69,12 @@ public class MemberControllerV2 {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
-    PayoutMemberRequestDTO payoutMemberRequest = new PayoutMemberRequestDTO(request.getAmount(), category);
+    PayoutMemberRequestDTO payoutMemberRequest = new PayoutMemberRequestDTO(
+      request.getAmount(),
+      category,
+      referenceId,
+      note
+    );
 
     Optional<UUID> result = paymentService.payoutMember(memberId, member, payoutMemberRequest);
 

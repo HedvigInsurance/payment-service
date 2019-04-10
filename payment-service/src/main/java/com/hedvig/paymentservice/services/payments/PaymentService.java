@@ -58,8 +58,12 @@ public class PaymentService {
             request.getLastName(),
             transactionId,
             request.getAmount(),
+            Instant.now(),
             TransactionCategory.CLAIM,
-            Instant.now()));
+            null,
+            null
+        )
+    );
   }
 
 
@@ -75,8 +79,12 @@ public class PaymentService {
             member.getLastName(),
             transactionId,
             request.getAmount(),
+            Instant.now(),
             request.getCategory(),
-            Instant.now()));
+            request.getReferenceId(),
+            request.getNote()
+        )
+    );
 
     return result ? Optional.of(transactionId) : Optional.empty();
   }

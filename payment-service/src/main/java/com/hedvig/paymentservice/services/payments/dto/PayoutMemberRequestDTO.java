@@ -9,4 +9,6 @@ import javax.money.MonetaryAmount;
 public class PayoutMemberRequestDTO {
   MonetaryAmount amount;
   TransactionCategory category;
+  String referenceId;
+  String note;
 }

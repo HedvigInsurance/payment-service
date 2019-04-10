@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.payments.events;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import javax.money.MonetaryAmount;
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory;
@@ -22,6 +23,10 @@ public class PayoutCreatedEvent {
   String firstName;
   String lastName;
   Instant timestamp;
-  TransactionCategory category;
   String trustlyAccountId;
+  TransactionCategory category;
+  @Nullable
+  String referenceId;
+  @Nullable
+  String note;
 }

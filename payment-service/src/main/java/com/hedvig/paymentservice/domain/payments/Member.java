@@ -93,8 +93,10 @@ public class Member {
         cmd.getFirstName(),
         cmd.getLastName(),
         cmd.getTimestamp(),
+        trustlyAccount.getAccountId(),
         cmd.getCategory(),
-        trustlyAccount.getAccountId()
+        cmd.getReferenceId(),
+        cmd.getNote()
       )
     );
     return true;
