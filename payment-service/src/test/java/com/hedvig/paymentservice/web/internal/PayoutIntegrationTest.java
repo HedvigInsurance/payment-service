@@ -93,7 +93,7 @@ public class PayoutIntegrationTest {
   }
 
   @Test
-  public void givenMemberWithoutTrustlyAccount_WhenCreatingPayout_ThenShouldReturnForbidden()
+  public void givenMemberWithoutTrustlyAccount_WhenCreatingPayout_ThenShouldReturnNotAcceptable()
     throws Exception {
   
       val payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
@@ -103,7 +103,7 @@ public class PayoutIntegrationTest {
               post(String.format("/v2/_/members/%s/payout", TOLVANSSON_MEMBER_ID))
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(objectMapper.writeValueAsString(payoutRequest)))
-          .andExpect(status().isForbidden());
+          .andExpect(status().isNotAcceptable());
   
       val memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
   

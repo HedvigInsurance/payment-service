@@ -8,6 +8,8 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionS
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO;
+
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +51,11 @@ public class MemberControllerV2 {
       @RequestBody PayoutRequestDTO request
   ) {
 
+    if (category != TransactionCategory.CLAIM &&
+      request.getAmount().getNumber().numberValueExact(BigDecimal.class).compareTo(BigDecimal.valueOf(10_000)) > 0) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
     Optional<Member> optionalMember = memberService.getMember(memberId);
     if (!optionalMember.isPresent()) {
       return ResponseEntity.notFound().build();
@@ -79,6 +86,6 @@ public class MemberControllerV2 {
     Optional<UUID> result = paymentService.payoutMember(memberId, member, payoutMemberRequest);
 
     return result.map(uuid -> ResponseEntity.accepted().body(uuid))
-        .orElseGet(() -> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build());
   }
 }
