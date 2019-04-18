@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import javax.money.MonetaryAmount;
 import lombok.Value;
 
+@Deprecated
 @Value
 public class PayoutRequest {
   MonetaryAmount amount;

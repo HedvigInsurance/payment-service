@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.query.member;
 
+import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
@@ -33,8 +34,10 @@ public class MemberTransactionBackfillEventListener {
 
   @EventHandler
   public void on(PayoutCreatedEvent e) {
-    saveMemberOnTransaction(e.getMemberId(), e.getTransactionId());
-    log.info("Backfilled transaction {} for member {} for payout created event at {}", e.getTransactionId(), e.getMemberId(), e.getTimestamp());
+    if (e.getCategory() == TransactionCategory.CLAIM) {
+      saveMemberOnTransaction(e.getMemberId(), e.getTransactionId());
+      log.info("Backfilled transaction {} for member {} for payout created event at {}", e.getTransactionId(), e.getMemberId(), e.getTimestamp());
+    }
   }
 
   private void saveMemberOnTransaction(final String memberId, final UUID transactionId) {

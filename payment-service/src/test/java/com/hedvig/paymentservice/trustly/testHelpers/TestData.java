@@ -43,6 +43,7 @@ public class TestData {
   public static final String TOLVANSSON_ZIP = "12121";
   public static final String TOLVANSSON_STREET = "Testgatan 1";
   public static final String TOLVANSSON_CITY = "Teststaden";
+  public static final String TOLVANSSON_COUNTRY = "Testlandet";
 
   public static final boolean TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE = true;
   public static final boolean TRUSTLY_ACCOUNT_DIRECTDEBIT_FALSE = true;
