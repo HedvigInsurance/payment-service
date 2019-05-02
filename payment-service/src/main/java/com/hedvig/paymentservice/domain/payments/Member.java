@@ -96,7 +96,8 @@ public class Member {
         trustlyAccount.getAccountId(),
         cmd.getCategory(),
         cmd.getReferenceId(),
-        cmd.getNote()
+        cmd.getNote(),
+        cmd.getHandler()
       )
     );
     return true;

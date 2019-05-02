@@ -23,4 +23,5 @@ public class CreatePayoutCommand {
   TransactionCategory category;
   String referenceId;
   String note;
+  String handler;
 }

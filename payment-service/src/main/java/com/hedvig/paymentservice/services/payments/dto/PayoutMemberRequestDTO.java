@@ -11,4 +11,5 @@ public class PayoutMemberRequestDTO {
   TransactionCategory category;
   String referenceId;
   String note;
+  String handler;
 }

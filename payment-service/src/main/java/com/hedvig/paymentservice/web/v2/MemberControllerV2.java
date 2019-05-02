@@ -48,6 +48,7 @@ public class MemberControllerV2 {
       @RequestParam(name="category", required = false, defaultValue = "CLAIM") TransactionCategory category,
       @Nullable @RequestParam(name="referenceId", required = false) String referenceId,
       @Nullable @RequestParam(name="note", required = false) String note,
+      @Nullable @RequestParam(name="handler", required = false) String handler,
       @RequestBody PayoutRequestDTO request
   ) {
 
@@ -64,7 +65,7 @@ public class MemberControllerV2 {
     val member = optionalMember.get();
 
     SanctionStatus memberStatus = meerkat
-        .getMemberSanctionStatus(member.getFirstName() + ' ' + member.getLastName());
+      .getMemberSanctionStatus(member.getFirstName() + ' ' + member.getLastName());
 
     if (memberStatus.equals(SanctionStatus.FullHit)) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -80,7 +81,8 @@ public class MemberControllerV2 {
       request.getAmount(),
       category,
       referenceId,
-      note
+      note,
+      handler
     );
 
     Optional<UUID> result = paymentService.payoutMember(memberId, member, payoutMemberRequest);
