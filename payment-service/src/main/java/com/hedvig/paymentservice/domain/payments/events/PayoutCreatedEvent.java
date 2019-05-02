@@ -29,4 +29,6 @@ public class PayoutCreatedEvent {
   String referenceId;
   @Nullable
   String note;
+  @Nullable
+  String handler;
 }

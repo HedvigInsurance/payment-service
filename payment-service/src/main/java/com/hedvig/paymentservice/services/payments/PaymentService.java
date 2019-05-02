@@ -61,6 +61,7 @@ public class PaymentService {
             Instant.now(),
             TransactionCategory.CLAIM,
             null,
+            null,
             null
         )
     );
@@ -82,7 +83,8 @@ public class PaymentService {
             Instant.now(),
             request.getCategory(),
             request.getReferenceId(),
-            request.getNote()
+            request.getNote(),
+            request.getHandler()
         )
     );
 
