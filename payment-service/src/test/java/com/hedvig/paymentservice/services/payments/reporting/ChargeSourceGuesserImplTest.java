@@ -27,8 +27,8 @@ public class ChargeSourceGuesserImplTest {
     policyTypes.put(policyId, Optional.of(new PolicyGuessResponseDto(PolicyType.BRF, LocalDate.of(2019, 1, 1))));
     when(productPricingServiceStub.guessPolicyTypes(any(), any())).thenReturn(policyTypes);
 
-    final Map<UUID, ChargeSource> result = chargeSourceGuesser.guessChargesMetadata(transactions, YearMonth.now());
+    final Map<UUID, Optional<PolicyGuessResponseDto>> result = chargeSourceGuesser.guessChargesMetadata(transactions, YearMonth.now());
     assertEquals(result.size(), 1);
-    assertEquals(result.get(policyId), ChargeSource.HOUSEHOLD_INSURANCE);
+    assertEquals(result.get(policyId).get().getProductType(), PolicyType.BRF);
   }
 }

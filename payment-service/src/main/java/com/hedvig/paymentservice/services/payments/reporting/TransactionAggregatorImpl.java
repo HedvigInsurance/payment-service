@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.domain.payments.TransactionType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,12 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
       .stream()
       .filter(isWithinPeriod(period))
       .collect(toMap(Transaction::getId, tx -> tx));
-    final Map<UUID, ChargeSource> transactionInsuranceTypes = chargeSourceGuesser.guessChargesMetadata(transactionsById.values(), period);
+    final Map<UUID, Optional<PolicyGuessResponseDto>> transactionGuesses = chargeSourceGuesser.guessChargesMetadata(transactionsById.values(), period);
+    final Map<UUID, ChargeSource> transactionChargeSources = transactionGuesses.entrySet().stream()
+      .collect(toMap(
+        Map.Entry::getKey,
+        entry -> ChargeSource.from(entry.getValue().map(PolicyGuessResponseDto::getProductType))
+      ));
 
     final List<TransactionHistoryEntity> allTxEvents = historyEntitiesByTxId.values().stream()
       .filter(this::hasNoFailedEvents)
@@ -54,18 +60,27 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
 
     final Map<Year, BigDecimal> studentAggregation = aggregateByUnderwritingYear(
       allTxEvents.stream()
-      .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.STUDENT_INSURANCE))
+        .filter(txe -> transactionChargeSources.get(txe.getTransactionId()).equals(ChargeSource.STUDENT_INSURANCE)),
+      transactionGuesses
     );
     final Map<Year, BigDecimal> householdAggregation = aggregateByUnderwritingYear(allTxEvents.stream()
-      .filter(txe -> transactionInsuranceTypes.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE))
+        .filter(txe -> transactionChargeSources.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE)),
+      transactionGuesses
     );
-    final Map<Year, BigDecimal> totalAggregation = aggregateByUnderwritingYear(allTxEvents.stream());
+    final Map<Year, BigDecimal> totalAggregation = aggregateByUnderwritingYear(allTxEvents.stream(), transactionGuesses);
     return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
   }
 
-  private Map<Year, BigDecimal> aggregateByUnderwritingYear(final Stream<TransactionHistoryEntity> txes) {
+  private Map<Year, BigDecimal> aggregateByUnderwritingYear(
+    final Stream<TransactionHistoryEntity> txes,
+    Map<UUID, Optional<PolicyGuessResponseDto>> transactionGuesses
+  ) {
     return txes
-      .collect(groupingBy(txe -> Year.from(txe.getTime().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate())))
+      .collect(groupingBy(txe -> Year.from(
+        transactionGuesses.get(txe.getTransactionId())
+          .map(PolicyGuessResponseDto::getInceptionInStockholm)
+          .orElseGet(() -> txe.getTime().atZone(ZoneId.of("Europe/Stockholm")).toLocalDate()))
+      ))
       .entrySet().stream()
       .collect(toMap(
         Map.Entry::getKey,

@@ -4,6 +4,8 @@ import com.hedvig.paymentservice.domain.payments.TransactionType;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventType;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyType;
 import com.hedvig.paymentservice.services.payments.TransactionHistoryDao;
 import org.javamoney.moneta.Money;
 import org.junit.Before;
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -24,23 +27,23 @@ import static org.mockito.Mockito.when;
 
 public class TransactionAggregatorImplTest {
   private Set<Transaction> transactions;
-  private Map<UUID, ChargeSource> transactionSources;
+  private Map<UUID, Optional<PolicyGuessResponseDto>> transactionGuesses;
 
   @Before
   public void setUp() {
     transactions = new HashSet<>();
-    transactionSources = new HashMap<>();
+    transactionGuesses = new HashMap<>();
   }
 
   @Test
   public void aggregatesCompletedTransactions() {
     final UUID anId = UUID.randomUUID();
     final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
-      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Good February tx
-      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
-      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.STUDENT_INSURANCE), // Tx initialised on 01-31 but completed 02-01
-      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE), // Not completed
-      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE) // Good, but in January tx
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, PolicyType.BRF), // Good February tx
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, "2019-01-31T13:37:00.0Z", TransactionType.CHARGE, PolicyType.STUDENT_BRF), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-01-31T13:37:00.0Z", anId, TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, PolicyType.STUDENT_BRF), // Tx initialised on 01-31 but completed 02-01
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.CREATED, null, TransactionType.CHARGE, PolicyType.BRF), // Not completed
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-01-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, PolicyType.BRF) // Good, but in January tx
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -51,7 +54,7 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionGuesses);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
@@ -61,8 +64,8 @@ public class TransactionAggregatorImplTest {
   @Test
   public void doesntAggregatePayouts() {
     final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
-      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
-      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.PAYOUT, ChargeSource.HOUSEHOLD_INSURANCE)
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, PolicyType.BRF),
+      buildTransactionHistoryEntity(BigDecimal.ONE, "2019-02-01T13:37:00.0Z", UUID.randomUUID(), TransactionHistoryEventType.COMPLETED, null, TransactionType.PAYOUT, PolicyType.BRF)
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -73,7 +76,7 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionGuesses);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
     assertThat(aggregations.getTotal().get(Year.of(2019))).isEqualTo(BigDecimal.TEN);
@@ -84,8 +87,8 @@ public class TransactionAggregatorImplTest {
     final UUID anId = UUID.randomUUID();
 
     final Stream<TransactionHistoryEntity> transactionHistory = Stream.of(
-      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE),
-      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.FAILED, null, TransactionType.CHARGE, ChargeSource.HOUSEHOLD_INSURANCE)
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.COMPLETED, null, TransactionType.CHARGE, PolicyType.BRF),
+      buildTransactionHistoryEntity(BigDecimal.TEN, "2019-02-01T13:37:00.0Z", anId, TransactionHistoryEventType.FAILED, null, TransactionType.CHARGE, PolicyType.BRF)
     );
 
     final TransactionHistoryDao transactionHistoryDaoStub = mock(TransactionHistoryDao.class);
@@ -96,17 +99,18 @@ public class TransactionAggregatorImplTest {
 
     when(transactionHistoryDaoStub.findAllAsStream()).thenReturn(transactionHistory);
     when(transactionHistoryDaoStub.findWithinPeriodAndWithTransactionIds(eq(period), any(Set.class))).thenReturn(transactions);
-    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionSources);
+    when(chargeSourceGuesserStub.guessChargesMetadata(any(), eq(period))).thenReturn(transactionGuesses);
 
     final MonthlyTransactionsAggregations aggregations = transactionAggregator.aggregateAllChargesMonthlyInSek(period);
 
     assertThat(aggregations.getTotal()).hasSize(0);
   }
 
-  private TransactionHistoryEntity buildTransactionHistoryEntity(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final ChargeSource chargeSource) {
+  private TransactionHistoryEntity buildTransactionHistoryEntity(final BigDecimal amount, final String time, final UUID transactionId, final TransactionHistoryEventType type, final String transactionTime, final TransactionType transactionType, final PolicyType policyType) {
+    final Instant theTimeDefinitely = Instant.parse(transactionTime == null ? time : transactionTime);
     final Transaction transactionStub = mock(Transaction.class);
     when(transactionStub.getId()).thenReturn(transactionId == null ? UUID.randomUUID() : transactionId);
-    when(transactionStub.getTimestamp()).thenReturn(Instant.parse(transactionTime == null ? time : transactionTime));
+    when(transactionStub.getTimestamp()).thenReturn(theTimeDefinitely);
     when(transactionStub.getMoney()).thenReturn(Money.of(amount, "SEK"));
     when(transactionStub.getTransactionType()).thenReturn(transactionType);
 
@@ -117,7 +121,10 @@ public class TransactionAggregatorImplTest {
     if (!existingIdMaybe.isPresent()) {
       transactions.add(transactionStub);
     }
-    transactionSources.put(transactionId, chargeSource);
+    transactionGuesses.put(
+      transactionId,
+      Optional.of(new PolicyGuessResponseDto(policyType, theTimeDefinitely.atZone(ZoneId.of("Europe/Stockholm")).toLocalDate()))
+    );
 
     return new TransactionHistoryEntity(
       transactionStub.getId(),
