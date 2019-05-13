@@ -88,6 +88,9 @@ public class AccountServiceImpl implements AccountService {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
         }
       }
+      else if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.PENDING)){
+        return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
+      }
     }
     return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
   }
