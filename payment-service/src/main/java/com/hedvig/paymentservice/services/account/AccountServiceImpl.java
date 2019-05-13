@@ -89,7 +89,11 @@ public class AccountServiceImpl implements AccountService {
         }
       }
       else if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.PENDING)){
-        return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
+        if (accountRegistration == null || accountRegistration.getStatus().equals(AccountRegistrationStatus.CANCELLED)) {
+          return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
+        } else {
+          return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
+        }
       }
     }
     return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
