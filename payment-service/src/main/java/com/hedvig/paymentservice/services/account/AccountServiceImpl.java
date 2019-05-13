@@ -37,7 +37,7 @@ public class AccountServiceImpl implements AccountService {
 
     if (memberId == null) {
       log.error("GetBankAccountInfo - hedvig.token is missing");
-      return null;
+      throw new NullPointerException("GetBankAccountInfo - hedvig.token is missing");
     }
     Optional<Member> optionalMember = memberRepository.findById(memberId);
 
@@ -47,8 +47,8 @@ public class AccountServiceImpl implements AccountService {
   //TODO: Catch Red days - Weekends
   public LocalDate getNextChargeDate(String memberId) {
     if (memberId == null) {
-      log.error("registerAccountProcessingStatus - hedvig.token is missing");
-      return null;
+      log.error("GetNextChargeDate - hedvig.token is missing");
+      throw new NullPointerException("GetNextChargeDate - hedvig.token is missing");
     }
 
     Optional<InsuranceStatus> status = productPricingService.getInsuranceStatus(memberId);
@@ -62,8 +62,8 @@ public class AccountServiceImpl implements AccountService {
 
   public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getDirectDebitStatus(String memberId) {
     if (memberId == null) {
-      log.error("registerAccountProcessingStatus - hedvig.token is missing");
-      return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
+      log.error("GetDirectDebitStatus - hedvig.token is missing");
+      throw new NullPointerException("GetDirectDebitStatus - hedvig.token is missing");
     }
 
     AccountRegistration accountRegistration = accountRegistrationRepository.
