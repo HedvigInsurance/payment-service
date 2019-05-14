@@ -1,11 +1,11 @@
-package com.hedvig.paymentservice.services.account;
+package com.hedvig.paymentservice.services.bankAccounts;
 
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus;
 
 import java.time.LocalDate;
 
-public interface AccountService {
+public interface BankAccountService {
   BankAccount getBankAccount(String memberId);
 
   LocalDate getNextChargeDate(String memberId);

@@ -4,7 +4,7 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver;
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus;
-import com.hedvig.paymentservice.services.account.AccountService;
+import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.servlet.GraphQLContext;
 import lombok.extern.slf4j.Slf4j;
@@ -18,25 +18,25 @@ import java.time.YearMonth;
 public class Query implements GraphQLQueryResolver {
 
   private static String HEDVIG_TOKEN = "hedvig.token";
-  private AccountService accountService;
+  private BankAccountService bankAccountService;
 
-  public Query(AccountService accountService) {
-    this.accountService = accountService;
+  public Query(BankAccountService bankAccountService) {
+    this.bankAccountService = bankAccountService;
   }
 
   public BankAccount bankAccount(DataFetchingEnvironment env) {
     String memberId = getToken(env);
-    return accountService.getBankAccount(memberId);
+    return bankAccountService.getBankAccount(memberId);
   }
 
   public LocalDate nextChargeDate(DataFetchingEnvironment env) {
     String memberId = getToken(env);
-    return accountService.getNextChargeDate(memberId);
+    return bankAccountService.getNextChargeDate(memberId);
   }
 
   public DirectDebitStatus directDebitStatus(DataFetchingEnvironment env) {
     String memberId = getToken(env);
-    return accountService.getDirectDebitStatus(memberId);
+    return bankAccountService.getDirectDebitStatus(memberId);
   }
 
   private String getToken(DataFetchingEnvironment dfe) {
