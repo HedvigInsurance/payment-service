@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCo
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
@@ -41,9 +42,9 @@ public class MemberController {
       @PathVariable String memberId, @RequestBody ChargeRequest request) {
 
     val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount());
-    val res = paymentService.chargeMember(chargeMemberRequest);
+    val result = paymentService.chargeMember(chargeMemberRequest);
 
-    if (res == false) {
+    if (result.getType() != ChargeMemberResultType.SUCCESS) {
       return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
     }
 

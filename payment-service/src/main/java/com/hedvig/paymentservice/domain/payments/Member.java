@@ -2,6 +2,8 @@ package com.hedvig.paymentservice.domain.payments;
 
 import com.hedvig.paymentservice.domain.payments.commands.*;
 import com.hedvig.paymentservice.domain.payments.events.*;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
@@ -35,7 +37,7 @@ public class Member {
   }
 
   @CommandHandler
-  public boolean cmd(CreateChargeCommand cmd) {
+  public ChargeMemberResult cmd(CreateChargeCommand cmd) {
 
     if (trustlyAccount == null) {
       log.info("Cannot charge account - no account set up in Trustly");
@@ -46,7 +48,7 @@ public class Member {
           cmd.getAmount(),
           cmd.getTimestamp(),
           "account id not set"));
-      return false;
+      return new ChargeMemberResult(cmd.getTransactionId(), ChargeMemberResultType.NO_TRUSTLY_ACCOUNT);
     }
 
     if (!trustlyAccount.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
@@ -58,7 +60,7 @@ public class Member {
           cmd.getAmount(),
           cmd.getTimestamp(),
           "direct debit mandate not received in Trustly"));
-      return false;
+      return new ChargeMemberResult(cmd.getTransactionId(), ChargeMemberResultType.NO_DIRECT_DEBIT);
     }
 
     apply(
@@ -69,7 +71,7 @@ public class Member {
         cmd.getTimestamp(),
         this.trustlyAccount.getAccountId(),
         cmd.getEmail()));
-    return true;
+    return new ChargeMemberResult(cmd.getTransactionId(), ChargeMemberResultType.SUCCESS);
   }
 
   @CommandHandler
