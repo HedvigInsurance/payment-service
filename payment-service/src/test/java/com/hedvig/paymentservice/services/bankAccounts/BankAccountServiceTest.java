@@ -129,7 +129,7 @@ public class BankAccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CONFIRMED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
   }
   
   private Member makeMember(String memberId) {
