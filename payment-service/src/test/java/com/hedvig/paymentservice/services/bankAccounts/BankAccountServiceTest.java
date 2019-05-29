@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.services.account;
+package com.hedvig.paymentservice.services.bankAccounts;
 
 import com.google.common.collect.Lists;
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus;
@@ -23,7 +23,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AccountServiceTest {
+public class BankAccountServiceTest {
 
   private static String MEMBER_ID = "12345";
   private static UUID ACCOUNT_REGISTRATION_ID = UUID.fromString("1271d9a4-3e61-11e9-b753-47490be9f5e7");
@@ -37,25 +37,25 @@ public class AccountServiceTest {
   @Mock
   private ProductPricingService productPricingService;
 
-  private AccountService accountService;
+  private BankAccountService bankAccountService;
 
   @Before
   public void setUp() {
-    accountService = new AccountServiceImpl(memberRepository, accountRegistrationRepository, productPricingService);
+    bankAccountService = new BankAccountServiceImpl(memberRepository, accountRegistrationRepository, productPricingService);
   }
 
   @Test
   public void When_memberDoesNotExistInPaymentService_Then_Return_NeedSetup() {
     Mockito.when(memberRepository.findById(Mockito.anyString())).thenReturn(Optional.empty());
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
   }
 
   @Test
   public void When_memberExistInPaymentServiceWuthoutDirectDebitStatus_Then_Return_NeedSetup() {
     Mockito.when(memberRepository.findById(Mockito.anyString())).thenReturn(Optional.of(makeMember(MEMBER_ID)));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
   }
 
   @Test
@@ -64,7 +64,7 @@ public class AccountServiceTest {
     m.setDirectDebitStatus(com.hedvig.paymentservice.domain.payments.DirectDebitStatus.CONNECTED);
     Mockito.when(memberRepository.findById(Mockito.anyString())).thenReturn(Optional.of(m));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
   }
 
   @Test
@@ -75,7 +75,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.IN_PROGRESS));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
   }
 
   @Test
@@ -86,7 +86,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CONFIRMED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
   }
 
   @Test
@@ -97,7 +97,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CANCELLED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.ACTIVE);
   }
 
   @Test
@@ -108,7 +108,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CANCELLED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
   }
 
   @Test
@@ -119,7 +119,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CANCELLED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.NEEDS_SETUP);
   }
   @Test
   public void When_memberExistInPaymentServiceAndDirectDebitStatusIsPendingAndAccountStatusIsInConfirmed_Then_Return_Pending() {
@@ -129,7 +129,7 @@ public class AccountServiceTest {
 
     Mockito.when(accountRegistrationRepository.findByMemberId(Mockito.anyString())).thenReturn(makeAccountRegistration(MEMBER_ID, AccountRegistrationStatus.CONFIRMED));
 
-    assertThat(accountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
+    assertThat(bankAccountService.getDirectDebitStatus(Mockito.anyString())).isEqualTo(DirectDebitStatus.PENDING);
   }
   
   private Member makeMember(String memberId) {

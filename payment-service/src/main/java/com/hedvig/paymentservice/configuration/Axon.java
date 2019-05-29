@@ -3,6 +3,8 @@ package com.hedvig.paymentservice.configuration;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventUpCaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.TrustlyAccountCreatedUpCaster;
 import org.axonframework.config.EventProcessingConfiguration;
+import org.axonframework.eventhandling.TrackingEventProcessorConfiguration;
+import org.axonframework.messaging.StreamableMessageSource;
 import org.axonframework.serialization.upcasting.event.EventUpcasterChain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,5 +27,10 @@ public class Axon {
     config.usingTrackingProcessors();
 
     config.registerSubscribingEventProcessor("SegmentProcessorGroupLive");
+
+    config.registerTrackingEventProcessor("Account", x ->
+      TrackingEventProcessorConfiguration
+        .forSingleThreadedProcessing()
+        .andInitialTrackingToken(StreamableMessageSource::createHeadToken));
   }
 }

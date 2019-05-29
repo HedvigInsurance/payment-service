@@ -6,7 +6,10 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus;
 import com.hedvig.paymentservice.services.payments.PaymentService;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO;
+import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO;
 
 import java.math.BigDecimal;
@@ -40,6 +43,19 @@ public class MemberControllerV2 {
     this.paymentService = paymentService;
     this.memberService = memberService;
     this.meerkat = meerkat;
+  }
+
+  @PostMapping("{memberId}/charge")
+  public ResponseEntity<UUID> chargeMember(@PathVariable String memberId, @RequestBody ChargeRequest request) {
+
+    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount());
+    val result = paymentService.chargeMember(chargeMemberRequest);
+
+    if (result.getType() != ChargeMemberResultType.SUCCESS) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(result.getTransactionId());
+    }
+
+    return ResponseEntity.accepted().body(result.getTransactionId());
   }
 
   @PostMapping(path = "{memberId}/payout")

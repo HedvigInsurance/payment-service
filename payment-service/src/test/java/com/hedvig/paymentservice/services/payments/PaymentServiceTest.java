@@ -9,6 +9,9 @@ import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import java.util.UUID;
+
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +37,9 @@ public class PaymentServiceTest {
       givenChargeMemberRequest_whenChargeMember_thenSendCreateChargeCommand_WithTrustlyInboxEmail() {
     given(uuidGenerator.generateRandom()).willReturn(UUID.fromString(REQUEST_ID));
 
-    given(gateway.sendAndWait(captor.capture())).willReturn(Boolean.TRUE);
+    given(gateway.sendAndWait(captor.capture()))
+      .willReturn(new ChargeMemberResult(UUID.fromString(REQUEST_ID), ChargeMemberResultType.SUCCESS));
+
 
     PaymentService paymentService = new PaymentService(gateway, uuidGenerator);
 

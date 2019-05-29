@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.services.account;
+package com.hedvig.paymentservice.services.bankAccounts;
 
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
@@ -20,14 +20,14 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class AccountServiceImpl implements AccountService {
+public class BankAccountServiceImpl implements BankAccountService {
 
   private MemberRepository memberRepository;
   private AccountRegistrationRepository accountRegistrationRepository;
   private ProductPricingService productPricingService;
 
   @Autowired
-  public AccountServiceImpl(MemberRepository memberRepository, AccountRegistrationRepository accountRegistrationRepository, ProductPricingService productPricingService) {
+  public BankAccountServiceImpl(MemberRepository memberRepository, AccountRegistrationRepository accountRegistrationRepository, ProductPricingService productPricingService) {
     this.memberRepository = memberRepository;
     this.accountRegistrationRepository = accountRegistrationRepository;
     this.productPricingService = productPricingService;

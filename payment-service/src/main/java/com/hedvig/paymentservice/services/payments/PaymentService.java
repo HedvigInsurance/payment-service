@@ -8,13 +8,12 @@ import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.services.Helpers;
-import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
-import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.*;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class PaymentService {
     commandGateway.sendAndWait(new CreateMemberCommand(memberId));
   }
 
-  public boolean chargeMember(ChargeMemberRequest request) {
+  public ChargeMemberResult chargeMember(ChargeMemberRequest request) {
     val transactionId = uuidGenerator.generateRandom();
     return commandGateway.sendAndWait(
         new CreateChargeCommand(
