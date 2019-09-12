@@ -5,7 +5,7 @@ schema {
 
 type Query {
   bankAccount: BankAccount
-  chargeDate: LocalDate!
+  chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
   nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus!
   directDebitStatus: DirectDebitStatus!
