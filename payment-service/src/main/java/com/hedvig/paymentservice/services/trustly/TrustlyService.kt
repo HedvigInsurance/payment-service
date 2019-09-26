@@ -301,6 +301,7 @@ class TrustlyService(
       else
         plainFailUrl
     )
+    build.URLTarget("_self")
 
     val directDebitOrderRequest = build.request
     val gson = Gson()
