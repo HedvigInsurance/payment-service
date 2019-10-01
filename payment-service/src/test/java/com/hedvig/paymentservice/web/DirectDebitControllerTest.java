@@ -72,7 +72,7 @@ public class DirectDebitControllerTest {
   @Test
   public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
 
-    given(trustlyService.requestDirectDebitAccount(any()))
+    given(trustlyService.requestDirectDebitAccount(any(),any()))
         .willReturn(new DirectDebitResponse("url", "orderId"));
 
     mockMvc
@@ -81,7 +81,7 @@ public class DirectDebitControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(
                 new RegisterDirectDebitRequestDTO("Tst",
-                    "tdst", "198902171234"))))
+                    "tdst", "198902171234", null))))
         .andExpect(status().is2xxSuccessful())
         .andExpect(jsonPath(".url").value("url"));
   }

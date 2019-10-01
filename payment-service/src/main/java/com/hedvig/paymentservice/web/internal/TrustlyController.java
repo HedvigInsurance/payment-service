@@ -34,7 +34,7 @@ public class TrustlyController {
   @PostMapping("/registerDirectDebit")
   public ResponseEntity<DirectDebitResponse> postRegisterDirectDebit(
       @RequestBody DirectDebitRequest requestData) {
-    final DirectDebitResponse directDebitResponse = service.requestDirectDebitAccount(new DirectDebitOrderInfo(requestData, true));
+    final DirectDebitResponse directDebitResponse = service.requestDirectDebitAccount(new DirectDebitOrderInfo(requestData, true), requestData.getClientContext());
 
     return ResponseEntity.ok(directDebitResponse);
   }

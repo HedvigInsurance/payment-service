@@ -17,10 +17,12 @@ import com.hedvig.paymentService.trustly.requestbuilders.AccountPayout
 import com.hedvig.paymentService.trustly.requestbuilders.Charge
 import com.hedvig.paymentService.trustly.requestbuilders.SelectAccount
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.configuration.HedvigTrustlyConfiguration
 import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
+import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContextInput
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
@@ -30,6 +32,7 @@ import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo
 import com.hedvig.paymentservice.services.trustly.dto.OrderInformation
 import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest
+import com.hedvig.paymentservice.services.trustly.exceptions.InvalidRedirectException
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.javamoney.moneta.CurrencyUnitBuilder
@@ -39,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.net.URI
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.OffsetDateTime
@@ -56,6 +60,7 @@ class TrustlyService(
   private val uuidGenerator: UUIDGenerator,
   private val orderRepository: TrustlyOrderRepository,
   private val accountRegistrationRepository: AccountRegistrationRepository,
+  private val trustlyConfiguration: HedvigTrustlyConfiguration,
   @param:Value("\${hedvig.trustly.successURL}") private val redirectingToBotServiceSuccessUrl: String,
   @param:Value("\${hedvig.trustly.failURL}") private val redirectingToBotServiceFailUrl: String,
   @param:Value("\${hedvig.trustly.notificationURL}") private val notificationUrl: String,
@@ -65,12 +70,12 @@ class TrustlyService(
 ) {
   private val log = LoggerFactory.getLogger(TrustlyService::class.java)
 
-  fun requestDirectDebitAccount(info: DirectDebitOrderInfo): DirectDebitResponse {
+  fun requestDirectDebitAccount(info: DirectDebitOrderInfo, clientContext: RegisterDirectDebitClientContextInput?): DirectDebitResponse {
 
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     try {
-      val trustlyRequest = createRequest(info, hedvigOrderId)
+      val trustlyRequest = createRequest(info, clientContext, hedvigOrderId)
       val response = api.sendRequest(trustlyRequest)
 
       if (response.successfulResult()) {
@@ -114,9 +119,11 @@ class TrustlyService(
 
   fun cancelDirectDebitAccountRequest(memberId: String): Boolean {
     val stream: List<AccountRegistration> = accountRegistrationRepository.findByMemberId(memberId)
-      .filter { x -> x.status != AccountRegistrationStatus.CANCELLED
-        && x.status != AccountRegistrationStatus.CONFIRMED
-        && x.status != AccountRegistrationStatus.IN_PROGRESS}
+      .filter { x ->
+        x.status != AccountRegistrationStatus.CANCELLED
+          && x.status != AccountRegistrationStatus.CONFIRMED
+          && x.status != AccountRegistrationStatus.IN_PROGRESS
+      }
 
     when {
       stream.count() < 1 -> return false
@@ -280,7 +287,7 @@ class TrustlyService(
     }
   }
 
-  private fun createRequest(info: DirectDebitOrderInfo, hedvigOrderId: UUID): Request {
+  private fun createRequest(info: DirectDebitOrderInfo, clientContext: RegisterDirectDebitClientContextInput?, hedvigOrderId: UUID): Request {
     val build = SelectAccount.Build(notificationUrl, info.memberId, hedvigOrderId.toString())
     build.requestDirectDebitMandate("1")
     build.firstName(info.firstName)
@@ -289,18 +296,18 @@ class TrustlyService(
     build.email(createMemberEmail(info.memberId))
     build.locale("sv_SE")
     build.nationalIdentificationNumber(info.personalNumber)
-    build.successURL(
-      if (info.redirectingToBotService)
-        appendTriggerId(redirectingToBotServiceSuccessUrl, info.triggerId)
-      else
-        plainSuccessUrl
-    )
-    build.failURL(
-      if (info.redirectingToBotService)
-        appendTriggerId(redirectingToBotServiceFailUrl, info.triggerId)
-      else
-        plainFailUrl
-    )
+    val successUrl = when {
+      info.redirectingToBotService -> appendTriggerId(redirectingToBotServiceSuccessUrl, info.triggerId)
+      clientContext != null -> requireValidRedirect(clientContext.successUrl)
+      else -> plainSuccessUrl
+    }
+    val failUrl = when {
+      info.redirectingToBotService -> appendTriggerId(redirectingToBotServiceFailUrl, info.triggerId)
+      clientContext != null -> requireValidRedirect(clientContext.failUrl)
+      else -> plainFailUrl
+    }
+    build.successURL(successUrl)
+    build.failURL(failUrl)
     build.URLTarget("_self")
 
     val directDebitOrderRequest = build.request
@@ -312,6 +319,21 @@ class TrustlyService(
     }
 
     return directDebitOrderRequest
+  }
+
+  private fun requireValidRedirect(url: String): String {
+    try {
+      val uri = URI.create(url)
+      if (
+        !trustlyConfiguration.validRedirectHosts.contains(uri.host)
+        && !trustlyConfiguration.validRedirectHosts.contains("${uri.host}:${uri.port}")
+      ) {
+        throw InvalidRedirectException("Host \"${uri.host}\" is not a whitelisted redirect")
+      }
+      return url
+    } catch (e: IllegalArgumentException) {
+      throw InvalidRedirectException("Unable to parse host of URL \"$url\"")
+    }
   }
 
   private fun appendTriggerId(failUrl: String, triggerId: String?): String {
