@@ -332,7 +332,7 @@ class TrustlyService(
       }
       return url
     } catch (e: IllegalArgumentException) {
-      throw InvalidRedirectException("Unable to parse host of URL \"$url\"")
+      throw InvalidRedirectException("Unable to parse host of URL \"$url\"", e)
     }
   }
 
