@@ -39,7 +39,8 @@ public class DirectDebitController {
 
   @GetMapping(path = "status")
   public ResponseEntity<DirectDebitStatusDTO> getDirectDebitStatus(
-    @RequestHeader(name = "hedvig.token") String memberId) {
+    @RequestHeader(name = "hedvig.token") String memberId
+  ) {
 
     logger.debug("Fetching status for member {}", memberId);
 
@@ -57,12 +58,17 @@ public class DirectDebitController {
   @PostMapping(path = "register")
   public ResponseEntity<DirectDebitResponse> registerDirectDebit(
     @RequestHeader(name = "hedvig.token") String memberId,
-    @RequestBody @Valid RegisterDirectDebitRequestDTO req) {
+    @RequestBody @Valid RegisterDirectDebitRequestDTO req
+  ) {
 
     logger.info("Starting register directDebit for member {}", memberId);
 
     final DirectDebitResponse response = trustlyService
-      .requestDirectDebitAccount(new DirectDebitOrderInfo(memberId, req, false));
+      .requestDirectDebitAccount(
+        new DirectDebitOrderInfo(memberId, req, false),
+        req.getClientContext() == null ? null : req.getClientContext().getSuccessUrl(),
+        req.getClientContext() == null ? null : req.getClientContext().getFailureUrl()
+      );
 
     return ResponseEntity.ok(response);
   }

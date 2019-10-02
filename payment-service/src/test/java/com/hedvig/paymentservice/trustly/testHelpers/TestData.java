@@ -60,7 +60,8 @@ public class TestData {
       TOLVANSSON_LAST_NAME,
       TOLVANSSON_SSN,
       TOLVANSSON_MEMBER_ID,
-      BOT_SERVICE_TRIGGER_ID);
+      BOT_SERVICE_TRIGGER_ID,
+      null);
   }
 
   public static PaymentRequest makePaymentRequest() {

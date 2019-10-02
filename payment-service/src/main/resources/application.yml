@@ -19,3 +19,6 @@ graphiql:
   enabled: true
   pageTitle: Payment GraphiQL
 
+hedvig:
+  trustly:
+    validRedirectHosts: []
