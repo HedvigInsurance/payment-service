@@ -66,7 +66,8 @@ public class DirectDebitController {
     final DirectDebitResponse response = trustlyService
       .requestDirectDebitAccount(
         new DirectDebitOrderInfo(memberId, req, false),
-        req.getClientContext()
+        req.getClientContext() == null ? null : req.getClientContext().getSuccessUrl(),
+        req.getClientContext() == null ? null : req.getClientContext().getFailureUrl()
       );
 
     return ResponseEntity.ok(response);

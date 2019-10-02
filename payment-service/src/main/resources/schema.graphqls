@@ -12,7 +12,7 @@ type Query {
 }
 
 type Mutation {
-  registerDirectDebit(clientContext: RegisterDirectDebitClientContextInput): DirectDebitResponse!
+  registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
   cancelDirectDebitRequest : CancelDirectDebitStatus!
 }
 
@@ -22,9 +22,9 @@ type BankAccount {
   directDebitStatus: DirectDebitStatus
 }
 
-input RegisterDirectDebitClientContextInput {
+input RegisterDirectDebitClientContext {
   successUrl: String!
-  failUrl: String!
+  failureUrl: String!
 }
 
 type DirectDebitResponse {

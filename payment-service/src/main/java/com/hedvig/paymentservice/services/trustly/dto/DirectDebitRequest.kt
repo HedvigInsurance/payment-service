@@ -1,6 +1,6 @@
 package com.hedvig.paymentservice.services.trustly.dto
 
-import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContextInput
+import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
 import javax.annotation.Nullable
 
 class DirectDebitRequest(
@@ -9,5 +9,5 @@ class DirectDebitRequest(
   val ssn: String,
   val memberId: String,
   val triggerId: String,
-  @Nullable val clientContext: RegisterDirectDebitClientContextInput?
+  @Nullable val clientContext: RegisterDirectDebitClientContext?
 )

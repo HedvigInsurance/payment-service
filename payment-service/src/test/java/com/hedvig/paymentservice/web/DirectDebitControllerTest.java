@@ -1,12 +1,5 @@
 package com.hedvig.paymentservice.web;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
@@ -15,7 +8,6 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -26,6 +18,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Optional;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = PaymentServiceTestConfiguration.class)
@@ -72,7 +73,7 @@ public class DirectDebitControllerTest {
   @Test
   public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
 
-    given(trustlyService.requestDirectDebitAccount(any(),any()))
+    given(trustlyService.requestDirectDebitAccount(any(), any(), any()))
         .willReturn(new DirectDebitResponse("url", "orderId"));
 
     mockMvc

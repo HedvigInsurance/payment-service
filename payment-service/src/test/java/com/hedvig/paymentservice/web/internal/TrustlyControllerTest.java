@@ -61,7 +61,7 @@ public class TrustlyControllerTest {
 
     DirectDebitRequest requestData = TestData.makeDirectDebitRequest();
 
-    given(trustlyService.requestDirectDebitAccount(any(), any()))
+    given(trustlyService.requestDirectDebitAccount(any(), any(), any()))
       .willReturn(new DirectDebitResponse(TRUSTLY_IFRAME_URL, ORDER_ID.toString()));
 
     mockMvc
@@ -78,7 +78,7 @@ public class TrustlyControllerTest {
 
     DirectDebitRequest requestData = TestData.makeDirectDebitRequest();
 
-    given(trustlyService.requestDirectDebitAccount(any(), any())).willThrow(OrderNotFoundException.class);
+    given(trustlyService.requestDirectDebitAccount(any(), any(), any())).willThrow(OrderNotFoundException.class);
 
     mockMvc
       .perform(

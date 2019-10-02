@@ -22,7 +22,6 @@ import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccou
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
-import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContextInput
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
@@ -70,12 +69,16 @@ class TrustlyService(
 ) {
   private val log = LoggerFactory.getLogger(TrustlyService::class.java)
 
-  fun requestDirectDebitAccount(info: DirectDebitOrderInfo, clientContext: RegisterDirectDebitClientContextInput?): DirectDebitResponse {
+  fun requestDirectDebitAccount(
+    info: DirectDebitOrderInfo,
+    clientSuccessUrl: String? = null,
+    clientFailureUrl: String? = null
+  ): DirectDebitResponse {
 
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     try {
-      val trustlyRequest = createRequest(info, clientContext, hedvigOrderId)
+      val trustlyRequest = createRequest(info, hedvigOrderId, clientSuccessUrl = clientSuccessUrl, clientFailureUrl= clientFailureUrl)
       val response = api.sendRequest(trustlyRequest)
 
       if (response.successfulResult()) {
@@ -287,7 +290,12 @@ class TrustlyService(
     }
   }
 
-  private fun createRequest(info: DirectDebitOrderInfo, clientContext: RegisterDirectDebitClientContextInput?, hedvigOrderId: UUID): Request {
+  private fun createRequest(
+    info: DirectDebitOrderInfo,
+    hedvigOrderId: UUID,
+    clientSuccessUrl: String?,
+    clientFailureUrl: String?
+  ): Request {
     val build = SelectAccount.Build(notificationUrl, info.memberId, hedvigOrderId.toString())
     build.requestDirectDebitMandate("1")
     build.firstName(info.firstName)
@@ -298,12 +306,12 @@ class TrustlyService(
     build.nationalIdentificationNumber(info.personalNumber)
     val successUrl = when {
       info.redirectingToBotService -> appendTriggerId(redirectingToBotServiceSuccessUrl, info.triggerId)
-      clientContext != null -> requireValidRedirect(clientContext.successUrl)
+      clientSuccessUrl != null -> requireValidRedirect(clientSuccessUrl)
       else -> plainSuccessUrl
     }
     val failUrl = when {
       info.redirectingToBotService -> appendTriggerId(redirectingToBotServiceFailUrl, info.triggerId)
-      clientContext != null -> requireValidRedirect(clientContext.failUrl)
+      clientFailureUrl != null -> requireValidRedirect(clientFailureUrl)
       else -> plainFailUrl
     }
     build.successURL(successUrl)

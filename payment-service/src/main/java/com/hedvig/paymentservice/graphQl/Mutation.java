@@ -3,19 +3,13 @@ package com.hedvig.paymentservice.graphQl;
 import com.coxautodev.graphql.tools.GraphQLMutationResolver;
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse;
-import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContextInput;
+import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext;
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
-import com.hedvig.paymentservice.services.trustly.exceptions.InvalidRedirectException;
-import graphql.ExceptionWhileDataFetching;
-import graphql.GraphQLError;
-import graphql.GraphqlErrorHelper;
-import graphql.execution.ExecutionPath;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.servlet.GraphQLContext;
-import graphql.validation.ValidationError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +28,7 @@ public class Mutation implements GraphQLMutationResolver {
     this.memberService = memberService;
   }
 
-  public DirectDebitResponse registerDirectDebit(RegisterDirectDebitClientContextInput clientContext, DataFetchingEnvironment env) {
+  public DirectDebitResponse registerDirectDebit(RegisterDirectDebitClientContext clientContext, DataFetchingEnvironment env) {
     String memberId = getToken(env);
     if (memberId == null) {
       log.error("GetBankAccountInfo - hedvig.token is missing");
@@ -50,7 +44,11 @@ public class Mutation implements GraphQLMutationResolver {
     Member member = optionalMember.get();
 
     com.hedvig.paymentservice.web.dtos.DirectDebitResponse response =
-      trustlyService.requestDirectDebitAccount(DirectDebitOrderInfo.Companion.fromMember(member), clientContext);
+      trustlyService.requestDirectDebitAccount(
+        DirectDebitOrderInfo.Companion.fromMember(member),
+        clientContext == null ? null : clientContext.getSuccessUrl(),
+        clientContext == null ? null : clientContext.getFailureUrl()
+      );
 
     return DirectDebitResponse.fromDirectDebitResposne(response);
   }
