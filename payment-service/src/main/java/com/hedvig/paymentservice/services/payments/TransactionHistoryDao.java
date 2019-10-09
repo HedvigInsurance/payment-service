@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.payments;
 
+import com.google.common.collect.Iterables;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventRepository;
@@ -13,8 +14,8 @@ import javax.transaction.Transactional;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -59,8 +60,30 @@ public class TransactionHistoryDao {
       .atTime(23, 59, 59, 999_999_999)
       .atZone(ZoneId.of("Europe/Stockholm"))
       .toInstant();
-    return transactionRepository
-      .findWithinPeriodAndWithTransactionIds(periodStart, periodEnd, transactionIds);
+
+    final int partitionCount = (int) Math.ceil(transactionIds.size() / (float)10000);
+
+    List<Set<UUID>> transactionPartitions = new ArrayList<>(partitionCount);
+    for (int i = 0; i < partitionCount; i++) {
+      transactionPartitions.add(new HashSet<>());
+    }
+
+    int index = 0;
+    for (UUID object : transactionIds) {
+      transactionPartitions.get(index++ % partitionCount).add(object);
+    }
+
+    Set<Transaction> transactions = new HashSet<>();
+
+    transactionPartitions.forEach(
+      it -> transactions
+        .addAll(
+          transactionRepository
+            .findWithinPeriodAndWithTransactionIds(periodStart, periodEnd, it)
+        )
+    );
+
+    return transactions;
   }
 
   public void dangerouslyReset() {
