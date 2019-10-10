@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.serviceIntergration.accountService
 
 import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeCompletedRequestDto
 import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeFailedRequestDto
+import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeCreatedRequestDto
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,4 +25,12 @@ interface AccountServiceClient {
     @PathVariable memberId: String,
     @RequestBody request: NotifyChargeCompletedRequestDto
   ): ResponseEntity<Void>
+
+
+  @PostMapping("/_/schedule/charge/{memberId}/initiated")
+  fun notifyChargeCreated(
+    @PathVariable memberId: String,
+    @RequestBody request: NotifyChargeCreatedRequestDto
+  ): ResponseEntity<Void>
+
 }
