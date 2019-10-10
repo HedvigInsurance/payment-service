@@ -61,7 +61,7 @@ public class TransactionHistoryDao {
       .atZone(ZoneId.of("Europe/Stockholm"))
       .toInstant();
 
-    final int partitionCount = (int) Math.ceil(transactionIds.size() / (float)10000);
+    final int partitionCount = (int) Math.ceil(transactionIds.size() / 10000d);
 
     List<Set<UUID>> transactionPartitions = new ArrayList<>(partitionCount);
     for (int i = 0; i < partitionCount; i++) {
@@ -76,10 +76,10 @@ public class TransactionHistoryDao {
     Set<Transaction> transactions = new HashSet<>();
 
     transactionPartitions.forEach(
-      it -> transactions
+      transaction -> transactions
         .addAll(
           transactionRepository
-            .findWithinPeriodAndWithTransactionIds(periodStart, periodEnd, it)
+            .findWithinPeriodAndWithTransactionIds(periodStart, periodEnd, transaction)
         )
     );
 
