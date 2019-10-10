@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.services.payments;
 
-import com.google.common.collect.Iterables;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEntity;
 import com.hedvig.paymentservice.query.member.entities.TransactionHistoryEventRepository;
@@ -15,7 +14,6 @@ import java.time.Instant;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
