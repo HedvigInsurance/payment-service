@@ -38,6 +38,6 @@ class AccountServiceImpl @Autowired constructor(
       initiatedBy = initiatedBy,
       createdAt = createdAt
     )
-    return accountServiceClient.notifyChargeCreated(memberId, request)
+    return accountServiceClient.notifyChargeInitiated(memberId, request)
   }
 }

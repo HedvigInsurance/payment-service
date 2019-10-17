@@ -28,7 +28,7 @@ interface AccountServiceClient {
 
 
   @PostMapping("/_/schedule/charge/{memberId}/initiated")
-  fun notifyChargeCreated(
+  fun notifyChargeInitiated(
     @PathVariable memberId: String,
     @RequestBody request: NotifyChargeCreatedRequestDto
   ): ResponseEntity<Void>

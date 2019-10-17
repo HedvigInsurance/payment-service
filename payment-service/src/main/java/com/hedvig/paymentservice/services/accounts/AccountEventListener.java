@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.services.accounts;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
-import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
 import com.hedvig.paymentservice.serviceIntergration.accountService.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.config.ProcessingGroup;
@@ -20,12 +19,10 @@ import java.time.Instant;
 public class AccountEventListener {
 
   private AccountService accountService;
-  private TransactionRepository transactionRepository;
 
   @Autowired
-  public AccountEventListener(AccountService accountService, TransactionRepository transactionRepository) {
+  public AccountEventListener(AccountService accountService) {
     this.accountService = accountService;
-    this.transactionRepository = transactionRepository;
   }
 
   @EventHandler
