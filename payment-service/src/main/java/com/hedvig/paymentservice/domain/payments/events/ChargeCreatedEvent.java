@@ -1,11 +1,14 @@
 package com.hedvig.paymentservice.domain.payments.events;
 
+import lombok.Value;
+import org.axonframework.serialization.Revision;
+
+import javax.money.MonetaryAmount;
 import java.time.Instant;
 import java.util.UUID;
-import javax.money.MonetaryAmount;
-import lombok.Value;
 
 @Value
+@Revision("1.0")
 public class ChargeCreatedEvent {
   String memberId;
   UUID transactionId;
@@ -13,4 +16,5 @@ public class ChargeCreatedEvent {
   Instant timestamp;
   String accountId;
   String email;
+  String createdBy;
 }

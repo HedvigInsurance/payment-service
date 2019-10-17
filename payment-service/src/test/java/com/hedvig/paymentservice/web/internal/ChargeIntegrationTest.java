@@ -69,7 +69,7 @@ public class ChargeIntegrationTest {
       throws Exception {
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
-    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
+    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
         .perform(
@@ -108,7 +108,7 @@ public class ChargeIntegrationTest {
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
 
-    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
+    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
         .perform(
@@ -150,7 +150,7 @@ public class ChargeIntegrationTest {
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
 
-    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
+    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
         .perform(
@@ -192,7 +192,7 @@ public class ChargeIntegrationTest {
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
 
-    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT);
+    val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
       .perform(

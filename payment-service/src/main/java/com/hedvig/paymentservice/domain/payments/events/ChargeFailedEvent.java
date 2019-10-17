@@ -1,19 +1,15 @@
 package com.hedvig.paymentservice.domain.payments.events;
 
-import javax.money.MonetaryAmount;
 import java.util.UUID;
 
 public class ChargeFailedEvent {
   String memberId;
   UUID transactionId;
-  MonetaryAmount amount;
 
   @java.beans.ConstructorProperties({"memberId", "transactionId"})
-  public ChargeFailedEvent(String memberId, UUID transactionId, MonetaryAmount amount) {
+  public ChargeFailedEvent(String memberId, UUID transactionId) {
     this.memberId = memberId;
     this.transactionId = transactionId;
-    this.amount = amount;
-
   }
 
   public String getMemberId() {
@@ -23,8 +19,6 @@ public class ChargeFailedEvent {
   public UUID getTransactionId() {
     return this.transactionId;
   }
-
-  public MonetaryAmount getAmount() { return this.amount; }
 
   public boolean equals(Object o) {
     if (o == this) {

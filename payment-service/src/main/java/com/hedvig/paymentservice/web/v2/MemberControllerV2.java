@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.annotation.Nullable;
 
@@ -48,7 +47,7 @@ public class MemberControllerV2 {
   @PostMapping("{memberId}/charge")
   public ResponseEntity<UUID> chargeMember(@PathVariable String memberId, @RequestBody ChargeRequest request) {
 
-    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount());
+    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount(), request.getRequestedBy());
     val result = paymentService.chargeMember(chargeMemberRequest);
 
     if (result.getType() != ChargeMemberResultType.SUCCESS) {

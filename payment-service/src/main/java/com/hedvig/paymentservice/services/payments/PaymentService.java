@@ -41,7 +41,9 @@ public class PaymentService {
             transactionId,
             request.getAmount(),
             Instant.now(),
-            Helpers.createTrustlyInboxfromMemberId(request.getMemberId())));
+            Helpers.createTrustlyInboxfromMemberId(request.getMemberId()),
+            request.getCreatedBy()
+        ));
   }
 
   @Deprecated

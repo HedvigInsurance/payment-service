@@ -70,7 +70,9 @@ public class Member {
         cmd.getAmount(),
         cmd.getTimestamp(),
         this.trustlyAccount.getAccountId(),
-        cmd.getEmail()));
+        cmd.getEmail(),
+        cmd.getCreatedBy()
+      ));
     return new ChargeMemberResult(cmd.getTransactionId(), ChargeMemberResultType.SUCCESS);
   }
 

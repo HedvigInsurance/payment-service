@@ -9,7 +9,7 @@ interface AccountService {
   fun notifyChargeFailed(
     memberId: String,
     transactionId: UUID,
-    amount: MonetaryAmount
+    failedAt: Instant
   ): ResponseEntity<Void>
 
   fun notifyChargeCompleted(
@@ -22,6 +22,8 @@ interface AccountService {
   fun notifyChargeCreated(
     memberId: String,
     transactionId: UUID,
-    amount: MonetaryAmount
+    amount: MonetaryAmount,
+    initiatedBy: String?,
+    createdAt: Instant
   ): ResponseEntity<Void>
 }

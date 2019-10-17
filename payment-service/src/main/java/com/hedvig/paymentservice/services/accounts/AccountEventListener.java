@@ -3,12 +3,16 @@ package com.hedvig.paymentservice.services.accounts;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
+import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
 import com.hedvig.paymentservice.serviceIntergration.accountService.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
+import org.axonframework.eventhandling.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 @Slf4j
 @Component
@@ -16,27 +20,29 @@ import org.springframework.stereotype.Component;
 public class AccountEventListener {
 
   private AccountService accountService;
+  private TransactionRepository transactionRepository;
 
   @Autowired
-  public AccountEventListener(AccountService accountService) {
+  public AccountEventListener(AccountService accountService, TransactionRepository transactionRepository) {
     this.accountService = accountService;
+    this.transactionRepository = transactionRepository;
   }
 
   @EventHandler
-  public void on(ChargeFailedEvent event) {
-    accountService.notifyChargeFailed(event.getMemberId(), event.getTransactionId(), event.getAmount());
+  public void on(ChargeFailedEvent event, @Timestamp Instant timestamp) {
+    accountService.notifyChargeFailed(event.getMemberId(), event.getTransactionId(), timestamp);
     log.info("Notified FAILED charge to memberId={}", event.getMemberId());
   }
 
   @EventHandler
-  public void on(ChargeCompletedEvent event) {
-    accountService.notifyChargeCompleted(event.getMemberId(), event.getTransactionId(), event.getAmount(), event.getTimestamp());
+  public void on(ChargeCompletedEvent event, @Timestamp Instant timestamp) {
+    accountService.notifyChargeCompleted(event.getMemberId(), event.getTransactionId(), event.getAmount(), timestamp);
     log.info("Notified COMPLETED charge to memberId={}", event.getMemberId());
   }
 
   @EventHandler
-  public void on(ChargeCreatedEvent event) {
-    accountService.notifyChargeCreated(event.getMemberId(), event.getTransactionId(), event.getAmount());
+  public void on(ChargeCreatedEvent event, @Timestamp Instant timestamp) {
+    accountService.notifyChargeCreated(event.getMemberId(), event.getTransactionId(), event.getAmount(), event.getCreatedBy(), timestamp);
     log.info("Notified CREATED charge to memberId={}", event.getMemberId());
   }
 }
