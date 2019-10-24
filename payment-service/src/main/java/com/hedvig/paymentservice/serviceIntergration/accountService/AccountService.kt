@@ -19,7 +19,7 @@ interface AccountService {
     chargedAt: Instant
   ): ResponseEntity<Void>
 
-  fun notifyChargeCreated(
+  fun notifyChargeInitiated(
     memberId: String,
     transactionId: UUID,
     amount: MonetaryAmount,

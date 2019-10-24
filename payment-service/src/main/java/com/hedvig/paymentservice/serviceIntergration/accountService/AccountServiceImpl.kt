@@ -31,12 +31,12 @@ class AccountServiceImpl @Autowired constructor(
     return accountServiceClient.notifyChargeCompleted(memberId, request)
   }
 
-  override fun notifyChargeCreated(memberId: String, transactionId: UUID, amount: MonetaryAmount, initiatedBy: String?, createdAt: Instant): ResponseEntity<Void> {
+  override fun notifyChargeInitiated(memberId: String, transactionId: UUID, amount: MonetaryAmount, initiatedBy: String?, initiatedAt: Instant): ResponseEntity<Void> {
     val request = NotifyChargeInitiatedRequestDto(
       transactionId = transactionId,
       amount = amount,
       initiatedBy = initiatedBy,
-      initiatedAt = createdAt
+      initiatedAt = initiatedAt
     )
     return accountServiceClient.notifyChargeInitiated(memberId, request)
   }
