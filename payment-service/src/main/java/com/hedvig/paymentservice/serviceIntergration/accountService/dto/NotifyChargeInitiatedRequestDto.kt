@@ -4,9 +4,9 @@ import java.time.Instant
 import java.util.*
 import javax.money.MonetaryAmount
 
-data class NotifyChargeCreatedRequestDto(
+data class NotifyChargeInitiatedRequestDto(
   val transactionId: UUID,
   val amount: MonetaryAmount,
   val initiatedBy: String?,
-  val createdAt: Instant
+  val initiatedAt: Instant
 )
