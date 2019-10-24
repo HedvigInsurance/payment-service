@@ -7,4 +7,5 @@ import lombok.Value;
 public class ChargeMemberRequest {
   String memberId;
   MonetaryAmount amount;
+  String createdBy;
 }

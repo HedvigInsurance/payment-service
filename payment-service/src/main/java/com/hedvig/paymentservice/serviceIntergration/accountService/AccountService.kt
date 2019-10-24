@@ -8,7 +8,8 @@ import javax.money.MonetaryAmount
 interface AccountService {
   fun notifyChargeFailed(
     memberId: String,
-    transactionId: UUID
+    transactionId: UUID,
+    failedAt: Instant
   ): ResponseEntity<Void>
 
   fun notifyChargeCompleted(
@@ -16,5 +17,13 @@ interface AccountService {
     transactionId: UUID,
     amount: MonetaryAmount,
     chargedAt: Instant
+  ): ResponseEntity<Void>
+
+  fun notifyChargeCreated(
+    memberId: String,
+    transactionId: UUID,
+    amount: MonetaryAmount,
+    initiatedBy: String?,
+    createdAt: Instant
   ): ResponseEntity<Void>
 }

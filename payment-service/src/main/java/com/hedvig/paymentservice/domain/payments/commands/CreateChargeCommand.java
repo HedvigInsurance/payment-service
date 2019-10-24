@@ -1,10 +1,11 @@
 package com.hedvig.paymentservice.domain.payments.commands;
 
-import java.time.Instant;
-import java.util.UUID;
-import javax.money.MonetaryAmount;
 import lombok.Value;
 import org.axonframework.commandhandling.TargetAggregateIdentifier;
+
+import javax.money.MonetaryAmount;
+import java.time.Instant;
+import java.util.UUID;
 
 @Value
 public class CreateChargeCommand {
@@ -14,4 +15,5 @@ public class CreateChargeCommand {
   MonetaryAmount amount;
   Instant timestamp;
   String email;
+  String createdBy;
 }

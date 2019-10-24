@@ -1,15 +1,8 @@
 package com.hedvig.paymentservice.services.payments;
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRANSACTION_AMOUNT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
-import java.util.UUID;
-
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -19,6 +12,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.UUID;
+
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PaymentServiceTest {
@@ -49,6 +48,6 @@ public class PaymentServiceTest {
   }
 
   private ChargeMemberRequest makeChargeMemberRequest() {
-    return new ChargeMemberRequest(TOLVANSSON_MEMBER_ID, TRANSACTION_AMOUNT);
+    return new ChargeMemberRequest(TOLVANSSON_MEMBER_ID, TRANSACTION_AMOUNT, CREATED_BY);
   }
 }

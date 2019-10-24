@@ -51,6 +51,7 @@ public class TestData {
   public static final String TRANSACTION_ID = "0788882e-22da-11e8-b209-0f7ece059a6d";
   public static final Instant TRANSACTION_TIMESTAMP = Instant.ofEpochMilli(1482710400);
   public static final MonetaryAmount TRANSACTION_AMOUNT = Money.of(100, "SEK");
+  public static final String CREATED_BY = "akash@hedvig.com";
   public static final String TRANSACTION_URL = "http://www.example.com";
   public static final String COUNTRY_CODE = "SE";
 

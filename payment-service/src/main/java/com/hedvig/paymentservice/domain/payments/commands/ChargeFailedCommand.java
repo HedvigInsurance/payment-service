@@ -9,6 +9,5 @@ import java.util.UUID;
 public class ChargeFailedCommand {
   @TargetAggregateIdentifier
   String memberId;
-
   UUID transactionId;
 }
