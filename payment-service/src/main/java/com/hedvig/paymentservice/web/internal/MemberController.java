@@ -37,7 +37,7 @@ public class MemberController {
   public ResponseEntity<?> chargeMember(
       @PathVariable String memberId, @RequestBody ChargeRequest request) {
 
-    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount(), null);
+    val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount(), request.getRequestedBy());
     val result = paymentService.chargeMember(chargeMemberRequest);
 
     if (result.getType() != ChargeMemberResultType.SUCCESS) {

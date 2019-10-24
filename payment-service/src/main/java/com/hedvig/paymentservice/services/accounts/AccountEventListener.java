@@ -39,7 +39,7 @@ public class AccountEventListener {
 
   @EventHandler
   public void on(ChargeCreatedEvent event, @Timestamp Instant timestamp) {
-    accountService.notifyChargeCreated(event.getMemberId(), event.getTransactionId(), event.getAmount(), event.getCreatedBy(), timestamp);
+    accountService.notifyChargeInitiated(event.getMemberId(), event.getTransactionId(), event.getAmount(), event.getCreatedBy(), timestamp);
     log.info("Notified CREATED charge to memberId={}", event.getMemberId());
   }
 }
