@@ -48,7 +48,8 @@ public class PayoutSaga {
             e.getCountryCode(),
             e.getDateOfBirth(),
             e.getFirstName(),
-            e.getLastName()),
+            e.getLastName(),
+            e.getCategory()),
         hedvigOrderId);
   }
 }

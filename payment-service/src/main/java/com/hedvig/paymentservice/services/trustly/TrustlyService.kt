@@ -21,6 +21,7 @@ import com.hedvig.paymentservice.configuration.HedvigTrustlyConfiguration
 import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccountRegistrationRequestCommand
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
+import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
@@ -65,6 +66,7 @@ class TrustlyService(
   @param:Value("\${hedvig.trustly.notificationURL}") private val notificationUrl: String,
   @param:Value("\${hedvig.trustly.non.redirecting.to.botService.successURL}") private val plainSuccessUrl: String,
   @param:Value("\${hedvig.trustly.non.redirecting.to.botService.failURL}") private val plainFailUrl: String,
+  @param:Value("\${hedvig.trustly.use.claims.account}") private val useClaimsAccount: Boolean,
   private val springEnvironment: Environment
 ) {
   private val log = LoggerFactory.getLogger(TrustlyService::class.java)
@@ -78,8 +80,9 @@ class TrustlyService(
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     try {
-      val trustlyRequest = createRequest(info, hedvigOrderId, clientSuccessUrl = clientSuccessUrl, clientFailureUrl= clientFailureUrl)
-      val response = api.sendRequest(trustlyRequest)
+      val trustlyRequest =
+        createRequest(info, hedvigOrderId, clientSuccessUrl = clientSuccessUrl, clientFailureUrl = clientFailureUrl)
+      val response = api.sendRequest(trustlyRequest, false)
 
       if (response.successfulResult()) {
         val data: Map<String, Any> = response.result.data
@@ -161,7 +164,7 @@ class TrustlyService(
     try {
 
       val trustlyRequest = createPaymentRequest(hedvigOrderId, request)
-      val response = api.sendRequest(trustlyRequest)
+      val response = api.sendRequest(trustlyRequest, false)
 
       if (response.successfulResult()) {
         val data = response.result.data
@@ -195,7 +198,8 @@ class TrustlyService(
   fun startPayoutOrder(request: PayoutRequest, hedvigOrderId: UUID) {
     try {
       val trustlyRequest = createPayoutRequest(hedvigOrderId, request)
-      val response = api.sendRequest(trustlyRequest)
+
+      val response = api.sendRequest(trustlyRequest, request.category == TransactionCategory.CLAIM && useClaimsAccount)
 
       if (response.successfulResult()) {
         val data = response.result.data
@@ -255,7 +259,7 @@ class TrustlyService(
   }
 
   private fun createPayoutRequest(hedvigOrderId: UUID, request: PayoutRequest): Request {
-    val formatter = DecimalFormat("#0.00")
+    val formatter = DecimalFormat("#0.00", DecimalFormatSymbols(Locale.ENGLISH))
     val amount = formatter.format(request.amount.number.doubleValueExact())
     val dateOfBirth = request.dateOfBirth.format(DateTimeFormatter.ofPattern("uuuu-MM-dd"))
     val build = AccountPayout.Build(
@@ -349,7 +353,7 @@ class TrustlyService(
   }
 
   fun sendRequest(request: Request): Response {
-    return api.sendRequest(request)
+    return api.sendRequest(request, false)
   }
 
   fun receiveNotification(notification: Notification): ResponseStatus {
