@@ -105,10 +105,10 @@ public class SignedAPI {
    * @param request Request to send to Trustly API
    * @return Response generated from the request.
    */
-  public Response sendRequest(final Request request, final Boolean useClaimAccount) {
+  public Response sendRequest(final Request request, final Account account) {
     final Gson gson = new GsonBuilder().serializeNulls().create();
 
-    if (useClaimAccount) {
+    if (account == Account.CLAIM) {
       signatureHandler.insertClaimAccountCredentials(request);
     } else {
       signatureHandler.insertCredentials(request);

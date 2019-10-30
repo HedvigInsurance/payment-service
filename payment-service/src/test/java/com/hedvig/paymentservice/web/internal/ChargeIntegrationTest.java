@@ -231,7 +231,7 @@ public class ChargeIntegrationTest {
       trustlyApiResponse.setError(error);
     }
 
-    given(signedApi.sendRequest(any(), anyBoolean())).willReturn(trustlyApiResponse);
+    given(signedApi.sendRequest(any(),any())).willReturn(trustlyApiResponse);
   }
 
   private enum TrustlyApiResponseResult {

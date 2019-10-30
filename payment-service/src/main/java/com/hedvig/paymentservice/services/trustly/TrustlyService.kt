@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.services.trustly
 
 import com.google.gson.Gson
+import com.hedvig.paymentService.trustly.Account
 import com.hedvig.paymentService.trustly.SignedAPI
 import com.hedvig.paymentService.trustly.commons.Currency
 import com.hedvig.paymentService.trustly.commons.Method
@@ -82,7 +83,7 @@ class TrustlyService(
     try {
       val trustlyRequest =
         createRequest(info, hedvigOrderId, clientSuccessUrl = clientSuccessUrl, clientFailureUrl = clientFailureUrl)
-      val response = api.sendRequest(trustlyRequest, false)
+      val response = api.sendRequest(trustlyRequest, Account.PREMIUM)
 
       if (response.successfulResult()) {
         val data: Map<String, Any> = response.result.data
@@ -164,7 +165,7 @@ class TrustlyService(
     try {
 
       val trustlyRequest = createPaymentRequest(hedvigOrderId, request)
-      val response = api.sendRequest(trustlyRequest, false)
+      val response = api.sendRequest(trustlyRequest, Account.PREMIUM)
 
       if (response.successfulResult()) {
         val data = response.result.data
@@ -199,7 +200,10 @@ class TrustlyService(
     try {
       val trustlyRequest = createPayoutRequest(hedvigOrderId, request)
 
-      val response = api.sendRequest(trustlyRequest, request.category == TransactionCategory.CLAIM && useClaimsAccount)
+      val account =
+        if (request.category == TransactionCategory.CLAIM && useClaimsAccount) Account.CLAIM else Account.PREMIUM
+
+      val response = api.sendRequest(trustlyRequest, account)
 
       if (response.successfulResult()) {
         val data = response.result.data
@@ -353,7 +357,7 @@ class TrustlyService(
   }
 
   fun sendRequest(request: Request): Response {
-    return api.sendRequest(request, false)
+    return api.sendRequest(request, Account.PREMIUM)
   }
 
   fun receiveNotification(notification: Notification): ResponseStatus {
