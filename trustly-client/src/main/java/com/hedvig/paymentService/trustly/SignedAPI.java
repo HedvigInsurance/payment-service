@@ -32,11 +32,13 @@ import com.hedvig.paymentService.trustly.commons.exceptions.TrustlySignatureExce
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.security.KeyException;
 import java.security.SecureRandom;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -56,33 +58,38 @@ public class SignedAPI {
    * Method used for initializing a SignatureHandler.
    *
    * @param keyPassword Seeing that the private key is somewhat considered a password in itself, the
-   *     private key password is usually an empty string.
+   *                    private key password is usually an empty string.
    */
   public void init(
-      final String privateKeyPath,
-      final String keyPassword,
-      final String username,
-      final String password)
-      throws URISyntaxException {
-    init(privateKeyPath, keyPassword, username, password, false);
+    final String privateKeyPath,
+    final String keyPassword,
+    final String usernamePremium,
+    final String passwordPremium,
+    final String usernameClaim,
+    final String passwordClaim
+  )
+    throws URISyntaxException {
+    init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, false);
   }
 
   /**
    * Method used for initializing a SignatureHandler.
    *
    * @param keyPassword Seeing that the private key is somewhat considered a password in itself, the
-   *     private key password is usually an empty string.
+   *                    private key password is usually an empty string.
    */
   public void init(
-      final String privateKeyPath,
-      final String keyPassword,
-      final String username,
-      final String password,
-      final boolean testEnvironment)
-      throws URISyntaxException {
+    final String privateKeyPath,
+    final String keyPassword,
+    final String usernamePremium,
+    final String passwordPremium,
+    final String usernameClaim,
+    final String passwordClaim,
+    final boolean testEnvironment)
+    throws URISyntaxException {
     setEnvironment(testEnvironment);
     try {
-      signatureHandler.init(privateKeyPath, keyPassword, username, password, testEnvironment);
+      signatureHandler.init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, testEnvironment);
     } catch (final KeyException e) {
       e.printStackTrace();
     }
@@ -98,10 +105,15 @@ public class SignedAPI {
    * @param request Request to send to Trustly API
    * @return Response generated from the request.
    */
-  public Response sendRequest(final Request request) {
+  public Response sendRequest(final Request request, final Boolean useClaimAccount) {
     final Gson gson = new GsonBuilder().serializeNulls().create();
 
-    signatureHandler.insertCredentials(request);
+    if (useClaimAccount) {
+      signatureHandler.insertClaimAccountCredentials(request);
+    } else {
+      signatureHandler.insertCredentials(request);
+    }
+
     signatureHandler.signRequest(request);
 
     final String jsonResponse = newHttpPost(gson.toJson(request, Request.class));
@@ -134,7 +146,7 @@ public class SignedAPI {
    * Deserializes and verifies incoming response.
    *
    * @param responseJson response from Trustly.
-   * @param requestUUID UUID from the request that resulted in the response.
+   * @param requestUUID  UUID from the request that resulted in the response.
    * @return Response object
    */
   private Response handleJsonResponse(final String responseJson, final String requestUUID) {
