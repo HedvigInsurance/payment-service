@@ -22,7 +22,7 @@ class BackfillAccountEventListener @Autowired constructor(
 
   @EventHandler
   fun on(event: ChargeCompletedEvent, @Timestamp timestamp: Instant) {
-    accountService.notifyChargeCompleted(event.memberId, event.transactionId, event.amount, timestamp)
+    accountService.notifyBackfilledChargeCompleted(event.memberId, event.transactionId, event.amount, timestamp)
     logger.info("Backfill notification of COMPLETED charge on memberId={} to account-service", event.memberId)
   }
 }
