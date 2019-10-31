@@ -6,9 +6,16 @@ hedvig.trustly.privateKeyPath: "src/main/resources/private.pem"
 hedvig.trustly.privateKeyPassword: ""
 hedvig.trustly.username: "test"
 hedvig.trustly.password: "test"
+hedvig.trustly.claim.username: "test"
+hedvig.trustly.claim.password: "test"
 hedvig.trustly.notificationURL: "https://test"
 hedvig.trustly.non.redirecting.to.botService.successURL: "https://hedvig.com/trustly/success"
 hedvig.trustly.non.redirecting.to.botService.failURL: " https://hedvig.com/trustly/fail"
 hedvig.trustly.validRedirectHosts: []
 
 spring.jpa.hibernate.ddl-auto: create
+hedvig:
+  trustly:
+    use:
+      claims:
+        account: true

@@ -2,8 +2,10 @@ package com.hedvig.paymentservice.configuration;
 
 import com.hedvig.paymentService.trustly.NotificationHandler;
 import com.hedvig.paymentService.trustly.SignedAPI;
+
 import java.net.URISyntaxException;
 import java.security.Security;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,19 +24,26 @@ class Trustly {
   String privateKeyPassword;
 
   @Value("${hedvig.trustly.username}")
-  String username;
+  String usernamePremium;
 
   @Value("${hedvig.trustly.password}")
-  String password;
+  String passwordPremium;
 
-  @Autowired Environment environment;
+  @Value("${hedvig.trustly.claim.username}")
+  String usernameClaim;
+
+  @Value("${hedvig.trustly.claim.password}")
+  String passwordClaim;
+
+  @Autowired
+  Environment environment;
 
   @Bean
   SignedAPI createSignedApi() throws URISyntaxException {
     Security.addProvider(new BouncyCastleProvider());
     SignedAPI api = new SignedAPI();
     boolean testEnvironment = !ArrayUtils.contains(environment.getActiveProfiles(), "production");
-    api.init(privateKeyPath, privateKeyPassword, username, password, testEnvironment);
+    api.init(privateKeyPath, privateKeyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, testEnvironment);
 
     return api;
   }

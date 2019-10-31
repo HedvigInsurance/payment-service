@@ -37,6 +37,7 @@ import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -49,61 +50,67 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 public class ChargeIntegrationTest {
-  @Autowired private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-  @Autowired private CommandGateway commandGateway;
+  @Autowired
+  private CommandGateway commandGateway;
 
-  @Autowired private EventStore eventStore;
+  @Autowired
+  private EventStore eventStore;
 
-  @MockBean private SignedAPI signedApi;
+  @MockBean
+  private SignedAPI signedApi;
 
-  @MockBean private UUIDGenerator uuidGenerator;
+  @MockBean
+  private UUIDGenerator uuidGenerator;
 
   private static final String EMAIL = "test@hedvig.com";
   private static final String PAYMENT_URL = "testurl";
 
   @Test
   public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden()
-      throws Exception {
+    throws Exception {
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
-        .perform(
-            post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(chargeRequest)))
-        .andExpect(status().isForbidden());
+      .perform(
+        post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(chargeRequest)))
+      .andExpect(status().isForbidden());
 
     val memberEvents =
-        eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
     assertThat(memberEvents, hasEvent(ChargeCreationFailedEvent.class));
   }
 
   @Test
   public void
-      givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsSuccess_ThenShouldReturnAccepted()
-          throws Exception {
+  givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsSuccess_ThenShouldReturnAccepted()
+    throws Exception {
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
     commandGateway.sendAndWait(
-        new UpdateTrustlyAccountCommand(
-            TOLVANSSON_MEMBER_ID,
-            HEDVIG_ORDER_ID,
-            TRUSTLY_ACCOUNT_ID,
-            TOLVANSSON_STREET,
-            TRUSTLY_ACCOUNT_BANK,
-            TOLVANSSON_CITY,
-            TRUSTLY_ACCOUNT_CLEARING_HOUSE,
-            TRUSTLY_ACCOUNT_DESCRIPTOR,
-            TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
-            TRUSTLY_ACCOUNT_LAST_DIGITS,
-            TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
-            TOLVANSSON_SSN,
-            TOLVANSSON_ZIP));
+      new UpdateTrustlyAccountCommand(
+        TOLVANSSON_MEMBER_ID,
+        HEDVIG_ORDER_ID,
+        TRUSTLY_ACCOUNT_ID,
+        TOLVANSSON_STREET,
+        TRUSTLY_ACCOUNT_BANK,
+        TOLVANSSON_CITY,
+        TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+        TRUSTLY_ACCOUNT_DESCRIPTOR,
+        TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
+        TRUSTLY_ACCOUNT_LAST_DIGITS,
+        TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
+        TOLVANSSON_SSN,
+        TOLVANSSON_ZIP));
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
@@ -111,41 +118,41 @@ public class ChargeIntegrationTest {
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
-        .perform(
-            post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(chargeRequest)))
-        .andExpect(status().isAccepted());
+      .perform(
+        post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(chargeRequest)))
+      .andExpect(status().isAccepted());
 
     val memberEvents =
-        eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
     assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));
 
     val trustlyOrderEvents =
-        eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
+      eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
     assertThat(trustlyOrderEvents, hasEvent(PaymentResponseReceivedEvent.class));
   }
 
   @Test
   public void
-      givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsError_ThenShouldReturnAccepted()
-          throws Exception {
+  givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsError_ThenShouldReturnAccepted()
+    throws Exception {
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
     commandGateway.sendAndWait(
-        new UpdateTrustlyAccountCommand(
-            TOLVANSSON_MEMBER_ID,
-            HEDVIG_ORDER_ID,
-            TRUSTLY_ACCOUNT_ID,
-            TOLVANSSON_STREET,
-            TRUSTLY_ACCOUNT_BANK,
-            TOLVANSSON_CITY,
-            TRUSTLY_ACCOUNT_CLEARING_HOUSE,
-            TRUSTLY_ACCOUNT_DESCRIPTOR,
-            TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
-            TRUSTLY_ACCOUNT_LAST_DIGITS,
-            TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
-            TOLVANSSON_SSN,
-            TOLVANSSON_ZIP));
+      new UpdateTrustlyAccountCommand(
+        TOLVANSSON_MEMBER_ID,
+        HEDVIG_ORDER_ID,
+        TRUSTLY_ACCOUNT_ID,
+        TOLVANSSON_STREET,
+        TRUSTLY_ACCOUNT_BANK,
+        TOLVANSSON_CITY,
+        TRUSTLY_ACCOUNT_CLEARING_HOUSE,
+        TRUSTLY_ACCOUNT_DESCRIPTOR,
+        TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE,
+        TRUSTLY_ACCOUNT_LAST_DIGITS,
+        TOLVAN_FIRST_NAME + " " + TOLVANSSON_LAST_NAME,
+        TOLVANSSON_SSN,
+        TOLVANSSON_ZIP));
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
@@ -153,18 +160,18 @@ public class ChargeIntegrationTest {
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 
     mockMvc
-        .perform(
-            post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(chargeRequest)))
-        .andExpect(status().isAccepted());
+      .perform(
+        post(String.format("/_/members/%s/charge", TOLVANSSON_MEMBER_ID))
+          .contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(chargeRequest)))
+      .andExpect(status().isAccepted());
 
     val memberEvents =
-        eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
     assertThat(memberEvents, hasEvent(ChargeCreatedEvent.class));
 
     val trustlyOrderEvents =
-        eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
+      eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
     assertThat(trustlyOrderEvents, hasEvent(PaymentErrorReceivedEvent.class));
   }
 
@@ -224,7 +231,7 @@ public class ChargeIntegrationTest {
       trustlyApiResponse.setError(error);
     }
 
-    given(signedApi.sendRequest(any())).willReturn(trustlyApiResponse);
+    given(signedApi.sendRequest(any(),any())).willReturn(trustlyApiResponse);
   }
 
   private enum TrustlyApiResponseResult {
