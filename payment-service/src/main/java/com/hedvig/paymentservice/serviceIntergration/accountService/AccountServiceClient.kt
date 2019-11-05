@@ -26,7 +26,7 @@ interface AccountServiceClient {
     @RequestBody request: NotifyChargeCompletedRequestDto
   ): ResponseEntity<Void>
 
-  @PostMapping("/_/account/backfill/{memberId}/charge/completed")
+  @PostMapping("/_/accounts/backfill/{memberId}/charge/completed")
   fun notifyBackfilledChargeCompleted(
     @PathVariable memberId: String,
     @RequestBody request: NotifyChargeCompletedRequestDto
@@ -37,5 +37,4 @@ interface AccountServiceClient {
     @PathVariable memberId: String,
     @RequestBody request: NotifyChargeInitiatedRequestDto
   ): ResponseEntity<Void>
-
 }

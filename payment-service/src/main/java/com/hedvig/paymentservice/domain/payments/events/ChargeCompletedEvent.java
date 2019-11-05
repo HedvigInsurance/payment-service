@@ -7,9 +7,8 @@ import lombok.Value;
 
 @Value
 public class ChargeCompletedEvent {
-  String memberId;
-
-  UUID transactionId;
-  MonetaryAmount amount;
-  Instant timestamp;
+  public String memberId;
+  public UUID transactionId;
+  public MonetaryAmount amount;
+  public Instant timestamp;
 }

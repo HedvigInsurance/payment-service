@@ -12,17 +12,21 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
-@Profile("BackfillAccount")
-@ProcessingGroup("BackfillAccount")
+@Profile("BackfillCharges")
+@ProcessingGroup("BackfillCharges")
 class BackfillAccountEventListener @Autowired constructor(
   private val accountService: AccountService
 ) {
 
   private val logger = LoggerFactory.getLogger(BackfillAccountEventListener::class.java)
 
+  private val timeOfFirstAutomaticPaymentCharge = Instant.parse("2019-05-31T15:10:00.00Z")
+
   @EventHandler
   fun on(event: ChargeCompletedEvent, @Timestamp timestamp: Instant) {
-    accountService.notifyBackfilledChargeCompleted(event.memberId, event.transactionId, event.amount, timestamp)
-    logger.info("Backfill notification of COMPLETED charge on memberId={} to account-service", event.memberId)
-  }
+      if (timestamp.isBefore(timeOfFirstAutomaticPaymentCharge)) {
+        accountService.notifyBackfilledChargeCompleted(event.memberId, event.transactionId, event.amount, timestamp)
+        logger.info("Backfill notification of COMPLETED charge on memberId={} of amount={} on time {}", event.memberId, event.amount, timestamp)
+      }
+    }
 }
