@@ -27,6 +27,8 @@ class BackfillAccountEventListener @Autowired constructor(
       if (timestamp.isBefore(timeOfFirstAutomaticPaymentCharge)) {
         accountService.notifyBackfilledChargeCompleted(event.memberId, event.transactionId, event.amount, timestamp)
         logger.info("Backfill notification of COMPLETED charge on memberId={} of amount={} on time {}", event.memberId, event.amount, timestamp)
+      } else {
+        logger.info("No charge notification sent to account-service since the event is too new")
       }
     }
 }
