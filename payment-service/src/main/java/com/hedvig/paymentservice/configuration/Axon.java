@@ -32,5 +32,11 @@ public class Axon {
       TrackingEventProcessorConfiguration
         .forSingleThreadedProcessing()
         .andInitialTrackingToken(StreamableMessageSource::createHeadToken));
+
+    config.registerTrackingEventProcessor("BackfillCharges", x ->
+      TrackingEventProcessorConfiguration
+        .forSingleThreadedProcessing()
+        .andBatchSize(100)
+        .andInitialTrackingToken(StreamableMessageSource::createTailToken));
   }
 }

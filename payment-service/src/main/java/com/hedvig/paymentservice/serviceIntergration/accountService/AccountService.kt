@@ -19,6 +19,13 @@ interface AccountService {
     chargedAt: Instant
   ): ResponseEntity<Void>
 
+  fun notifyBackfilledChargeCompleted(
+    memberId: String,
+    transactionId: UUID,
+    amount: MonetaryAmount,
+    chargedAt: Instant
+  ): ResponseEntity<Void>
+
   fun notifyChargeInitiated(
     memberId: String,
     transactionId: UUID,

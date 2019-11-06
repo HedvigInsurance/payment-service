@@ -31,6 +31,15 @@ class AccountServiceImpl @Autowired constructor(
     return accountServiceClient.notifyChargeCompleted(memberId, request)
   }
 
+  override fun notifyBackfilledChargeCompleted(memberId: String, transactionId: UUID, amount: MonetaryAmount, chargedAt: Instant): ResponseEntity<Void> {
+    val request = NotifyChargeCompletedRequestDto(
+      transactionId = transactionId,
+      amount = amount,
+      chargedAt = chargedAt
+    )
+    return accountServiceClient.notifyBackfilledChargeCompleted(memberId, request)
+  }
+
   override fun notifyChargeInitiated(memberId: String, transactionId: UUID, amount: MonetaryAmount, initiatedBy: String?, initiatedAt: Instant): ResponseEntity<Void> {
     val request = NotifyChargeInitiatedRequestDto(
       transactionId = transactionId,
