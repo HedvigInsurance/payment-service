@@ -14,11 +14,17 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 @Service
 public class TransactionAggregatorImpl implements TransactionAggregator {
@@ -67,8 +73,12 @@ public class TransactionAggregatorImpl implements TransactionAggregator {
         .filter(txe -> transactionChargeSources.get(txe.getTransactionId()).equals(ChargeSource.HOUSEHOLD_INSURANCE)),
       transactionGuesses
     );
+    final Map<Year, BigDecimal> houseAggregation = aggregateByUnderwritingYear(allTxEvents.stream()
+        .filter(txe -> transactionChargeSources.get(txe.getTransactionId()).equals(ChargeSource.HOUSE_INSURANCE)),
+      transactionGuesses
+    );
     final Map<Year, BigDecimal> totalAggregation = aggregateByUnderwritingYear(allTxEvents.stream(), transactionGuesses);
-    return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, totalAggregation);
+    return new MonthlyTransactionsAggregations(studentAggregation, householdAggregation, houseAggregation, totalAggregation);
   }
 
   private Map<Year, BigDecimal> aggregateByUnderwritingYear(
