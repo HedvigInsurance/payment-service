@@ -9,6 +9,7 @@ import java.util.Map;
 @Value
 public class MonthlyTransactionsAggregations {
   private Map<Year, BigDecimal> student;
-  private Map<Year, BigDecimal>  household;
-  private Map<Year, BigDecimal>  total;
+  private Map<Year, BigDecimal> household;
+  private Map<Year, BigDecimal> house;
+  private Map<Year, BigDecimal> total;
 }

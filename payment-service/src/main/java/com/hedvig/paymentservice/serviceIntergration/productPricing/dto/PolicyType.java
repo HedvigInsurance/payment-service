@@ -6,5 +6,6 @@ public enum PolicyType {
   STUDENT_RENT,
   STUDENT_BRF,
   SUBLET_RENT,
-  SUBLET_BRF
+  SUBLET_BRF,
+  HOUSE
 }
