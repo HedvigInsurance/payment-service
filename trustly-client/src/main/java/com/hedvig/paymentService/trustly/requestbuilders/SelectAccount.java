@@ -29,6 +29,7 @@ import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.request.RequestParameters;
 import com.hedvig.paymentService.trustly.data.request.requestdata.SelectAccountData;
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
+
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -127,9 +128,9 @@ public class SelectAccount {
     }
 
     public Build unchangeableNationalIdentificationNumber(
-        final String unchangeableNationalIdentificationNumber) {
+      final String unchangeableNationalIdentificationNumber) {
       attributes.put(
-          "UnchangeableNationalIdentificationNumber", unchangeableNationalIdentificationNumber);
+        "UnchangeableNationalIdentificationNumber", unchangeableNationalIdentificationNumber);
       return this;
     }
 
@@ -140,6 +141,11 @@ public class SelectAccount {
 
     public Build email(final String email) {
       attributes.put("Email", email);
+      return this;
+    }
+
+    public Build URLScheme(final String urlSchema) {
+      attributes.put("URLScheme", urlSchema);
       return this;
     }
 

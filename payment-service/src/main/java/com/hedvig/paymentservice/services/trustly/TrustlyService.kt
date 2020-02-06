@@ -23,7 +23,14 @@ import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccou
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.*
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutResponseReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import com.hedvig.paymentservice.query.trustlyOrder.enteties.TrustlyOrderRepository
@@ -50,7 +57,8 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 import javax.money.CurrencyContextBuilder
 import javax.money.CurrencyUnit
 
@@ -68,6 +76,7 @@ class TrustlyService(
   @param:Value("\${hedvig.trustly.non.redirecting.to.botService.successURL}") private val plainSuccessUrl: String,
   @param:Value("\${hedvig.trustly.non.redirecting.to.botService.failURL}") private val plainFailUrl: String,
   @param:Value("\${hedvig.trustly.use.claims.account}") private val useClaimsAccount: Boolean,
+  @param:Value("\${hedvig.trustly.URLScheme}") private val urlSchema: String,
   private val springEnvironment: Environment
 ) {
   private val log = LoggerFactory.getLogger(TrustlyService::class.java)
@@ -312,6 +321,7 @@ class TrustlyService(
     build.email(createMemberEmail(info.memberId))
     build.locale("sv_SE")
     build.nationalIdentificationNumber(info.personalNumber)
+    build.URLScheme(urlSchema)
     val successUrl = when {
       info.redirectingToBotService -> appendTriggerId(redirectingToBotServiceSuccessUrl, info.triggerId)
       clientSuccessUrl != null -> requireValidRedirect(clientSuccessUrl)
