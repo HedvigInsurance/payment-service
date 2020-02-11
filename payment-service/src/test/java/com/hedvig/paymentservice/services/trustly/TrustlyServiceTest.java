@@ -36,7 +36,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
@@ -45,10 +49,13 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.BOT_SERVICE_TRIGGER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_EMAIL;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makeDirectDebitRequest;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.makePaymentRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeastOnce;
@@ -66,6 +73,7 @@ public class TrustlyServiceTest {
   private static final String PLAIN_SUCCESS_URL = "https://hedvig.com/success";
   private static final String PLAIN_FAIL_URL = "https://hedvig.com/failure&triggerId";
   private static final String NOTIFICATION_URL = "https://gateway.test.hedvig.com/notificationHook";
+  private static final String URL_SCHEME = "test";
 
   @Mock
   private SignedAPI signedAPI;
@@ -119,6 +127,7 @@ public class TrustlyServiceTest {
         PLAIN_SUCCESS_URL,
         PLAIN_FAIL_URL,
         false,
+        URL_SCHEME,
         springEnvironment
       );
   }
@@ -147,7 +156,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithMessageId_eqRequestId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -161,7 +170,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithEndUserId_eqRequestId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -174,7 +183,7 @@ public class TrustlyServiceTest {
   public void
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithNotificationURL_eqNotificationUrl() {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -188,7 +197,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithSuccessURL_eqSuccessUrlWithTriggerId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -203,7 +212,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithFailURL_eqFailUrlWithTriggerId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -219,7 +228,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithPlainSuccessURL_eqSuccessUrlWithTriggerId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(false), null, null);
 
@@ -232,7 +241,7 @@ public class TrustlyServiceTest {
   @Test
   public void givenDirectDebitRequest_whenRequestDirectDebitAccountWithClientContext_thenSignedApiIsCalledWithClientContext_eqClientContextSuccessAndFailUrl() {
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(
       makeDirectDebitOrderInfo(false),
@@ -262,7 +271,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithPlainFailURL_eqFailUrlWithTriggerId() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(false), null, null);
 
@@ -277,7 +286,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenRequestDirectDebitAccount_thenSignedApiIsCalledWithEmail_eqCustomerInboxEmail() {
 
     final Response trustlyResponse = makeSelectAccountResponse(TRUSTLY_IFRAME_URL, TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
 
@@ -294,7 +303,7 @@ public class TrustlyServiceTest {
   givenDirectDebitRequest_whenSignedApiThrowsException_thenSelectAccountRequestFailedCommandIsSent() {
 
     TrustlyConnectionException exception = new TrustlyConnectionException(EXCEPTION_MESSAGE);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willThrow(exception);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willThrow(exception);
 
     thrown.expect(RuntimeException.class);
     testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
@@ -308,7 +317,7 @@ public class TrustlyServiceTest {
   givenPaymentRequestAndUUID_whenStartPaymentOrder_thenSignedApiIsCalledWithEmail_eqCustomerInboxEmail() {
 
     final Response trustlyResponse = makeChargeResponse(TRUSTLY_ORDERID);
-    given(signedAPI.sendRequest(requestCaptor.capture(),any())).willReturn(trustlyResponse);
+    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willReturn(trustlyResponse);
 
     testService.startPaymentOrder(makePaymentRequest(), REQUEST_ID);
 
