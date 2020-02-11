@@ -22,3 +22,4 @@ graphiql:
 hedvig:
   trustly:
     validRedirectHosts: []
+    URLScheme: test
