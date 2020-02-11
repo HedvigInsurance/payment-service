@@ -144,8 +144,8 @@ public class SelectAccount {
       return this;
     }
 
-    public Build URLScheme(final String urlSchema) {
-      attributes.put("URLScheme", urlSchema);
+    public Build URLScheme(final String urlScheme) {
+      attributes.put("URLScheme", urlScheme);
       return this;
     }
 
