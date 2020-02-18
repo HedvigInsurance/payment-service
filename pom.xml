@@ -12,6 +12,7 @@
     <modules>
         <module>payment-service</module>
         <module>trustly-client</module>
+        <module>adyen</module>
     </modules>
 
 
