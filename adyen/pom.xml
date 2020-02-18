@@ -76,14 +76,14 @@
             <id>compile</id>
             <phase>compile</phase>
             <goals>
-              <goal>js</goal>
+              <goal>compile</goal>
             </goals>
           </execution>
           <execution>
             <id>test-compile</id>
             <phase>test-compile</phase>
             <goals>
-              <goal>test-js</goal>
+              <goal>test-compile</goal>
             </goals>
           </execution>
         </executions>
