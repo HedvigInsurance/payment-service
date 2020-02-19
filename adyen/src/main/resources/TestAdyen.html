@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.4.0/adyen.css"/>
+  <meta charset="UTF-8">
+  <title>POC Adyen</title>
+
+
+</head>
+<body>
+<script src="https://checkoutshopper-live.adyen.com/checkoutshopper/sdk/3.4.0/adyen.js"></script>
+
+<div id="dropin"></div>
+
+<script>
+const configuration = {
+locale: "en-US",
+environment: "test",
+originKey: "pub.v2.8015543668731488.aHR0cDovL2xvY2FsaG9zdDo2MzM0Mg.z1jcHOLtpIQ3V1Xw_Wo_rvmJPQlm8ribXPjvcF1GIOk",
+paymentMethodsResponse: {"paymentMethods":[{"brands":["mc","visa","amex","maestro","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit Card","type":"scheme"}],"groups":[{"name":"Credit Card","types":["mc","visa","amex","maestro","diners","discover"]}]}
+}
+
+const checkout = new AdyenCheckout(configuration);
+
+const dropin = checkout
+.create('dropin', {
+  paymentMethodsConfiguration: {
+    card: { // Example optional configuration for Cards
+      hasHolderName: true,
+      holderNameRequired: true,
+      enableStoreDetails: true,
+      hideCVC: false, // Change this to true to hide the CVC field for stored cards
+      name: 'Test card Input'
+    }
+  },
+  onSubmit: (state, dropin) => {
+  console.log(state.data)
+    makePayment(state.data)
+      // Your function calling your server to make the /payments request
+      .then(action => {
+        dropin.handleAction(action);
+        // Drop-in handles the action object from the /payments response
+      })
+      .catch(error => {
+        throw Error(error);
+      });
+  },
+  onAdditionalDetails: (state, dropin) => {
+    console.log(state.data)
+
+    makeDetailsCall(state.data)
+      // Your function calling your server to make a /payments/details request
+      .then(action => {
+        dropin.handleAction(action);
+        // Drop-in handles the action object from the /payments/details response
+      })
+      .catch(error => {
+        throw Error(error);
+      });
+  }
+})
+.mount('#dropin');
+
+
+</script>
+
+</body>
+</html>
