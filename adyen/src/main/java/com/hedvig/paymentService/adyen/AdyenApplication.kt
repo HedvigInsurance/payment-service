@@ -227,15 +227,31 @@ fun makePaymentWithToken(): Any {
   paymentsRequest.paymentMethod = paymentMethodDetails
 
   paymentsRequest.returnUrl = "http://www.hedvig.com"
-  
+
   val paymentsResponse = checkout.payments(paymentsRequest)
 
   return paymentsResponse
 }
 
+
+fun getCardDetails(): Any {
+  val client = Client(
+    "AQEjhmfuXNWTK0Qc+iSYl2AuruO6asUZ5ply6PqxJFV7zNpfI3YQwV1bDb7kfNy1WIxIIkxgBw==-t/rRF15rJzW/bib2yDV5vGIL9AdzPvSMeRXcvojGiCA=-#t.:+R5>++VJg5%V",
+    Environment.TEST
+  )
+
+  val checkout = Checkout(client)
+
+  return checkout.paymentMethods(
+    PaymentMethodsRequest()
+      .merchantAccount("HedvigABCOM")
+      .shopperReference("Hedvig-12345")
+  )
+}
+
 fun main() {
-  val methods = getAvailablePaymentMethods()
-  println(Gson().toJson(methods))
+//  val methods = getAvailablePaymentMethods()
+//  println(Gson().toJson(methods))
 
 //  val payment = makePayment()
 //  println(Gson().toJson(payment))
@@ -243,7 +259,10 @@ fun main() {
 //  val tokenize = storeToken()
 //  println(Gson().toJson(tokenize))
 
-  val paymentWithToken = makePaymentWithToken()
-  println(Gson().toJson(paymentWithToken))
+//  val paymentWithToken = makePaymentWithToken()
+//  println(Gson().toJson(paymentWithToken))
+
+  val cardDetails = getCardDetails()
+  println(Gson().toJson(cardDetails))
 }
 
