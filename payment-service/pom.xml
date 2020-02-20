@@ -247,6 +247,14 @@
       <artifactId>kotlin-logging</artifactId>
       <version>1.6.22</version>
     </dependency>
+
+    <!-- Adyen -->
+    <dependency>
+      <groupId>com.adyen</groupId>
+      <artifactId>adyen-java-api-library</artifactId>
+      <version>4.1.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
