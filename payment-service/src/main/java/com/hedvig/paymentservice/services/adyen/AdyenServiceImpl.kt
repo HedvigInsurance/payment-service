@@ -1,8 +1,6 @@
 package com.hedvig.paymentservice.services.adyen
 
-import com.adyen.Client
 import com.adyen.constants.ApiConstants
-import com.adyen.enums.Environment
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodsRequest
@@ -12,12 +10,11 @@ import com.adyen.service.Checkout
 import org.springframework.stereotype.Service
 
 @Service
-class AdyenServiceImpl : AdyenService {
+class AdyenServiceImpl(
+  val adyenCheckout: Checkout
+) : AdyenService {
 
   override fun registerToken(): Any {
-    val client = Client("", Environment.TEST) //TODO: config
-    val checkout = Checkout(client)
-
     val paymentsRequest = PaymentsRequest()
       .addEncryptedCardData("", "", "", "", "")
       .amount(Amount().value(0L).currency("SEK"))
@@ -29,13 +26,10 @@ class AdyenServiceImpl : AdyenService {
       .shopperReference("MEMBER_ID")
       .storePaymentMethod(true)
 
-    return checkout.payments(paymentsRequest)
+    return adyenCheckout.payments(paymentsRequest)
   }
 
   override fun chargeMemberWithToken(): Any {
-    val client = Client("", Environment.TEST) //TODO: config
-    val checkout = Checkout(client)
-
     val paymentsRequest = PaymentsRequest()
       .amount(Amount().value(1500L).currency("SEK"))
       .merchantAccount("HEDVIG")
@@ -51,17 +45,14 @@ class AdyenServiceImpl : AdyenService {
       .shopperReference("MEMBER_ID")
       .storePaymentMethod(true)
 
-    return checkout.payments(paymentsRequest)
+    return adyenCheckout.payments(paymentsRequest)
   }
 
   override fun fetchCardDetails(): Any {
-    val client = Client("", Environment.TEST) //TODO: config
-    val checkout = Checkout(client)
-
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount("HEDVIG")
       .shopperReference("MEMBER_ID")
 
-    return checkout.paymentMethods(paymentMethodsRequest)
+    return adyenCheckout.paymentMethods(paymentMethodsRequest)
   }
 }
