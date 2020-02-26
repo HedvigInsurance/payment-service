@@ -8,13 +8,16 @@ import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.services.adyen.dtos.CardRegistrationRequest
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
 class AdyenServiceImpl(
   val adyenCheckout: Checkout,
+  val memberRepository: MemberRepository,
   val uuidGenerator: UUIDGenerator,
   @param:Value("\${hedvig.adyen.merchantAccount:HEDVIG}") val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl:URL}") val returnUrl: String
@@ -43,10 +46,16 @@ class AdyenServiceImpl(
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun chargeMemberWithToken(): Any {
+  override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {
+    val member = memberRepository.findById(req.memberId).orElse(null) ?: TODO("Shall we throw an exception?")
+
     val paymentsRequest = PaymentsRequest()
-      .amount(Amount().value(1500L).currency("SEK"))
-      .merchantAccount("HEDVIG")
+      .amount(
+        Amount()
+          .value(req.amount.number.longValueExact() * 100)
+          .currency(req.amount.currency.currencyCode)
+      )
+      .merchantAccount(merchantAccount)
       .paymentMethod(
         DefaultPaymentMethodDetails()
           .type(ApiConstants.PaymentMethodType.TYPE_SCHEME)
@@ -54,18 +63,18 @@ class AdyenServiceImpl(
       )
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference("ORDER_NUMBER")
-      .returnUrl("URL")
+      .returnUrl(returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
-      .shopperReference("MEMBER_ID")
+      .shopperReference(req.memberId)
       .storePaymentMethod(true)
 
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun fetchCardDetails(): Any {
+  override fun fetchCardDetails(memberId: String): Any {
     val paymentMethodsRequest = PaymentMethodsRequest()
-      .merchantAccount("HEDVIG")
-      .shopperReference("MEMBER_ID")
+      .merchantAccount(merchantAccount)
+      .shopperReference(memberId)
 
     return adyenCheckout.paymentMethods(paymentMethodsRequest)
   }

@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
+import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.trustly.TrustlyService
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo.Companion.fromMember
 import graphql.schema.DataFetchingEnvironment
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest
 @Component
 class Mutation(
   private val trustlyService: TrustlyService,
+  private val adyenService: AdyenService,
   private val memberService: MemberService
 ) : GraphQLMutationResolver {
 
@@ -25,7 +27,7 @@ class Mutation(
   ): DirectDebitResponse? {
     val memberId = getToken(env)
     if (memberId == null) {
-      logger.error("GetBankAccountInfo - hedvig.token is missing")
+      logger.error("RegisterDirectDebit - hedvig.token is missing")
       return null
     }
     val optionalMember =
@@ -42,10 +44,30 @@ class Mutation(
     return DirectDebitResponse.fromDirectDebitResposne(response)
   }
 
+  fun registerCard(
+    env: DataFetchingEnvironment
+  ): Any? {
+    val memberId = getToken(env)
+    if (memberId == null) {
+      logger.error("registerCard - hedvig.token is missing")
+      return null
+    }
+    val optionalMember =
+      memberService.getMember(memberId)
+    if (!optionalMember.isPresent) {
+      return null
+    }
+    val member = optionalMember.get()
+//
+//    val response = adyenService.registerToken()
+
+    return null
+  }
+
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {
     val memberId = getToken(env)
     if (memberId == null) {
-      logger.error("GetBankAccountInfo - hedvig.token is missing")
+      logger.error("cancelDirectDebitRequest - hedvig.token is missing")
       return CancelDirectDebitStatus.DECLINED_MISSING_TOKEN
     }
     return if (trustlyService.cancelDirectDebitAccountRequest(memberId)) {
