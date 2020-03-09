@@ -12,6 +12,17 @@
   <name>payment-service</name>
   <description></description>
 
+  <repositories>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>bintray-hedvig-hedvig-java</id>
+      <name>bintray</name>
+      <url>https://dl.bintray.com/hedvig/hedvig-java</url>
+    </repository>
+  </repositories>
+
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -219,23 +230,21 @@
       <artifactId>analytics</artifactId>
       <version>2.1.1</version>
     </dependency>
-    <!--- GraphQl Dependencies -->
+
+    <!-- GraphQL -->
     <dependency>
-      <groupId>com.graphql-java</groupId>
-      <artifactId>graphql-spring-boot-starter</artifactId>
-      <version>5.0.2</version>
+      <groupId>com.hedvig.graphql.commons</groupId>
+      <artifactId>graphql-commons</artifactId>
+      <version>1.0.4</version>
     </dependency>
     <dependency>
-      <groupId>com.graphql-java</groupId>
-      <artifactId>graphql-java-tools</artifactId>
-      <version>5.2.4</version>
+      <groupId>com.graphql-java-kickstart</groupId>
+      <artifactId>graphql-spring-boot-starter-test</artifactId>
+      <version>5.11.1</version>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.graphql-java</groupId>
-      <artifactId>graphiql-spring-boot-starter</artifactId>
-      <version>5.0.2</version>
-    </dependency>
-    <!--- GraphQl Dependencies -->
+    <!-- GraphQL -->
+
     <dependency>
       <groupId>javax.interceptor</groupId>
       <artifactId>javax.interceptor-api</artifactId>
