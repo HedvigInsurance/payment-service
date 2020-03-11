@@ -1,11 +1,13 @@
 package com.hedvig.paymentservice.graphQl
 
+import com.adyen.model.checkout.PaymentMethodsResponse
 import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
+import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
 import graphql.schema.DataFetchingEnvironment
 import org.slf4j.LoggerFactory
@@ -14,7 +16,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 @Component
-class Query(private val bankAccountService: BankAccountService) : GraphQLQueryResolver {
+class Query(
+  private val bankAccountService: BankAccountService,
+  private val adyenService: AdyenService
+) : GraphQLQueryResolver {
   fun bankAccount(env: DataFetchingEnvironment): BankAccount {
     val memberId: String = env.getToken()
     return bankAccountService.getBankAccount(memberId)
@@ -28,6 +33,19 @@ class Query(private val bankAccountService: BankAccountService) : GraphQLQueryRe
   fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus {
     val memberId: String = env.getToken()
     return bankAccountService.getDirectDebitStatus(memberId)
+  }
+
+  fun getAvailablePaymentMethods(
+    env: DataFetchingEnvironment
+  ): PaymentMethodsResponse {
+    return adyenService.getAvailablePaymentMethods(
+    )
+  }
+
+  fun getCardDetails(
+    env: DataFetchingEnvironment
+  ): PaymentMethodsResponse {
+    return adyenService.getCardDetails(env.getToken())
   }
 
   @Deprecated("")

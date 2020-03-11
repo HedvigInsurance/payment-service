@@ -4,12 +4,13 @@ import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodsRequest
+import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
+import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
-import com.hedvig.paymentservice.services.adyen.dtos.CardRegistrationRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -22,28 +23,34 @@ class AdyenServiceImpl(
   @param:Value("\${hedvig.adyen.merchantAccount:HEDVIG}") val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl:URL}") val returnUrl: String
 ) : AdyenService {
+  override fun getAvailablePaymentMethods(): PaymentMethodsResponse {
+    val paymentMethodsRequest = PaymentMethodsRequest()
+      .merchantAccount(merchantAccount)
+      .countryCode("NO")
+      .amount(
+        Amount()
+          .value(10000)
+          .currency("NOK")
+      )
+      .channel(PaymentMethodsRequest.ChannelEnum.WEB)
+    return adyenCheckout.paymentMethods(paymentMethodsRequest)
+  }
 
-  override fun registerToken(req: CardRegistrationRequest): Any {
+  override fun tokenizeCard(req: PaymentsRequest, memberId: String): PaymentsResponse {
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
-      .addEncryptedCardData(
-        req.encryptedCardData.encryptedCardNumber,
-        req.encryptedCardData.encryptedExpiryMonth,
-        req.encryptedCardData.encryptedExpiryYear,
-        req.encryptedCardData.encryptedSecurityCode,
-        req.encryptedCardData.holderName
-      )
-      .amount(Amount().value(0L).currency(req.desiredCurrency))
+      .paymentMethod(req.paymentMethod)
+      .amount(Amount().value(0L).currency("NOK")) //TODO: change me
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(hedvigOrderId.toString())
       .returnUrl(returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
-      .shopperReference(req.member.memberId)
+      .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    return adyenCheckout.payments(paymentsRequest)
+    return adyenCheckout.payments(req)
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {
@@ -71,7 +78,7 @@ class AdyenServiceImpl(
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun fetchCardDetails(memberId: String): Any {
+  override fun getCardDetails(memberId: String): PaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .shopperReference(memberId)

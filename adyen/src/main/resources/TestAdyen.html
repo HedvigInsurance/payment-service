@@ -17,7 +17,7 @@ const configuration = {
 locale: "en-US",
 environment: "test",
 originKey: "pub.v2.8015543668731488.aHR0cDovL2xvY2FsaG9zdDo2MzM0Mg.z1jcHOLtpIQ3V1Xw_Wo_rvmJPQlm8ribXPjvcF1GIOk",
-paymentMethodsResponse: {"paymentMethods":[{"brands":["mc","visa","amex","maestro","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit Card","type":"scheme"}],"groups":[{"name":"Credit Card","types":["mc","visa","amex","maestro","diners","discover"]}]}
+paymentMethodsResponse: {"paymentMethods":[{"brands":["mc","visa","amex","maestro","diners","discover"],"details":[{"key":"encryptedCardNumber","type":"cardToken"},{"key":"encryptedSecurityCode","type":"cardToken"},{"key":"encryptedExpiryMonth","type":"cardToken"},{"key":"encryptedExpiryYear","type":"cardToken"},{"key":"holderName","optional":true,"type":"text"}],"name":"Credit Card","type":"scheme"},{"details":[{"key":"paywithgoogle.token","type":"payWithGoogleToken"}],"name":"Google Pay","supportsRecurring":true,"type":"paywithgoogle"}],"groups":[{"name":"Credit Card","types":["mc","visa","amex","maestro","diners","discover"]}]}
 }
 
 const checkout = new AdyenCheckout(configuration);

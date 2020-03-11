@@ -250,8 +250,8 @@ fun getCardDetails(): Any {
 }
 
 fun main() {
-//  val methods = getAvailablePaymentMethods()
-//  println(Gson().toJson(methods))
+  val methods = getAvailablePaymentMethods()
+  println(Gson().toJson(methods))
 
 //  val payment = makePayment()
 //  println(Gson().toJson(payment))
@@ -262,7 +262,7 @@ fun main() {
 //  val paymentWithToken = makePaymentWithToken()
 //  println(Gson().toJson(paymentWithToken))
 
-  val cardDetails = getCardDetails()
-  println(Gson().toJson(cardDetails))
+//  val cardDetails = getCardDetails()
+//  println(Gson().toJson(cardDetails))
 }
 
