@@ -12,6 +12,7 @@ import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
@@ -20,7 +21,7 @@ class AdyenServiceImpl(
   val adyenCheckout: Checkout,
   val memberRepository: MemberRepository,
   val uuidGenerator: UUIDGenerator,
-  @param:Value("\${hedvig.adyen.merchantAccount:HEDVIG}") val merchantAccount: String,
+  @param:Value("\${hedvig.adyen.merchantAccount:HedvigABCOM}") val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl:URL}") val returnUrl: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): PaymentMethodsResponse {
@@ -50,7 +51,14 @@ class AdyenServiceImpl(
       .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    return adyenCheckout.payments(req)
+    var response: PaymentsResponse? = null
+    try {
+      response = adyenCheckout.payments(paymentsRequest)
+    } catch (ex: Exception) {
+      logger.error("Tokenization with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
+      throw ex
+    }
+    return response!!
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {
@@ -84,5 +92,9 @@ class AdyenServiceImpl(
       .shopperReference(memberId)
 
     return adyenCheckout.paymentMethods(paymentMethodsRequest)
+  }
+
+  companion object {
+    val logger = LoggerFactory.getLogger(this::class.java)
   }
 }
