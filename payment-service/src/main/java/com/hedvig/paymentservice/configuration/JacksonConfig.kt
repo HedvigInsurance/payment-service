@@ -9,24 +9,26 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
+import org.zalando.jackson.datatype.money.MoneyModule
 
 @Configuration
 class JacksonConfig {
-
   @Bean
   fun objectMapper(): ObjectMapper {
-    val module = SimpleModule("PaymentMethodDetailsModule", Version.unknownVersion())
+    val paymentMethodDetailsModule = SimpleModule("PaymentMethodDetailsModule", Version.unknownVersion())
 
-    module.setAbstractTypes(
+    paymentMethodDetailsModule.setAbstractTypes(
       SimpleAbstractTypeResolver().addMapping(
         PaymentMethodDetails::class.java,
         DefaultPaymentMethodDetails::class.java
       )
     )
-
     return Jackson2ObjectMapperBuilder.json()
+
       .modules(
-        module
+        paymentMethodDetailsModule,
+        MoneyModule()
+          .withQuotedDecimalNumbers()
       )
       .build()
   }
