@@ -16,7 +16,7 @@ type Query {
 type Mutation {
   registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
   cancelDirectDebitRequest : CancelDirectDebitStatus!
-  tokenizeCard (req: PaymentsRequest) : PaymentsResponse
+  tokenizeCard (req: PaymentsRequest) : PaymentsResponse!
 }
 
 type BankAccount {
