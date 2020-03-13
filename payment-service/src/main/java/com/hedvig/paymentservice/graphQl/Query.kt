@@ -35,17 +35,17 @@ class Query(
     return bankAccountService.getDirectDebitStatus(memberId)
   }
 
-  fun getAvailablePaymentMethods(
+  fun availablePaymentMethods(
     env: DataFetchingEnvironment
   ): PaymentMethodsResponse {
     return adyenService.getAvailablePaymentMethods(
     )
   }
 
-  fun getCardDetails(
+  fun activePaymentMethods(
     env: DataFetchingEnvironment
   ): PaymentMethodsResponse {
-    return adyenService.getCardDetails(env.getToken())
+    return adyenService.getActivePaymentMethods(env.getToken())
   }
 
   @Deprecated("")

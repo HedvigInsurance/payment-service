@@ -9,21 +9,23 @@ type Query {
   nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus!
   directDebitStatus: DirectDebitStatus!
-  getAvailablePaymentMethods: PaymentMethodsResponse!
-  getCardDetails: PaymentMethodsResponse!
+  """Returns all the available payments methods before the client requests a tokenization"""
+  availablePaymentMethods: PaymentMethodsResponse!
+  """Returns the active payment method which the member chose to tokenize"""
+  activePaymentMethods: PaymentMethodsResponse!
 }
 
 type Mutation {
   registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
   cancelDirectDebitRequest : CancelDirectDebitStatus!
-  tokenizeCard (req: PaymentsRequest) : PaymentsResponse!
+  """Tokenize payment details per member in order to be used in future and returns the status"""
+  tokenizePaymentDetails (req: PaymentsRequest) : PaymentsResponse!
 }
 
 type BankAccount {
   bankName: String!
   descriptor: String!
   directDebitStatus: DirectDebitStatus
-
 }
 
 input RegisterDirectDebitClientContext {

@@ -47,7 +47,7 @@ class GraphQlMutationTest {
   fun tokenizeCard() {
     Mockito.`when`(memberService.getMember(Mockito.any())).thenReturn(Optional.of(makeMember()))
 
-    Mockito.`when`(adyenService.tokenizeCard(anyObject(), Mockito.anyString()))
+    Mockito.`when`(adyenService.tokenizePaymentDetails(anyObject(), Mockito.anyString()))
       .thenAnswer { PaymentsResponse().resultCode(PaymentsResponse.ResultCodeEnum.AUTHORISED) }
 
     graphQLTestTemplate.addHeader("hedvig.token", MEMBER_ID_ONE)
@@ -55,7 +55,7 @@ class GraphQlMutationTest {
     val response = graphQLTestTemplate.perform("/mutations/registerCard.graphql", null)
 
     assert(response.isOk)
-    assert(response.readTree()["data"]["tokenizeCard"].textValue().contains("AUTHORISED"))
+    assert(response.readTree()["data"]["tokenizePaymentDetails"].textValue().contains("AUTHORISED"))
   }
 
 

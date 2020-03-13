@@ -37,7 +37,7 @@ class AdyenServiceImpl(
     return adyenCheckout.paymentMethods(paymentMethodsRequest)
   }
 
-  override fun tokenizeCard(req: PaymentsRequest, memberId: String): PaymentsResponse {
+  override fun tokenizePaymentDetails(req: PaymentsRequest, memberId: String): PaymentsResponse {
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
@@ -86,7 +86,7 @@ class AdyenServiceImpl(
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun getCardDetails(memberId: String): PaymentMethodsResponse {
+  override fun getActivePaymentMethods(memberId: String): PaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .shopperReference(memberId)

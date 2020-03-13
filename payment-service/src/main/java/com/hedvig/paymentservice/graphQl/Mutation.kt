@@ -45,7 +45,7 @@ class Mutation(
     return DirectDebitResponse.fromDirectDebitResposne(response)
   }
 
-  fun tokenizeCard(
+  fun tokenizePaymentDetails(
     paymentRequest: PaymentsRequest,
     env: DataFetchingEnvironment
   ): PaymentsResponse? {
@@ -61,7 +61,7 @@ class Mutation(
     }
     val member = optionalMember.get()
 
-    return adyenService.tokenizeCard(paymentRequest, member.memberId)
+    return adyenService.tokenizePaymentDetails(paymentRequest, member.memberId)
   }
 
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {
