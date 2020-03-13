@@ -4,6 +4,7 @@ import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsResponse
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.hedvig.graphql.commons.scalars.LocalDateScalar
 import graphql.language.StringValue
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
@@ -142,6 +143,11 @@ class GraphQLConfiguration(
           }
         }
       }).build()
+  }
+
+  @Bean
+  fun localDateScalar(): GraphQLScalarType {
+    return LocalDateScalar()
   }
 
 }
