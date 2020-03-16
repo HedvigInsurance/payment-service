@@ -19,11 +19,15 @@ type Mutation {
   registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
   cancelDirectDebitRequest : CancelDirectDebitStatus!
   """Tokenize payment details per member in order to be used in future and returns the status"""
-  tokenizePaymentDetails (req: TokenizationRequest) : PaymentsResponse!
+  tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
 }
 
 input TokenizationRequest{
   paymentsRequest: PaymentsRequest!
+}
+
+type TokenizationResponse{
+  paymentsResponse: PaymentsResponse
 }
 
 type BankAccount {

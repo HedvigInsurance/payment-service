@@ -7,10 +7,10 @@ import com.adyen.model.checkout.PaymentMethodsRequest
 import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
-import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.slf4j.LoggerFactory
@@ -38,7 +38,7 @@ class AdyenServiceImpl(
     return adyenCheckout.paymentMethods(paymentMethodsRequest)
   }
 
-  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): PaymentsResponse {
+  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): TokenizationResponse {
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
@@ -52,9 +52,9 @@ class AdyenServiceImpl(
       .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    var response: PaymentsResponse? = null
+    var response: TokenizationResponse? = null
     try {
-      response = adyenCheckout.payments(paymentsRequest)
+      response = TokenizationResponse(paymentsResponse = adyenCheckout.payments(paymentsRequest))
     } catch (ex: Exception) {
       logger.error("Tokenization with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
       throw ex

@@ -1,12 +1,12 @@
 package com.hedvig.paymentservice.graphQl
 
-import com.adyen.model.checkout.PaymentsResponse
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.trustly.TrustlyService
@@ -48,7 +48,7 @@ class Mutation(
   fun tokenizePaymentDetails(
     request: TokenizationRequest,
     env: DataFetchingEnvironment
-  ): PaymentsResponse? {
+  ): TokenizationResponse? {
     val memberId = env.getTokenOrNull()
     if (memberId == null) {
       logger.error("registerCard - hedvig.token is missing")

@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.graphQl
 import com.adyen.model.checkout.PaymentsResponse
 import com.graphql.spring.boot.test.GraphQLTestTemplate
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration
+import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member
 import com.hedvig.paymentservice.services.adyen.AdyenService
@@ -44,18 +45,18 @@ class GraphQlMutationTest {
   }
 
   @Test
-  fun tokenizeCard() {
+  fun tokenizePaymentMethods() {
     Mockito.`when`(memberService.getMember(Mockito.any())).thenReturn(Optional.of(makeMember()))
 
     Mockito.`when`(adyenService.tokenizePaymentDetails(anyObject(), Mockito.anyString()))
-      .thenAnswer { PaymentsResponse().resultCode(PaymentsResponse.ResultCodeEnum.AUTHORISED) }
+      .thenAnswer { TokenizationResponse(PaymentsResponse().resultCode(PaymentsResponse.ResultCodeEnum.AUTHORISED)) }
 
     graphQLTestTemplate.addHeader("hedvig.token", MEMBER_ID_ONE)
 
     val response = graphQLTestTemplate.perform("/mutations/registerCard.graphql", null)
 
     assert(response.isOk)
-    assert(response.readTree()["data"]["tokenizePaymentDetails"].textValue().contains("AUTHORISED"))
+    assert(response.readTree()["data"]["tokenizePaymentDetails"]["paymentsResponse"].textValue().contains("AUTHORISED"))
   }
 
 
