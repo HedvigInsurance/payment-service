@@ -1,12 +1,12 @@
 package com.hedvig.paymentservice.graphQl
 
-import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsResponse
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
+import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.trustly.TrustlyService
@@ -46,7 +46,7 @@ class Mutation(
   }
 
   fun tokenizePaymentDetails(
-    paymentRequest: PaymentsRequest,
+    request: TokenizationRequest,
     env: DataFetchingEnvironment
   ): PaymentsResponse? {
     val memberId = env.getTokenOrNull()
@@ -61,7 +61,7 @@ class Mutation(
     }
     val member = optionalMember.get()
 
-    return adyenService.tokenizePaymentDetails(paymentRequest, member.memberId)
+    return adyenService.tokenizePaymentDetails(request, member.memberId)
   }
 
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {

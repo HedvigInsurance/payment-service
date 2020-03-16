@@ -10,6 +10,7 @@ import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.slf4j.LoggerFactory
@@ -37,11 +38,11 @@ class AdyenServiceImpl(
     return adyenCheckout.paymentMethods(paymentMethodsRequest)
   }
 
-  override fun tokenizePaymentDetails(req: PaymentsRequest, memberId: String): PaymentsResponse {
+  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): PaymentsResponse {
     val hedvigOrderId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
-      .paymentMethod(req.paymentMethod)
+      .paymentMethod(req.paymentsRequest.paymentMethod)
       .amount(Amount().value(0L).currency("NOK")) //TODO: change me
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
