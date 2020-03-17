@@ -77,9 +77,9 @@ enum CancelDirectDebitStatus {
 
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
 scalar LocalDate
-# A representation of Adyen's PaymentMethodsResponse
+# A String-representation of Adyen's PaymentMethodsResponse
 scalar PaymentMethodsResponse
-# A representation of Adyen's payments request
+# A String-representation of Adyen's payments request
 scalar PaymentsRequest
-# A representation of Adyen's payments respone
+# A String-representation of Adyen's payments respone
 scalar PaymentsResponse
