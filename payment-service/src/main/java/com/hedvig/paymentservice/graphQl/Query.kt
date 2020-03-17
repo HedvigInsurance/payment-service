@@ -1,9 +1,10 @@
 package com.hedvig.paymentservice.graphQl
 
-import com.adyen.model.checkout.PaymentMethodsResponse
 import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
+import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
@@ -37,14 +38,13 @@ class Query(
 
   fun availablePaymentMethods(
     env: DataFetchingEnvironment
-  ): PaymentMethodsResponse {
-    return adyenService.getAvailablePaymentMethods(
-    )
+  ): AvailablePaymentMethodsResponse {
+    return adyenService.getAvailablePaymentMethods()
   }
 
   fun activePaymentMethods(
     env: DataFetchingEnvironment
-  ): PaymentMethodsResponse {
+  ): ActivePaymentMethodsResponse {
     return adyenService.getActivePaymentMethods(env.getToken())
   }
 

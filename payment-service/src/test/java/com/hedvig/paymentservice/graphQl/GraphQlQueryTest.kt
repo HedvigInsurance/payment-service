@@ -4,6 +4,8 @@ import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.RecurringDetail
 import com.graphql.spring.boot.test.GraphQLTestTemplate
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration
+import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
 import org.junit.Test
@@ -32,19 +34,42 @@ class GraphQlQueryTest {
   private lateinit var adyenService: AdyenService
 
   @Test
-  fun registerCard() {
+  fun availablePaymentMethods() {
     Mockito.`when`(adyenService.getAvailablePaymentMethods())
       .thenReturn(
-        PaymentMethodsResponse()
-          .addOneClickPaymentMethodsItem(
-            RecurringDetail().name("Test")
-          )
+        AvailablePaymentMethodsResponse(
+          PaymentMethodsResponse()
+            .addOneClickPaymentMethodsItem(
+              RecurringDetail().name("Test")
+            )
+        )
       )
 
     graphQLTestTemplate.addHeader("hedvig.token", "123")
 
-    val response = graphQLTestTemplate.perform("/queries/getAvailablePaymentMethods.graphql", null)
+    val response = graphQLTestTemplate.perform("/queries/availablePaymentMethods.graphql", null)
 
     assert(response.isOk)
+    assert(response.readTree()["data"]["availablePaymentMethods"].toString().contains("Test"))
+  }
+
+  @Test
+  fun activePaymentMethods() {
+    Mockito.`when`(adyenService.getActivePaymentMethods(Mockito.anyString()))
+      .thenReturn(
+        ActivePaymentMethodsResponse(
+          PaymentMethodsResponse()
+            .addOneClickPaymentMethodsItem(
+              RecurringDetail().name("Test")
+            )
+        )
+      )
+
+    graphQLTestTemplate.addHeader("hedvig.token", "123")
+
+    val response = graphQLTestTemplate.perform("/queries/activePaymentMethods.graphql", null)
+
+    assert(response.isOk)
+    assert(response.readTree()["data"]["activePaymentMethods"].toString().contains("Test"))
   }
 }

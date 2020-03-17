@@ -4,11 +4,12 @@ import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodsRequest
-import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -25,7 +26,7 @@ class AdyenServiceImpl(
   @param:Value("\${hedvig.adyen.merchantAccount:HedvigABCOM}") val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl:URL}") val returnUrl: String
 ) : AdyenService {
-  override fun getAvailablePaymentMethods(): PaymentMethodsResponse {
+  override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .countryCode("NO")
@@ -35,7 +36,7 @@ class AdyenServiceImpl(
           .currency("NOK")
       )
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
-    return adyenCheckout.paymentMethods(paymentMethodsRequest)
+    return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
 
   override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): TokenizationResponse {
@@ -87,12 +88,11 @@ class AdyenServiceImpl(
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun getActivePaymentMethods(memberId: String): PaymentMethodsResponse {
+  override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .shopperReference(memberId)
-
-    return adyenCheckout.paymentMethods(paymentMethodsRequest)
+    return ActivePaymentMethodsResponse(adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
 
   companion object {

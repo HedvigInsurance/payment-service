@@ -10,9 +10,9 @@ type Query {
   registerAccountProcessingStatus : RegisterAccountProcessingStatus!
   directDebitStatus: DirectDebitStatus!
   """Returns all the available payments methods before the client requests a tokenization"""
-  availablePaymentMethods: PaymentMethodsResponse!
+  availablePaymentMethods: AvailablePaymentMethodsResponse!
   """Returns the active payment method which the member chose to tokenize"""
-  activePaymentMethods: PaymentMethodsResponse!
+  activePaymentMethods: ActivePaymentMethodsResponse!
 }
 
 type Mutation {
@@ -20,6 +20,14 @@ type Mutation {
   cancelDirectDebitRequest : CancelDirectDebitStatus!
   """Tokenize payment details per member in order to be used in future and returns the status"""
   tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
+}
+
+type AvailablePaymentMethodsResponse {
+  paymentMethodsResponse: PaymentMethodsResponse!
+}
+
+type ActivePaymentMethodsResponse {
+  paymentMethodsResponse: PaymentMethodsResponse!
 }
 
 input TokenizationRequest{
