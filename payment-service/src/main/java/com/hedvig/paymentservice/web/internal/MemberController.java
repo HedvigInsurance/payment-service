@@ -74,6 +74,8 @@ public class MemberController {
 
     val res = new HashMap<String, String>();
     res.put("memberId", memberId);
+
+    log.info("Member was created with memberId {}",memberId);
     return ResponseEntity.ok().body(res);
   }
 
