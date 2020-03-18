@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.trustlyOrder.sagas;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.model.AggregateNotFoundException;
@@ -13,6 +14,7 @@ import org.axonframework.spring.stereotype.Saga;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Saga
+@Slf4j
 public class AccountCreationSaga {
 
   @Autowired
@@ -25,6 +27,7 @@ public class AccountCreationSaga {
     try {
       updateTrustlyAccount(event);
     } catch (AggregateNotFoundException e) {
+      log.info("Member was created [MemberId {} ] Since AggregateNotFoundException was thrown when receiving AccountNotificationReceivedEvent", event.getMemberId());
       commandGateway.sendAndWait(new CreateMemberCommand(event.getMemberId()));
       updateTrustlyAccount(event);
     }
