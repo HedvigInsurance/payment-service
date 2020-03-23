@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-public class Member {
+public class
+Member {
 
   @Id
   public String id;
@@ -24,6 +25,8 @@ public class Member {
   Map<UUID, Transaction> transactions = new HashMap<>();
 
   String trustlyAccountNumber;
+
+  String adyenAccountId;
 
   @Enumerated(EnumType.STRING)
   DirectDebitStatus directDebitStatus;
@@ -54,6 +57,10 @@ public class Member {
     return this.trustlyAccountNumber;
   }
 
+  public String getAdyenAccountId() {
+    return this.adyenAccountId;
+  }
+
   public DirectDebitStatus getDirectDebitStatus() {
     return this.directDebitStatus;
   }
@@ -76,6 +83,10 @@ public class Member {
 
   public void setTrustlyAccountNumber(String trustlyAccountNumber) {
     this.trustlyAccountNumber = trustlyAccountNumber;
+  }
+
+  public void setAdyenAccountId(String adyenAccountId) {
+    this.adyenAccountId = adyenAccountId;
   }
 
   public void setDirectDebitStatus(DirectDebitStatus directDebitStatus) {
@@ -106,6 +117,10 @@ public class Member {
     final Object other$trustlyAccountNumber = other.getTrustlyAccountNumber();
     if (this$trustlyAccountNumber == null ? other$trustlyAccountNumber != null : !this$trustlyAccountNumber.equals(other$trustlyAccountNumber))
       return false;
+    final Object this$adyenAccountId = this.getAdyenAccountId();
+    final Object other$adyenAccountId = other.getAdyenAccountId();
+    if (this$adyenAccountId == null ? other$adyenAccountId != null : !this$adyenAccountId.equals(other$adyenAccountId))
+      return false;
     final Object this$directDebitStatus = this.getDirectDebitStatus();
     final Object other$directDebitStatus = other.getDirectDebitStatus();
     if (this$directDebitStatus == null ? other$directDebitStatus != null : !this$directDebitStatus.equals(other$directDebitStatus))
@@ -133,6 +148,8 @@ public class Member {
     result = result * PRIME + ($transactions == null ? 43 : $transactions.hashCode());
     final Object $trustlyAccountNumber = this.getTrustlyAccountNumber();
     result = result * PRIME + ($trustlyAccountNumber == null ? 43 : $trustlyAccountNumber.hashCode());
+    final Object $adyenAccountId = this.getAdyenAccountId();
+    result = result * PRIME + ($adyenAccountId == null ? 43 : $adyenAccountId.hashCode());
     final Object $directDebitStatus = this.getDirectDebitStatus();
     result = result * PRIME + ($directDebitStatus == null ? 43 : $directDebitStatus.hashCode());
     final Object $bank = this.getBank();
@@ -143,6 +160,6 @@ public class Member {
   }
 
   public String toString() {
-    return "Member(id=" + this.getId() + ", transactions=" + this.getTransactions() + ", trustlyAccountNumber=" + this.getTrustlyAccountNumber() + ", directDebitStatus=" + this.getDirectDebitStatus() + ", bank=" + this.getBank() + ", descriptor=" + this.getDescriptor() + ")";
+    return "Member(id=" + this.getId() + ", transactions=" + this.getTransactions() + ", trustlyAccountNumber=" + this.getTrustlyAccountNumber() + ", adyenAccountId=" + this.getAdyenAccountId() + ", directDebitStatus=" + this.getDirectDebitStatus() + ", bank=" + this.getBank() + ", descriptor=" + this.getDescriptor() + ")";
   }
 }

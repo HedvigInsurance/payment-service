@@ -3,6 +3,8 @@ package com.hedvig.paymentservice.query.member;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionStatus;
 import com.hedvig.paymentservice.domain.payments.TransactionType;
+import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
@@ -173,6 +175,38 @@ public class MemberEventListener {
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
     m.setDescriptor(e.getDescriptor());
+
+    memberRepository.save(m);
+  }
+
+  @EventHandler
+  public void on(AdyenAccountCreatedEvent e) {
+    Optional<Member> member = memberRepository.findById(e.getMemberId());
+
+    if (!member.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = member.get();
+
+    m.setAdyenAccountId(e.getAdyenTokenId());
+
+    memberRepository.save(m);
+  }
+
+  @EventHandler
+  public void on(AdyenAccountUpdatedEvent e) {
+    Optional<Member> member = memberRepository.findById(e.getMemberId());
+
+    if (!member.isPresent()) {
+      log.error("Could not find member");
+      return;
+    }
+
+    Member m = member.get();
+
+    m.setAdyenAccountId(e.getAdyenTokenId());
 
     memberRepository.save(m);
   }

@@ -54,14 +54,8 @@ class Mutation(
       logger.error("registerCard - hedvig.token is missing")
       return null
     }
-    val optionalMember =
-      memberService.getMember(memberId)
-    if (!optionalMember.isPresent) {
-      return null
-    }
-    val member = optionalMember.get()
 
-    return adyenService.tokenizePaymentDetails(request, member.memberId)
+    return adyenService.tokenizePaymentDetails(request, memberId)
   }
 
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {
