@@ -7,7 +7,7 @@ type Query {
   bankAccount: BankAccount
   chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
   nextChargeDate: LocalDate
-  registerAccountProcessingStatus : RegisterAccountProcessingStatus!
+  registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
   directDebitStatus: DirectDebitStatus!
   """Returns all the available payments methods before the client requests a tokenization"""
   availablePaymentMethods: AvailablePaymentMethodsResponse!

@@ -48,7 +48,7 @@ class Query(
     return adyenService.getActivePaymentMethods(env.getToken())
   }
 
-  @Deprecated("")
+  @Deprecated("replaced by  `directDebitStatus`")
   fun registerAccountProcessingStatus(env: DataFetchingEnvironment): RegisterAccountProcessingStatus? {
     val memberId: String? = env.getTokenOrNull()
     if (memberId == null) {
@@ -59,7 +59,7 @@ class Query(
     return RegisterAccountProcessingStatus.CONFIRMED
   }
 
-  @Deprecated("")
+  @Deprecated("replaced by `nextChargeDate`")
   fun chargeDate(): LocalDate {
     return LocalDate.of(YearMonth.now().year, YearMonth.now().month, 27)
   }
