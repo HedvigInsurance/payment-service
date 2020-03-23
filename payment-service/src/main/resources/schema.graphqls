@@ -7,13 +7,35 @@ type Query {
   bankAccount: BankAccount
   chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
   nextChargeDate: LocalDate
-  registerAccountProcessingStatus : RegisterAccountProcessingStatus!
+  registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
   directDebitStatus: DirectDebitStatus!
+  """Returns all the available payments methods before the client requests a tokenization"""
+  availablePaymentMethods: AvailablePaymentMethodsResponse!
+  """Returns the active payment method which the member chose to tokenize"""
+  activePaymentMethods: ActivePaymentMethodsResponse!
 }
 
 type Mutation {
   registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
   cancelDirectDebitRequest : CancelDirectDebitStatus!
+  """Tokenize payment details per member in order to be used in future and returns the status"""
+  tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
+}
+
+type AvailablePaymentMethodsResponse {
+  paymentMethodsResponse: PaymentMethodsResponse!
+}
+
+type ActivePaymentMethodsResponse {
+  paymentMethodsResponse: PaymentMethodsResponse!
+}
+
+input TokenizationRequest{
+  paymentsRequest: PaymentsRequest!
+}
+
+type TokenizationResponse{
+  paymentsResponse: PaymentsResponse
 }
 
 type BankAccount {
@@ -53,6 +75,11 @@ enum CancelDirectDebitStatus {
   DECLINED_MISSING_REQUEST
 }
 
-
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
 scalar LocalDate
+# A String-representation of Adyen's PaymentMethodsResponse
+scalar PaymentMethodsResponse
+# A String-representation of Adyen's payments request
+scalar PaymentsRequest
+# A String-representation of Adyen's payments respone
+scalar PaymentsResponse

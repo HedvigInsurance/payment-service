@@ -19,3 +19,8 @@ hedvig:
     use:
       claims:
         account: true
+
+graphiql:
+  endpoint:
+    graphql: /graphql
+  enabled: true

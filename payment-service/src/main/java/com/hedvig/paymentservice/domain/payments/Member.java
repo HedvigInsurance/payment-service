@@ -1,9 +1,34 @@
 package com.hedvig.paymentservice.domain.payments;
 
-import com.hedvig.paymentservice.domain.payments.commands.*;
-import com.hedvig.paymentservice.domain.payments.events.*;
-import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
+import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand;
+import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand;
+import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
+import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
+import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand;
+import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
+import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand;
+import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeErroredEvent;
+import com.hedvig.paymentservice.domain.payments.events.ChargeFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent;
+import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent;
+import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.axonframework.commandhandling.CommandHandler;
@@ -27,6 +52,7 @@ public class Member {
 
   private List<Transaction> transactions = new ArrayList<>();
   private TrustlyAccount trustlyAccount;
+  private AdyenAccount adyenAccount;
 
   public Member() {
   }
@@ -115,6 +141,15 @@ public class Member {
       apply(TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCmd(this.id, cmd));
     }
     updateDirectDebitStatus(cmd);
+  }
+
+  @CommandHandler
+  public void cmd(UpdateAdyenAccountCommand cmd) {
+    if (adyenAccount == null || !adyenAccount.getAdyenTokenId().equals(cmd.getAdyenTokenId())) {
+      apply(new AdyenAccountCreatedEvent(cmd.getMemberId(), cmd.getAdyenTokenId(), cmd.getRecurringDetailReference(), cmd.getTokenStatus()));
+    } else {
+      apply(new AdyenAccountUpdatedEvent(cmd.getMemberId(), cmd.getAdyenTokenId(), cmd.getRecurringDetailReference(), cmd.getTokenStatus()));
+    }
   }
 
   @CommandHandler
@@ -256,6 +291,16 @@ public class Member {
   @EventSourcingHandler
   public void on(DirectDebitPendingConnectionEvent e) {
     this.trustlyAccount.setDirectDebitStatus(DirectDebitStatus.PENDING);
+  }
+
+  @EventSourcingHandler
+  public void on(AdyenAccountCreatedEvent e) {
+    this.adyenAccount = new AdyenAccount(e.getAdyenTokenId(), e.getRecurringDetailReference(), e.getTokenStatus());
+  }
+
+  @EventSourcingHandler
+  public void on(AdyenAccountUpdatedEvent e) {
+    this.adyenAccount = new AdyenAccount(e.getAdyenTokenId(), e.getRecurringDetailReference(), e.getTokenStatus());
   }
 
   private static Transaction getSingleTransaction(

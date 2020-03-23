@@ -11,15 +11,22 @@ graphql:
   servlet:
     mapping: /graphql
     enabled: true
-    corsEnabled: false
+    corsEnabled: true
+    actuator-metrics: true
 
 graphiql:
   mapping: /graphiql
-  endpoint: /graphql
+  endpoint:
+    graphql: /graphql
   enabled: true
-  pageTitle: Payment GraphiQL
+  pageTitle: Payment-service GraphiQL
+
+
 
 hedvig:
+  adyen:
+    enviroment: TEST
+    apiKey: test
   trustly:
     validRedirectHosts: []
     URLScheme: test
