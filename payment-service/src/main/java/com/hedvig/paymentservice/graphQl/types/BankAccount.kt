@@ -9,7 +9,7 @@ data class BankAccount(
   val directDebitStatus: DirectDebitStatus
 ) {
   companion object {
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun fromMember(m: Member): BankAccount {
       return BankAccount(
         m.bank,
