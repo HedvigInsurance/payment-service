@@ -35,12 +35,7 @@ class AdyenServiceImpl(
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
-      .countryCode("NO")
-      .amount(
-        Amount()
-          .value(10000)
-          .currency("NOK")
-      )
+      .countryCode("NO") //TODO: Change me by checking the contract
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
     return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
@@ -55,7 +50,7 @@ class AdyenServiceImpl(
 
     val paymentsRequest = PaymentsRequest()
       .paymentMethod(req.paymentsRequest.paymentMethod)
-      .amount(Amount().value(0L).currency("NOK")) //TODO: change me
+      .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
