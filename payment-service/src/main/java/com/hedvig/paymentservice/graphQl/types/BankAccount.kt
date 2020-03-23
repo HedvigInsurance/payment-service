@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.graphQl.types
 
 import com.hedvig.paymentservice.query.member.entities.Member
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus as DomainPaymentsDirectDebitStatus
 
 
 data class BankAccount(
@@ -18,11 +19,11 @@ data class BankAccount(
       )
     }
 
-    private fun fromMemberDirectStatus(s: com.hedvig.paymentservice.domain.payments.DirectDebitStatus): DirectDebitStatus {
+    private fun fromMemberDirectStatus(s: DomainPaymentsDirectDebitStatus): DirectDebitStatus {
       return when (s) {
-        com.hedvig.paymentservice.domain.payments.DirectDebitStatus.CONNECTED -> DirectDebitStatus.ACTIVE
-        com.hedvig.paymentservice.domain.payments.DirectDebitStatus.PENDING -> DirectDebitStatus.PENDING
-        com.hedvig.paymentservice.domain.payments.DirectDebitStatus.DISCONNECTED -> DirectDebitStatus.NEEDS_SETUP
+        DomainPaymentsDirectDebitStatus.CONNECTED -> DirectDebitStatus.ACTIVE
+        DomainPaymentsDirectDebitStatus.PENDING -> DirectDebitStatus.PENDING
+        DomainPaymentsDirectDebitStatus.DISCONNECTED -> DirectDebitStatus.NEEDS_SETUP
       }
     }
   }
