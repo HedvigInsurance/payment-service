@@ -22,7 +22,11 @@ graphiql:
   pageTitle: Payment-service GraphiQL
 
 
+
 hedvig:
+  adyen:
+    enviroment: TEST
+    apiKey: test
   trustly:
     validRedirectHosts: []
     URLScheme: test

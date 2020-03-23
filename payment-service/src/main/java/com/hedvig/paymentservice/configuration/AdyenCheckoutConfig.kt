@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class AdyenCheckoutConfig {
-  @Value("\${hedvig.adyen.apiKey:test}")
+  @Value("\${hedvig.adyen.apiKey}")
   lateinit var apiKey: String
 
-  @Value("\${hedvig.adyen.enviroment:TEST}")
+  @Value("\${hedvig.adyen.enviroment}")
   lateinit var environment: Environment
 
   @Bean
