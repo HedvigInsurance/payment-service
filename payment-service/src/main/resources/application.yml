@@ -25,6 +25,8 @@ graphiql:
 
 hedvig:
   adyen:
+    returnUrl: test
+    merchantAccount: HedvigABCOM
     enviroment: TEST
     apiKey: test
   trustly:

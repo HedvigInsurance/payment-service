@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
@@ -28,7 +29,8 @@ class JacksonConfig {
       .modules(
         paymentMethodDetailsModule,
         MoneyModule()
-          .withQuotedDecimalNumbers()
+          .withQuotedDecimalNumbers(),
+        JavaTimeModule()
       )
       .build()
   }

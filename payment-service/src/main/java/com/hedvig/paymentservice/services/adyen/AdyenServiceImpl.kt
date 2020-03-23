@@ -29,13 +29,14 @@ class AdyenServiceImpl(
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
   val commandGateway: CommandGateway,
-  @param:Value("\${hedvig.adyen.merchantAccount:HedvigABCOM}") val merchantAccount: String,
-  @param:Value("\${hedvig.adyen.returnUrl:URL}") val returnUrl: String
+  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
+  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .countryCode("NO") //TODO: Change me by checking the contract
+      //TODO: Add locale
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
     return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
