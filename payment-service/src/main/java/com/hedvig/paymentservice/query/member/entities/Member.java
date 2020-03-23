@@ -14,8 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Entity
-public class
-Member {
+public class Member {
 
   @Id
   public String id;
