@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.configuration
 
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodDetails
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.Version
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver
@@ -24,14 +25,17 @@ class JacksonConfig {
         DefaultPaymentMethodDetails::class.java
       )
     )
-    return Jackson2ObjectMapperBuilder.json()
 
+    val mapper: ObjectMapper = Jackson2ObjectMapperBuilder.json()
       .modules(
         paymentMethodDetailsModule,
         MoneyModule()
           .withQuotedDecimalNumbers(),
         JavaTimeModule()
-      )
-      .build()
+      ).build()
+
+    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+    return mapper
   }
 }
