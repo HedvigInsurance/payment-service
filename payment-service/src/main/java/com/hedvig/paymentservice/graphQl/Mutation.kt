@@ -2,6 +2,8 @@ package com.hedvig.paymentservice.graphQl
 
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
+import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsRequest
+import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
@@ -51,11 +53,26 @@ class Mutation(
   ): TokenizationResponse? {
     val memberId = env.getTokenOrNull()
     if (memberId == null) {
-      logger.error("registerCard - hedvig.token is missing")
+      logger.error("tokenizePaymentDetails - hedvig.token is missing")
       return null
     }
 
     return adyenService.tokenizePaymentDetails(request, memberId)
+  }
+
+  fun submitAdditionalPaymentDetails(
+    request: AdditionalPaymentsDetailsRequest,
+    env: DataFetchingEnvironment
+  ): AdditionalPaymentsDetailsResponse? {
+    val memberId = env.getTokenOrNull()
+    if (memberId == null) {
+      logger.error("submitAdditionalPaymentDetails - hedvig.token is missing")
+      return null
+    }
+    TODO(
+      "This method is for future development in order to support " +
+        "/payments/details request if they are needed [MemberId $memberId] [Request: $request]"
+    )
   }
 
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {

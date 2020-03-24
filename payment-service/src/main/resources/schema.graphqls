@@ -20,6 +20,8 @@ type Mutation {
   cancelDirectDebitRequest : CancelDirectDebitStatus!
   """Tokenize payment details per member in order to be used in future and returns the status"""
   tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
+  """Submite additional payment details"""
+  submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
 }
 
 type AvailablePaymentMethodsResponse {
@@ -34,7 +36,15 @@ input TokenizationRequest{
   paymentsRequest: PaymentsRequest!
 }
 
+input AdditionalPaymentsDetailsRequest{
+  paymentsRequest: PaymentsRequest!
+}
+
 type TokenizationResponse{
+  paymentsResponse: PaymentsResponse
+}
+
+type AdditionalPaymentsDetailsResponse{
   paymentsResponse: PaymentsResponse
 }
 
