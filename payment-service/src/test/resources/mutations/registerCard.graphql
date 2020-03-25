@@ -3,6 +3,8 @@ mutation{
     paymentsRequest: "{\"paymentMethod\": {\"type\": \"paywithgoogle\",\"googlePayToken\": \"{\\\"signature\\\":\\\"MEYCIQD+mM7W0vDeboYx\\\/shwNVSD1zV+u4AD4GFEKwx8EqO0EAIhAKASldayfF25aua407WapjCNVsaRHYT\\\/4cC5VBLkMFuU\\\",\\\"protocolVersion\\\":\\\"ECv1\\\",\\\"signedMessage\\\":\\\"{\\\\\\\"encryptedMessage\\\\\\\":\\\\\\\"JfJ79U3zejCpAXKywWKb23jDHRo\\\/hLBkcDSTDWjqZKGIjgVr85QQvQYLawjwEfzMzlMS7gjLE4PXMA0+eHfJq\\\/DAJ\\\/DKgslP+v5gxKu9FYo8XiyYrISSO3qbcCO6f+8YiTbY26vCzec88LhrJf3LcZKKtKoLbRWfJcWWLTFKBXDaiezMa8YnHfArCsuq69MCLVLsmtFyJUrWHBiGJe8I0u13N\\\/e6WiCZQi9grg9zvZhMdoeWLidssIN64PsvZyxuw8UkZzzNQzzPneEAduqLZCAjfnVZNQLpAnVkqsNsy7ELPgaNbrKNM6SVhbsnRzS3r2Fe48bkr9mE9wYe5WfZmJYPRF4xH\\\/NpfrN8qc4tQiId1UXWLYikvKtPqhblQC\\\/aouQfhAuc37nZtJA+b3cHVkKuLHg71PXc1GWIvTCrM5RVNZX9fT0oxbgjvJEzh83i3t0R\\\\\\\",\\\\\\\"ephemeralPublicKey\\\\\\\":\\\\\\\"BNdZ9ibnvj5a\\\/AbCh+3qM7USFLhIW02fTANj7T1CBibsTUqyaDCiYjk+MNd0G75dVIGV8MDa\\\/jHySnFqqanCYaA\\\\\\\\u003d\\\\\\\",\\\\\\\"tag\\\\\\\":\\\\\\\"703s0EjA61TCFlI2+PwkqNoqAPauhI6CkrlYBSK2ZCc\\\\\\\\u003d\\\\\\\"}\\\"}\",\"googlePayCardNetwork\": \"AMEX\"},\"storePaymentMethod\": false,\"shopperReference\": \"\",\"telephoneNumber\": \"\",\"shopperEmail\": \"\",\"dateOfBirth\": \"\"}"
   }
   ){
-    paymentsResponse
+    ... on TokenizationResponseFinished {
+      resultCode
+    }
   }
 }

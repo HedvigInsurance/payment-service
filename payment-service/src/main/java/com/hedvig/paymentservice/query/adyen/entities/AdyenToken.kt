@@ -10,7 +10,7 @@ import javax.persistence.Enumerated
 import javax.persistence.Id
 
 @Entity
-class AdyenToken(
+data class AdyenToken(
   @Id
   val adyenTokenId: UUID,
   val memberId: String

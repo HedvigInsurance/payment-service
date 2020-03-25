@@ -57,7 +57,13 @@ class Mutation(
       return null
     }
 
-    return adyenService.tokenizePaymentDetails(request, memberId)
+    val adyenResponse = adyenService.tokenizePaymentDetails(request, memberId)
+
+    if (adyenResponse.paymentsResponse.action != null) {
+      return TokenizationResponse.TokenizationResponseAction(action = adyenResponse.paymentsResponse.action)
+    }
+
+    return TokenizationResponse.TokenizationResponseFinished(adyenResponse.paymentsResponse.resultCode.value)
   }
 
   fun submitAdditionalPaymentDetails(
@@ -69,9 +75,8 @@ class Mutation(
       logger.error("submitAdditionalPaymentDetails - hedvig.token is missing")
       return null
     }
-    TODO(
-      "This method is for future development in order to support " +
-        "/payments/details request if they are needed [MemberId $memberId] [Request: $request]"
+    return AdditionalPaymentsDetailsResponse(
+      paymentsResponse = adyenService.submitAdditionalPaymentDetails(request.paymentsDetailsRequest).paymentsResponse
     )
   }
 

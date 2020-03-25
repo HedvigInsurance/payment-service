@@ -37,11 +37,17 @@ input TokenizationRequest{
 }
 
 input AdditionalPaymentsDetailsRequest{
-  paymentsRequest: PaymentsRequest!
+  paymentsDetailsRequest: PaymentsDetailsRequest!
 }
 
-type TokenizationResponse{
-  paymentsResponse: PaymentsResponse
+union TokenizationResponse = TokenizationResponseFinished | TokenizationResponseAction
+
+type TokenizationResponseFinished {
+  resultCode: String!
+}
+
+type TokenizationResponseAction {
+  action: CheckoutPaymentsAction!
 }
 
 type AdditionalPaymentsDetailsResponse{
@@ -93,3 +99,7 @@ scalar PaymentMethodsResponse
 scalar PaymentsRequest
 # A String-representation of Adyen's payments respone
 scalar PaymentsResponse
+# A String-representation of Adyen's checkout payments action
+scalar CheckoutPaymentsAction
+# A String-representation of Adyen's payments details request
+scalar PaymentsDetailsRequest

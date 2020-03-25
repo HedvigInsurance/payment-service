@@ -15,12 +15,27 @@ hedvig.trustly.validRedirectHosts: []
 
 spring.jpa.hibernate.ddl-auto: create
 hedvig:
+  adyen:
+    returnUrl: test
+    merchantAccount: test
+    enviroment: TEST
+    apiKey: test
   trustly:
     use:
       claims:
         account: true
+  segment:
+    writeKey: test
+  meerkat:
+    url: localhost:4123
+  member-service:
+    url: localhost:4084
+  product-pricing:
+    url: localhost:4085
 
 graphiql:
   endpoint:
     graphql: /graphql
   enabled: true
+
+
