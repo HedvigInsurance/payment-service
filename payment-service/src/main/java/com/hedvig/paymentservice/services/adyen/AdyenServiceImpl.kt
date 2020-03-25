@@ -9,6 +9,7 @@ import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.domain.adyen.commands.CreateAdyenTokenCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
@@ -68,14 +69,13 @@ class AdyenServiceImpl(
       throw ex
     }
 
-/*    commandGateway.sendAndWait<Void>(
+    commandGateway.sendAndWait<Void>(
       CreateAdyenTokenCommand(
         memberId = memberId,
         adyenTokenId = adyenTokenId,
         tokenizationResponse = response
       )
     )
-*/
 
     //TODO: Cancel rest
 
