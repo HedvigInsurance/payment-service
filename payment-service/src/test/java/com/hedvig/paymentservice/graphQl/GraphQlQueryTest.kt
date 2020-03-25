@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.PaymentServiceTestConfiguration
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.services.adyen.AdyenService
+import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -58,10 +59,15 @@ class GraphQlQueryTest {
     Mockito.`when`(adyenService.getActivePaymentMethods(Mockito.anyString()))
       .thenReturn(
         ActivePaymentMethodsResponse(
-          PaymentMethodsResponse()
-            .addOneClickPaymentMethodsItem(
-              RecurringDetail().name("Test")
-            )
+          StoredPaymentMethodsDetails(
+            "1",
+            "cardName",
+            "amex",
+            "1234",
+            "08",
+            "1989",
+            "Nikos Koukos"
+          )
         )
       )
 
@@ -70,6 +76,6 @@ class GraphQlQueryTest {
     val response = graphQLTestTemplate.perform("/queries/activePaymentMethods.graphql", null)
 
     assert(response.isOk)
-    assert(response.readTree()["data"]["activePaymentMethods"].toString().contains("Test"))
+    assert(response.readTree()["data"]["activePaymentMethods"].toString().contains("amex"))
   }
 }

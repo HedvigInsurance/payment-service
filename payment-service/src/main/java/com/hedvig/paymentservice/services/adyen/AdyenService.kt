@@ -11,6 +11,6 @@ interface AdyenService {
   fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
   fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): AdyenPaymentsResponse
   fun chargeMemberWithToken(req: ChargeMemberRequest): Any
-  fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse
+  fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
   fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest): AdyenPaymentsResponse
 }

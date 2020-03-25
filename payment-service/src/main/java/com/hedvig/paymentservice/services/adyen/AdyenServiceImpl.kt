@@ -17,6 +17,7 @@ import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
+import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
@@ -111,11 +112,20 @@ class AdyenServiceImpl(
     return adyenCheckout.payments(paymentsRequest)
   }
 
-  override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse {
+  override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .shopperReference(memberId)
-    return ActivePaymentMethodsResponse(adyenCheckout.paymentMethods(paymentMethodsRequest))
+
+    val adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
+
+    if (adyenResponse.storedPaymentMethods.isEmpty()) {
+      return null
+    }
+
+    return ActivePaymentMethodsResponse(
+      storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(adyenResponse.storedPaymentMethods.first())
+    )
   }
 
   private fun createMember(memberId: String) {

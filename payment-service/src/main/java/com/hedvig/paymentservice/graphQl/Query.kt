@@ -44,8 +44,10 @@ class Query(
 
   fun activePaymentMethods(
     env: DataFetchingEnvironment
-  ): ActivePaymentMethodsResponse {
-    return adyenService.getActivePaymentMethods(env.getToken())
+  ): ActivePaymentMethodsResponse? {
+    val te = adyenService.getActivePaymentMethods(env.getToken())
+
+    return te
   }
 
   @Deprecated("replaced by  `directDebitStatus`")
