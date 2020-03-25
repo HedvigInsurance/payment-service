@@ -1,16 +1,15 @@
 package com.hedvig.paymentservice.graphQl.types
 
-import com.adyen.model.checkout.PaymentsResponse
+import com.adyen.model.checkout.CheckoutPaymentsAction
 
-data class TokenizationResponse(
-  val paymentsResponse: PaymentsResponse
-) {
 
-  fun getRecurringDetailReference(): String? = paymentsResponse.getAdditionalDataByKey(RECURRING_DETAIL_REFERENCE)
+sealed class TokenizationResponse() {
 
-  fun getTokenStatus(): PaymentsResponse.ResultCodeEnum = paymentsResponse.resultCode
+  data class TokenizationResponseFinished(
+    val resultCode: String
+  ) : TokenizationResponse()
 
-  companion object {
-    const val RECURRING_DETAIL_REFERENCE: String = "recurring.recurringDetailReference"
-  }
+  data class TokenizationResponseAction(
+    val action: CheckoutPaymentsAction
+  ) : TokenizationResponse()
 }

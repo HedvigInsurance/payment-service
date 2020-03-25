@@ -4,6 +4,7 @@ import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodsRequest
+import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.service.Checkout
@@ -13,9 +14,9 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
-import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
+import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
@@ -29,8 +30,7 @@ class AdyenServiceImpl(
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
   val commandGateway: CommandGateway,
-  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
-  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String
+  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
@@ -41,7 +41,7 @@ class AdyenServiceImpl(
     return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
 
-  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): TokenizationResponse {
+  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): AdyenPaymentsResponse {
     val optionalMember = memberService.getMember(memberId)
     require(optionalMember.isPresent) { "Member not found" }
 
@@ -55,14 +55,14 @@ class AdyenServiceImpl(
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
-      .returnUrl(returnUrl)
+      .returnUrl(req.paymentsRequest.returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
       .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    var response: TokenizationResponse? = null
+    var response: AdyenPaymentsResponse? = null
     try {
-      response = TokenizationResponse(paymentsResponse = adyenCheckout.payments(paymentsRequest))
+      response = AdyenPaymentsResponse(paymentsResponse = adyenCheckout.payments(paymentsRequest))
     } catch (ex: Exception) {
       logger.error("Tokenization with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
       throw ex
@@ -79,6 +79,10 @@ class AdyenServiceImpl(
     //TODO: Cancel rest
 
     return response!!
+  }
+
+  override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest): AdyenPaymentsResponse {
+    return AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {

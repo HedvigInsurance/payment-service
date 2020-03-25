@@ -1,10 +1,14 @@
 package com.hedvig.paymentservice.graphQl.configurations
 
+import com.adyen.model.checkout.CheckoutPaymentsAction
 import com.adyen.model.checkout.PaymentMethodsResponse
+import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsResponse
+import com.coxautodev.graphql.tools.SchemaParserDictionary
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hedvig.graphql.commons.scalars.LocalDateScalar
+import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import graphql.language.StringValue
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
@@ -146,8 +150,103 @@ class GraphQLConfiguration(
   }
 
   @Bean
+  fun checkoutPaymentsActionScalar(): GraphQLScalarType {
+    return GraphQLScalarType.newScalar()
+      .name("CheckoutPaymentsAction")
+      .description("A String-representation of Adyen's checkout payments action")
+      .coercing(object : Coercing<CheckoutPaymentsAction, String> {
+        @Throws(CoercingSerializeException::class)
+        override fun serialize(dataFetcherResult: Any?): String? {
+          if (dataFetcherResult == null) {
+            return null
+          }
+
+          if (dataFetcherResult !is PaymentsResponse) {
+            throw CoercingSerializeException(
+              "dataFetcherResult is of wrong type: " +
+                "Expected {${CheckoutPaymentsAction::class.java.simpleName}}, got {${dataFetcherResult.javaClass.simpleName}}"
+            )
+          }
+
+          return objectMapper.writeValueAsString(dataFetcherResult)
+        }
+
+        @Throws(CoercingParseValueException::class)
+        override fun parseValue(input: Any): CheckoutPaymentsAction {
+          try {
+            return objectMapper.readValue(input as String, CheckoutPaymentsAction::class.java)
+          } catch (e: Exception) {
+            throw CoercingParseValueException("Could not parse value $input [Exception: $e]")
+          }
+        }
+
+        @Throws(CoercingParseLiteralException::class)
+        override fun parseLiteral(input: Any): CheckoutPaymentsAction {
+          return try {
+            objectMapper.readValue((input as StringValue).value, CheckoutPaymentsAction::class.java)
+          } catch (e: Exception) {
+            throw CoercingParseLiteralException("Could not parse value $input [Exception: $e]")
+          }
+        }
+      }).build()
+  }
+
+  @Bean
+  fun paymentsDetailsRequestScalar(): GraphQLScalarType {
+    return GraphQLScalarType.newScalar()
+      .name("PaymentsDetailsRequest")
+      .description("A String-representation of Adyen's payments details request ")
+      .coercing(object : Coercing<PaymentsDetailsRequest, String> {
+        @Throws(CoercingSerializeException::class)
+        override fun serialize(dataFetcherResult: Any?): String? {
+          if (dataFetcherResult == null) {
+            return null
+          }
+
+          if (dataFetcherResult !is PaymentsDetailsRequest) {
+            throw CoercingSerializeException(
+              "dataFetcherResult is of wrong type: " +
+                "Expected {${PaymentsDetailsRequest::class.java.simpleName}}, got {${dataFetcherResult.javaClass.simpleName}}"
+            )
+          }
+
+          return objectMapper.writeValueAsString(dataFetcherResult)
+        }
+
+        @Throws(CoercingParseValueException::class)
+        override fun parseValue(input: Any): PaymentsDetailsRequest {
+          try {
+            return objectMapper.readValue(input as String, PaymentsDetailsRequest::class.java)
+          } catch (e: Exception) {
+            throw CoercingParseValueException("Could not parse value $input [Exception: $e]")
+          }
+        }
+
+        @Throws(CoercingParseLiteralException::class)
+        override fun parseLiteral(input: Any): PaymentsDetailsRequest {
+          return try {
+            objectMapper.readValue((input as StringValue).value, PaymentsDetailsRequest::class.java)
+          } catch (e: Exception) {
+            throw CoercingParseLiteralException("Could not parse value $input [Exception: $e]")
+          }
+        }
+      }).build()
+  }
+
+  @Bean
   fun localDateScalar(): GraphQLScalarType {
     return LocalDateScalar()
+  }
+
+  @Bean
+  fun schemaParserDictionary(): SchemaParserDictionary {
+    return SchemaParserDictionary()
+      .add(
+        dictionary = listOf(
+          TokenizationResponse.TokenizationResponseFinished::class.java,
+          TokenizationResponse.TokenizationResponseAction::class.java
+        )
+      )
   }
 
 }
