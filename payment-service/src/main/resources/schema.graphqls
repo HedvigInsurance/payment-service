@@ -55,12 +55,12 @@ type AdditionalPaymentsDetailsResponse{
 }
 
 type StoredPaymentMethodsDetails{
-  id: String,
+  id: String!
   cardName: String
   brand: String
-  lastFourDigits: String
-  expiryMonth: String
-  expiryYear: String
+  lastFourDigits: String!
+  expiryMonth: String!
+  expiryYear: String!
   holderName: String
 }
 
