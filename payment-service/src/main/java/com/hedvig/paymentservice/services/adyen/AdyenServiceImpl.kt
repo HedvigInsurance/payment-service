@@ -30,7 +30,8 @@ class AdyenServiceImpl(
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
   val commandGateway: CommandGateway,
-  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String
+  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
+  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
