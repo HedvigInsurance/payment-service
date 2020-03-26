@@ -63,7 +63,9 @@ class Mutation(
       return TokenizationResponse.TokenizationResponseAction(action = adyenResponse.paymentsResponse.action)
     }
 
-    return TokenizationResponse.TokenizationResponseFinished(adyenResponse.paymentsResponse.resultCode.value)
+    return TokenizationResponse.TokenizationResponseFinished(
+      resultCode = adyenResponse.paymentsResponse.resultCode.value
+    )
   }
 
   fun submitAdditionalPaymentDetails(
@@ -75,8 +77,17 @@ class Mutation(
       logger.error("submitAdditionalPaymentDetails - hedvig.token is missing")
       return null
     }
-    return AdditionalPaymentsDetailsResponse(
-      paymentsResponse = adyenService.submitAdditionalPaymentDetails(request.paymentsDetailsRequest).paymentsResponse
+
+    val adyenResponse = adyenService.submitAdditionalPaymentDetails(request.paymentsDetailsRequest)
+
+    if (adyenResponse.paymentsResponse.action != null) {
+      return AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseAction(
+        action = adyenResponse.paymentsResponse.action
+      )
+    }
+
+    return AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseFinished(
+      resultCode = adyenResponse.paymentsResponse.resultCode.value
     )
   }
 
