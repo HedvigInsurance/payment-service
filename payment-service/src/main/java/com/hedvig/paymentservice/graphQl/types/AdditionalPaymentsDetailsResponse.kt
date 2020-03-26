@@ -1,7 +1,13 @@
 package com.hedvig.paymentservice.graphQl.types
 
-import com.adyen.model.checkout.PaymentsResponse
+import com.adyen.model.checkout.CheckoutPaymentsAction
 
-data class AdditionalPaymentsDetailsResponse(
-  val paymentsResponse: PaymentsResponse
-)
+sealed class AdditionalPaymentsDetailsResponse {
+  data class AdditionalPaymentsDetailsResponseFinished(
+    val resultCode: String
+  ) : AdditionalPaymentsDetailsResponse()
+
+  data class AdditionalPaymentsDetailsResponseAction(
+    val action: CheckoutPaymentsAction
+  ) : AdditionalPaymentsDetailsResponse()
+}

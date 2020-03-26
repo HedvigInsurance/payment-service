@@ -50,8 +50,14 @@ type TokenizationResponseAction {
   action: CheckoutPaymentsAction!
 }
 
-type AdditionalPaymentsDetailsResponse{
-  paymentsResponse: PaymentsResponse
+union AdditionalPaymentsDetailsResponse = AdditionalPaymentsDetailsResponseFinished | AdditionalPaymentsDetailsResponseAction
+
+type AdditionalPaymentsDetailsResponseFinished {
+  resultCode: String!
+}
+
+type AdditionalPaymentsDetailsResponseAction {
+  action: CheckoutPaymentsAction!
 }
 
 type StoredPaymentMethodsDetails{

@@ -8,6 +8,7 @@ import com.adyen.model.checkout.PaymentsResponse
 import com.coxautodev.graphql.tools.SchemaParserDictionary
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hedvig.graphql.commons.scalars.LocalDateScalar
+import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import graphql.language.StringValue
@@ -246,6 +247,8 @@ class GraphQLConfiguration(
         dictionary = listOf(
           TokenizationResponse.TokenizationResponseFinished::class.java,
           TokenizationResponse.TokenizationResponseAction::class.java,
+          AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseFinished::class.java,
+          AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseAction::class.java,
           StoredPaymentMethodsDetails::class.java
         )
       )
