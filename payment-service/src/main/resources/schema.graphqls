@@ -12,7 +12,7 @@ type Query {
   """Returns all the available payments methods before the client requests a tokenization"""
   availablePaymentMethods: AvailablePaymentMethodsResponse!
   """Returns the active payment method which the member chose to tokenize"""
-  activePaymentMethods: ActivePaymentMethodsResponse!
+  activePaymentMethods: ActivePaymentMethodsResponse
 }
 
 type Mutation {
@@ -29,7 +29,7 @@ type AvailablePaymentMethodsResponse {
 }
 
 type ActivePaymentMethodsResponse {
-  paymentMethodsResponse: PaymentMethodsResponse!
+  storedPaymentMethodsDetails: StoredPaymentMethodsDetails!
 }
 
 input TokenizationRequest{
@@ -52,6 +52,16 @@ type TokenizationResponseAction {
 
 type AdditionalPaymentsDetailsResponse{
   paymentsResponse: PaymentsResponse
+}
+
+type StoredPaymentMethodsDetails{
+  id: String!
+  cardName: String
+  brand: String
+  lastFourDigits: String!
+  expiryMonth: String!
+  expiryYear: String!
+  holderName: String
 }
 
 type BankAccount {

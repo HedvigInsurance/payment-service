@@ -9,6 +9,7 @@ import com.coxautodev.graphql.tools.SchemaParserDictionary
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hedvig.graphql.commons.scalars.LocalDateScalar
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
+import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import graphql.language.StringValue
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
@@ -244,7 +245,8 @@ class GraphQLConfiguration(
       .add(
         dictionary = listOf(
           TokenizationResponse.TokenizationResponseFinished::class.java,
-          TokenizationResponse.TokenizationResponseAction::class.java
+          TokenizationResponse.TokenizationResponseAction::class.java,
+          StoredPaymentMethodsDetails::class.java
         )
       )
   }
