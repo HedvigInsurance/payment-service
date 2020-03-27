@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.configuration
+package com.hedvig.paymentservice.configuration.jackson
 
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodDetails
@@ -26,12 +26,19 @@ class JacksonConfig {
       )
     )
 
+    val serializer = CheckoutActionTypeSerializer()
+
+    val module =
+      SimpleModule()
+    module.addSerializer(serializer)
+
     val mapper: ObjectMapper = Jackson2ObjectMapperBuilder.json()
       .modules(
         paymentMethodDetailsModule,
         MoneyModule()
           .withQuotedDecimalNumbers(),
-        JavaTimeModule()
+        JavaTimeModule(),
+        module
       ).build()
 
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
