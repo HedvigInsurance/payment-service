@@ -7,6 +7,7 @@ import com.adyen.model.checkout.PaymentMethodsRequest
 import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
+import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyen.commands.CreateAdyenTokenCommand
@@ -70,13 +71,16 @@ class AdyenServiceImpl(
       throw ex
     }
 
-    commandGateway.sendAndWait<Void>(
-      CreateAdyenTokenCommand(
-        memberId = memberId,
-        adyenTokenId = adyenTokenId,
-        tokenizationResponse = response
+    if (response.paymentsResponse.resultCode == PaymentsResponse.ResultCodeEnum.AUTHORISED) {
+      commandGateway.sendAndWait<Void>(
+        CreateAdyenTokenCommand(
+          memberId = memberId,
+          adyenTokenId = adyenTokenId,
+          tokenizationResponse = response
+        )
       )
-    )
+    }  //TODO: Change me
+
 
     //TODO: Cancel rest
 
