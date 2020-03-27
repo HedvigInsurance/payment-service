@@ -163,7 +163,7 @@ class GraphQLConfiguration(
             return null
           }
 
-          if (dataFetcherResult !is PaymentsResponse) {
+          if (dataFetcherResult !is CheckoutPaymentsAction) {
             throw CoercingSerializeException(
               "dataFetcherResult is of wrong type: " +
                 "Expected {${CheckoutPaymentsAction::class.java.simpleName}}, got {${dataFetcherResult.javaClass.simpleName}}"
