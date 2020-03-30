@@ -33,7 +33,28 @@ type ActivePaymentMethodsResponse {
 }
 
 input TokenizationRequest{
-  paymentsRequest: PaymentsRequest!
+  paymentMethodDetails: PaymentMethodDetails!
+  channel: TokenizationChannel!
+  browerInfo: BrowserInfo,
+  returnUrl: String!
+}
+
+enum TokenizationChannel{
+  ANDROID
+  IOS
+  WEB
+}
+
+input BrowserInfo{
+  userAgent: String!
+  acceptHeader: String!
+  language: String!
+  colorDepth: Int!
+  screenHeight: Int!
+  screenWidth: Int!
+  timeZoneOffset: Int!
+  javaEnabled: Boolean!
+  javaScriptEnabled: Boolean!
 }
 
 input AdditionalPaymentsDetailsRequest{
@@ -119,3 +140,5 @@ scalar PaymentsResponse
 scalar CheckoutPaymentsAction
 # A String-representation of Adyen's payments details request
 scalar PaymentsDetailsRequest
+# A String-representation of Adyen's payment method details
+scalar PaymentMethodDetails

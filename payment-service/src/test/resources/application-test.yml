@@ -14,8 +14,11 @@ hedvig.trustly.non.redirecting.to.botService.failURL: " https://hedvig.com/trust
 hedvig.trustly.validRedirectHosts: []
 
 spring.jpa.hibernate.ddl-auto: create
+
+
 hedvig:
   adyen:
+    allow3DS2: true
     returnUrl: test
     merchantAccount: test
     enviroment: TEST

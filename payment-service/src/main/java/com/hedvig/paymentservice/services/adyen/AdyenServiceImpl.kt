@@ -14,6 +14,8 @@ import com.hedvig.paymentservice.domain.adyen.commands.CreateAdyenTokenCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.BrowserInfo
+import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
@@ -24,6 +26,8 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import com.adyen.model.BrowserInfo as AdyenBrowserInfo
+
 
 @Service
 class AdyenServiceImpl(
@@ -33,7 +37,8 @@ class AdyenServiceImpl(
   val memberService: MemberService,
   val commandGateway: CommandGateway,
   @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
-  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String
+  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String,
+  @param:Value("\${hedvig.adyen.allow3DS2}") val allow3DS2: Boolean
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
@@ -53,15 +58,25 @@ class AdyenServiceImpl(
     val adyenTokenId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
-      .paymentMethod(req.paymentsRequest.paymentMethod)
+      .channel(TokenizationChannel.toPaymentsRequestChannelEnum(req.channel))
+      .shopperIP("1.1.1.1")
+      .paymentMethod(req.paymentMethodDetails)
       .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
-      .returnUrl(req.paymentsRequest.returnUrl)
+      .returnUrl(req.returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
       .shopperReference(memberId)
       .storePaymentMethod(true)
+
+    val browserInfo = if (req.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browerInfo) else AdyenBrowserInfo()
+
+    paymentsRequest.browserInfo(browserInfo)
+
+    val additionalData: MutableMap<String, String> = HashMap()
+    additionalData[ALLOW_3DS2] = allow3DS2.toString()
+    paymentsRequest.additionalData = additionalData
 
     var response: AdyenPaymentsResponse? = null
     try {
@@ -143,5 +158,6 @@ class AdyenServiceImpl(
 
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)
+    const val ALLOW_3DS2: String = "allow3DS2"
   }
 }
