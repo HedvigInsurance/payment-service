@@ -1,7 +1,10 @@
 package com.hedvig.paymentservice.graphQl.types
 
-import com.adyen.model.checkout.PaymentsRequest
+import com.adyen.model.checkout.PaymentMethodDetails
 
 data class TokenizationRequest(
-  val paymentsRequest: PaymentsRequest
+  val paymentMethodDetails: PaymentMethodDetails,
+  val channel: TokenizationChannel,
+  val browerInfo: BrowserInfo?,
+  val returnUrl: String
 )
