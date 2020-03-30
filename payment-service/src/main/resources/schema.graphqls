@@ -35,7 +35,7 @@ type ActivePaymentMethodsResponse {
 input TokenizationRequest{
   paymentMethodDetails: PaymentMethodDetails!
   channel: TokenizationChannel!
-  browerInfo: BrowserInfo,
+  browserInfo: BrowserInfo,
   returnUrl: String!
 }
 
@@ -54,7 +54,6 @@ input BrowserInfo{
   screenWidth: Int!
   timeZoneOffset: Int!
   javaEnabled: Boolean!
-  javaScriptEnabled: Boolean!
 }
 
 input AdditionalPaymentsDetailsRequest{

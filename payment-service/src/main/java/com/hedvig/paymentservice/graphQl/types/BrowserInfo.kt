@@ -10,8 +10,7 @@ data class BrowserInfo(
   val screenHeight: Int,
   val screenWidth: Int,
   val timeZoneOffset: Int,
-  val javaEnabled: Boolean,
-  val javaScriptEnabled: Boolean
+  val javaEnabled: Boolean
 ) {
 
   companion object {
@@ -26,7 +25,6 @@ data class BrowserInfo(
       adyenBrowserInfo.screenWidth = input.screenWidth
       adyenBrowserInfo.timeZoneOffset = input.timeZoneOffset
       adyenBrowserInfo.isJavaEnabled = input.javaEnabled
-      adyenBrowserInfo.isJavaScriptEnabled = input.javaScriptEnabled
 
       return adyenBrowserInfo
     }
