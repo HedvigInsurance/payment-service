@@ -13,4 +13,5 @@ interface AdyenService {
   fun chargeMemberWithToken(req: ChargeMemberRequest): Any
   fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
   fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest): AdyenPaymentsResponse
+  fun fetchAdyenPublicKey(): String
 }

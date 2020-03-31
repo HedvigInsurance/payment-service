@@ -21,8 +21,12 @@ class Query(
   private val bankAccountService: BankAccountService,
   private val adyenService: AdyenService
 ) : GraphQLQueryResolver {
-  fun bankAccount(env: DataFetchingEnvironment): BankAccount {
-    val memberId: String = env.getToken()
+  fun bankAccount(env: DataFetchingEnvironment): BankAccount? {
+    val memberId: String? = env.getTokenOrNull()
+    if (memberId == null) {
+      logger.error("bankAccount - hedvig.token is missing")
+      return null
+    }
     return bankAccountService.getBankAccount(memberId)
   }
 
@@ -45,9 +49,18 @@ class Query(
   fun activePaymentMethods(
     env: DataFetchingEnvironment
   ): ActivePaymentMethodsResponse? {
-    val te = adyenService.getActivePaymentMethods(env.getToken())
+    val memberId: String? = env.getTokenOrNull()
+    if (memberId == null) {
+      logger.error("activePaymentMethods - hedvig.token is missing")
+      return null
+    }
+    return adyenService.getActivePaymentMethods(memberId)
+  }
 
-    return te
+  fun adyenPublicKey(
+    env: DataFetchingEnvironment
+  ): String {
+    return adyenService.fetchAdyenPublicKey()
   }
 
   @Deprecated("replaced by  `directDebitStatus`")

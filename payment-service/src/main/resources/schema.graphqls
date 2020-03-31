@@ -13,6 +13,7 @@ type Query {
   availablePaymentMethods: AvailablePaymentMethodsResponse!
   """Returns the active payment method which the member chose to tokenize"""
   activePaymentMethods: ActivePaymentMethodsResponse
+  adyenPublicKey: String!
 }
 
 type Mutation {

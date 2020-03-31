@@ -25,6 +25,8 @@ graphiql:
 
 hedvig:
   adyen:
+    public:
+      key: test
     allow3DS2: true
     returnUrl: test
     merchantAccount: test
