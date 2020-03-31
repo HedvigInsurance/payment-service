@@ -2,8 +2,8 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
-
-spring.jpa.generate-ddl: true
+  main:
+    allow-bean-definition-overriding: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
 
 
