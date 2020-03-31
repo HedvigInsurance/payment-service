@@ -11,9 +11,9 @@ enum class TokenizationChannel {
   companion object {
     fun toPaymentsRequestChannelEnum(enum: TokenizationChannel): PaymentsRequest.ChannelEnum {
       return when (enum) {
-        TokenizationChannel.ANDROID -> PaymentsRequest.ChannelEnum.ANDROID
-        TokenizationChannel.IOS -> PaymentsRequest.ChannelEnum.IOS
-        TokenizationChannel.WEB -> PaymentsRequest.ChannelEnum.WEB
+        ANDROID -> PaymentsRequest.ChannelEnum.ANDROID
+        IOS -> PaymentsRequest.ChannelEnum.IOS
+        WEB -> PaymentsRequest.ChannelEnum.WEB
       }
     }
   }

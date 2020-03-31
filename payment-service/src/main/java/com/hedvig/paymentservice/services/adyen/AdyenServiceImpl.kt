@@ -38,7 +38,8 @@ class AdyenServiceImpl(
   val commandGateway: CommandGateway,
   @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String,
-  @param:Value("\${hedvig.adyen.allow3DS2}") val allow3DS2: Boolean
+  @param:Value("\${hedvig.adyen.allow3DS2}") val allow3DS2: Boolean,
+  @param:Value("\${hedvig.adyen.public.key}") val adyenPublicKey: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
@@ -104,6 +105,10 @@ class AdyenServiceImpl(
 
   override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest): AdyenPaymentsResponse {
     return AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
+  }
+
+  override fun fetchAdyenPublicKey(): String {
+    return adyenPublicKey
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {
