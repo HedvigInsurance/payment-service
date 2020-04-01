@@ -1,10 +1,8 @@
 package com.hedvig.paymentservice.services.segmentPublisher
 
-import com.google.common.collect.ImmutableMap
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
-import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
-import com.segment.analytics.Analytics
+import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.springframework.context.annotation.Profile
@@ -13,21 +11,21 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("customer.io")
 @ProcessingGroup("SegmentProcessorGroup")
-class EventListener(private val segmentAnalytics: Analytics) {
-  private val integrationSettings = mapOf("All" to false, "Customer.io" to true)
+class EventListener(
+  private val notificationService: NotificationService
+) {
 
   @EventHandler
   fun on(evt: DirectDebitConnectedEvent) {
-    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", true)
+    val traits = mapOf("is_direct_debit_activated" to true)
 
-    segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
+    notificationService.updateCustomer(evt.memberId, traits)
   }
-
 
   @EventHandler
   fun on(evt: DirectDebitDisconnectedEvent) {
-    val traits = ImmutableMap.of<String, Any>("is_direct_debit_activated", false)
+    val traits = mapOf("is_direct_debit_activated" to false)
 
-    segmentAnalytics.identify(traits, evt.memberId, integrationSettings)
+    notificationService.updateCustomer(evt.memberId, traits)
   }
 }

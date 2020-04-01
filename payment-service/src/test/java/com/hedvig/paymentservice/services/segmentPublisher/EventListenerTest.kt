@@ -2,11 +2,12 @@ package com.hedvig.paymentservice.services.segmentPublisher
 
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
-import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
-import com.segment.analytics.Analytics
-import com.segment.analytics.messages.IdentifyMessage
-import com.segment.analytics.messages.MessageBuilder
+import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
+import com.nhaarman.mockitokotlin2.KArgumentCaptor
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import com.nhaarman.mockitokotlin2.eq
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -19,10 +20,14 @@ import org.mockito.junit.MockitoJUnitRunner
 class EventListenerTest {
 
   @Mock
-  internal lateinit var segmentAnalyticsMock: Analytics
+  internal lateinit var notificationService: NotificationService
 
-  @Captor
-  lateinit var enqueueCaptor: ArgumentCaptor<MessageBuilder<*, *>>
+  lateinit var dataCaptor: KArgumentCaptor<Map<String, Any>>
+
+  @Before
+  fun setup(){
+    dataCaptor = argumentCaptor()
+  }
 
   @Test
   fun DirectDebitConnectedEvent_withDirectDebitMandateActivated_setsIsDirectDebitActivatedToTrue() {
@@ -32,16 +37,12 @@ class EventListenerTest {
       TRUSTLY_ACCOUNT_ID
     )
 
-    val sut = EventListener(segmentAnalyticsMock)
+    val sut = EventListener(notificationService)
     sut.on(evt)
-    then<Analytics>(segmentAnalyticsMock).should().enqueue(enqueueCaptor.capture())
+    then(notificationService).should().updateCustomer(eq(MEMBER_ID), dataCaptor.capture())
 
-    val builtMessage = enqueueCaptor.value.build() as IdentifyMessage
-
-    assertThat(builtMessage.userId()).isEqualTo(MEMBER_ID)
-    assertThat(builtMessage.traits()).containsEntry("is_direct_debit_activated", true as Any)
+    assertThat(dataCaptor.firstValue).containsEntry("is_direct_debit_activated", true as Object)
   }
-
 
   @Test
   fun DirectDebitDisConnectedEvent_withDirectDebitMandateNotActivated_setsIsDirectDebitActivatedToFalse() {
@@ -51,14 +52,12 @@ class EventListenerTest {
       TRUSTLY_ACCOUNT_ID
     )
 
-    val sut = EventListener(segmentAnalyticsMock)
+    val sut = EventListener(notificationService)
     sut.on(evt)
-    then<Analytics>(segmentAnalyticsMock).should().enqueue(enqueueCaptor.capture())
+    then(notificationService).should().updateCustomer(eq(MEMBER_ID), dataCaptor.capture())
 
-    val builtMessage = enqueueCaptor.value.build() as IdentifyMessage
 
-    assertThat(builtMessage.userId()).isEqualTo(MEMBER_ID)
-    assertThat(builtMessage.traits()).containsEntry("is_direct_debit_activated", false as Any)
+    assertThat(dataCaptor.firstValue).containsEntry("is_direct_debit_activated", false as Object)
   }
 
   companion object {
@@ -66,5 +65,4 @@ class EventListenerTest {
     const val HEDVIG_ORDER_ID: String = "ME GUSTA HEDVIG"
     const val TRUSTLY_ACCOUNT_ID: String = "ME LIKE TRUSTLY"
   }
-
 }
