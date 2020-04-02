@@ -8,7 +8,9 @@ type Query {
   chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
   nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
-  directDebitStatus: DirectDebitStatus!
+  directDebitStatus: DirectDebitStatus!  @deprecated(reason: "Use `chargeablePaymentMethodStatus`")
+  """Returns the status for the chargeable payment method (Trustly's direct debit for Sweden) (Adyen for Norway)"""
+  chargeablePaymentMethodStatus: PaymentMethodStatus!
   """Returns all the available payments methods before the client requests a tokenization"""
   availablePaymentMethods: AvailablePaymentMethodsResponse!
   """Returns the active payment method which the member chose to tokenize"""
@@ -107,6 +109,11 @@ type DirectDebitResponse {
   orderId: String!
 }
 
+enum PaymentMethodStatus{
+  ACTIVE
+  PENDING
+  NEEDS_SETUP
+}
 enum DirectDebitStatus {
   ACTIVE
   PENDING

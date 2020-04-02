@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.services.bankAccounts;
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
+import com.hedvig.paymentservice.graphQl.types.ChargeablePaymentMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration;
@@ -87,8 +88,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         } else {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.PENDING;
         }
-      }
-      else if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.PENDING)){
+      } else if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.PENDING)) {
         if (accountRegistration == null || accountRegistration.getStatus().equals(AccountRegistrationStatus.CANCELLED)) {
           return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
         } else {
@@ -99,4 +99,22 @@ public class BankAccountServiceImpl implements BankAccountService {
     return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.NEEDS_SETUP;
   }
 
+  @Override
+  public ChargeablePaymentMethodStatus getChargeablePaymentMethodStatus(String memberId) {
+    if (memberId == null) {
+      log.error("getChargeablePaymentMethodStatus - hedvig.token is missing");
+      return ChargeablePaymentMethodStatus.NEEDS_SETUP;
+    }
+    Optional<Member> optionalMember = memberRepository.findById(memberId);
+
+    if (optionalMember.isPresent()) {
+      Member member = optionalMember.get();
+
+      if (member.getTrustlyAccountNumber() != null) {
+        return ChargeablePaymentMethodStatus.Companion.fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId));
+      }
+
+    }
+    return ChargeablePaymentMethodStatus.NEEDS_SETUP;
+  }
 }

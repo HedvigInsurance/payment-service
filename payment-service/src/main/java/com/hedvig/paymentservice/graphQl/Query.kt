@@ -6,6 +6,7 @@ import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BankAccount
+import com.hedvig.paymentservice.graphQl.types.ChargeablePaymentMethodStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
 import com.hedvig.paymentservice.services.adyen.AdyenService
@@ -35,9 +36,16 @@ class Query(
     return bankAccountService.getNextChargeDate(memberId)
   }
 
-  fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus {
-    val memberId: String = env.getToken()
+  @Deprecated("replaced by 'chargeablePaymentMethodStatus '")
+  fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus? {
+    val memberId: String? = env.getTokenOrNull()
     return bankAccountService.getDirectDebitStatus(memberId)
+  }
+
+  fun chargeablePaymentMethodStatus(env: DataFetchingEnvironment): ChargeablePaymentMethodStatus? {
+    val memberId: String? = env.getTokenOrNull()
+
+    return bankAccountService.getChargeablePaymentMethodStatus(memberId)
   }
 
   fun availablePaymentMethods(
