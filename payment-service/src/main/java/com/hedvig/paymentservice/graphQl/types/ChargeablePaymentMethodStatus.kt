@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.graphQl.types
 
 enum class ChargeablePaymentMethodStatus {
-  ACTIVE, PENDING, NEEDS_SETUP
+  ACTIVE, PENDING, NEEDS_SETUP;
 
 
   companion object {
