@@ -1,8 +1,8 @@
 package com.hedvig.paymentservice.services.bankAccounts;
 
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
-import com.hedvig.paymentservice.graphQl.types.ChargeablePaymentMethodStatus;
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus;
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 
 import java.time.LocalDate;
 
@@ -13,5 +13,5 @@ public interface BankAccountService {
 
   DirectDebitStatus getDirectDebitStatus(String memberId);
 
-  ChargeablePaymentMethodStatus getChargeablePaymentMethodStatus(String memberId);
+  PayinMethodStatus getPayinMethodStatus(String memberId);
 }

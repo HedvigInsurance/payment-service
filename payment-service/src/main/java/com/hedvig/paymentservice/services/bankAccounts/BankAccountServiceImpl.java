@@ -3,7 +3,7 @@ package com.hedvig.paymentservice.services.bankAccounts;
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.BankAccount;
-import com.hedvig.paymentservice.graphQl.types.ChargeablePaymentMethodStatus;
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration;
@@ -100,10 +100,10 @@ public class BankAccountServiceImpl implements BankAccountService {
   }
 
   @Override
-  public ChargeablePaymentMethodStatus getChargeablePaymentMethodStatus(String memberId) {
+  public PayinMethodStatus getPayinMethodStatus(String memberId) {
     if (memberId == null) {
-      log.error("getChargeablePaymentMethodStatus - hedvig.token is missing");
-      return ChargeablePaymentMethodStatus.NEEDS_SETUP;
+      log.error("getPayinMethodStatus - hedvig.token is missing");
+      return PayinMethodStatus.NEEDS_SETUP;
     }
     Optional<Member> optionalMember = memberRepository.findById(memberId);
 
@@ -111,10 +111,10 @@ public class BankAccountServiceImpl implements BankAccountService {
       Member member = optionalMember.get();
 
       if (member.getTrustlyAccountNumber() != null) {
-        return ChargeablePaymentMethodStatus.Companion.fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId));
+        return PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId));
       }
 
     }
-    return ChargeablePaymentMethodStatus.NEEDS_SETUP;
+    return PayinMethodStatus.NEEDS_SETUP;
   }
 }
