@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.query.adyen.entities;
+package com.hedvig.paymentservice.query.tokenRegistration.entities;
 
 import com.hedvig.paymentservice.domain.tokenRegistration.enums.TokenRegistrationStatus;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,9 +11,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-public class AdyenToken {
+public class TokenRegistration {
   @Id
-  private UUID adyenTokenId;
+  private UUID tokenRegistrationId;
   private String memberId;
   @Enumerated(EnumType.STRING)
   private TokenRegistrationStatus tokenStatus;
@@ -21,11 +21,11 @@ public class AdyenToken {
   @CreationTimestamp
   private Instant createdAt;
 
-  public AdyenToken() {
+  public TokenRegistration() {
   }
 
-  public UUID getAdyenTokenId() {
-    return this.adyenTokenId;
+  public UUID getTokenRegistrationId() {
+    return this.tokenRegistrationId;
   }
 
   public String getMemberId() {
@@ -44,8 +44,8 @@ public class AdyenToken {
     return this.createdAt;
   }
 
-  public void setAdyenTokenId(UUID adyenTokenId) {
-    this.adyenTokenId = adyenTokenId;
+  public void setTokenRegistrationId(UUID tokenRegistrationId) {
+    this.tokenRegistrationId = tokenRegistrationId;
   }
 
   public void setMemberId(String memberId) {
@@ -66,12 +66,12 @@ public class AdyenToken {
 
   public boolean equals(final Object o) {
     if (o == this) return true;
-    if (!(o instanceof AdyenToken)) return false;
-    final AdyenToken other = (AdyenToken) o;
+    if (!(o instanceof TokenRegistration)) return false;
+    final TokenRegistration other = (TokenRegistration) o;
     if (!other.canEqual((Object) this)) return false;
-    final Object this$adyenTokenId = this.getAdyenTokenId();
-    final Object other$adyenTokenId = other.getAdyenTokenId();
-    if (this$adyenTokenId == null ? other$adyenTokenId != null : !this$adyenTokenId.equals(other$adyenTokenId))
+    final Object this$tokenRegistrationId = this.getTokenRegistrationId();
+    final Object other$tokenRegistrationId = other.getTokenRegistrationId();
+    if (this$tokenRegistrationId == null ? other$tokenRegistrationId != null : !this$tokenRegistrationId.equals(other$tokenRegistrationId))
       return false;
     final Object this$memberId = this.getMemberId();
     final Object other$memberId = other.getMemberId();
@@ -91,14 +91,14 @@ public class AdyenToken {
   }
 
   protected boolean canEqual(final Object other) {
-    return other instanceof AdyenToken;
+    return other instanceof TokenRegistration;
   }
 
   public int hashCode() {
     final int PRIME = 59;
     int result = 1;
-    final Object $adyenTokenId = this.getAdyenTokenId();
-    result = result * PRIME + ($adyenTokenId == null ? 43 : $adyenTokenId.hashCode());
+    final Object $tokenRegistrationId = this.getTokenRegistrationId();
+    result = result * PRIME + ($tokenRegistrationId == null ? 43 : $tokenRegistrationId.hashCode());
     final Object $memberId = this.getMemberId();
     result = result * PRIME + ($memberId == null ? 43 : $memberId.hashCode());
     final Object $tokenStatus = this.getTokenStatus();
@@ -111,6 +111,6 @@ public class AdyenToken {
   }
 
   public String toString() {
-    return "AdyenToken(adyenTokenId=" + this.getAdyenTokenId() + ", memberId=" + this.getMemberId() + ", tokenStatus=" + this.getTokenStatus() + ", recurringDetailReference=" + this.getRecurringDetailReference() + ", createdAt=" + this.getCreatedAt() + ")";
+    return "TokenRegistration(tokenRegistrationId=" + this.getTokenRegistrationId() + ", memberId=" + this.getMemberId() + ", tokenStatus=" + this.getTokenStatus() + ", recurringDetailReference=" + this.getRecurringDetailReference() + ", createdAt=" + this.getCreatedAt() + ")";
   }
 }

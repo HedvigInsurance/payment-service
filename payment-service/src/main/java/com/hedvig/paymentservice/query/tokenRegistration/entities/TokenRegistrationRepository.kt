@@ -1,10 +1,10 @@
-package com.hedvig.paymentservice.query.adyen.entities
+package com.hedvig.paymentservice.query.tokenRegistration.entities
 
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface AdyenTokenRepository : CrudRepository<TokenRegistration, UUID> {
+interface TokenRegistrationRepository : CrudRepository<TokenRegistration, UUID> {
   fun findByMemberIdOrderByCreatedAt(memberId: String): TokenRegistration?
 }

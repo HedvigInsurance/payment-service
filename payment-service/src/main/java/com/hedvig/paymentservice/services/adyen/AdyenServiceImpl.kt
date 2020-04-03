@@ -20,8 +20,8 @@ import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
-import com.hedvig.paymentservice.query.adyen.entities.TokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
+import com.hedvig.paymentservice.query.tokenRegistration.entities.TokenRegistrationRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
