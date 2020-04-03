@@ -21,6 +21,7 @@ import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
@@ -133,15 +134,21 @@ class AdyenServiceImpl(
       throw ex
     }
 
-    val tokenRegistrationId = (adyenTokenRegistrationRepository.findByMemberIdOrderByCreatedAt(memberId)
-      ?: throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")).adyenTokenRegistrationId
+    val listOfTokenRegistrations = adyenTokenRegistrationRepository.findByMemberId(memberId)
+
+    if (listOfTokenRegistrations.isNullOrEmpty()) {
+      throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")
+    }
+
+    val adyenTokenRegistrationId =
+      listOfTokenRegistrations.maxBy(AdyenTokenRegistration::getCreatedAt)!!.adyenTokenRegistrationId
 
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
         commandGateway.sendAndWait<Void>(
           AuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
-            adyenTokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = adyenTokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )
@@ -150,7 +157,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           UpdatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
-            adyenTokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = adyenTokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )
@@ -159,7 +166,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           CancelAdyenTokenRegistrationCommand(
             memberId = memberId,
-            adyenTokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = adyenTokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )

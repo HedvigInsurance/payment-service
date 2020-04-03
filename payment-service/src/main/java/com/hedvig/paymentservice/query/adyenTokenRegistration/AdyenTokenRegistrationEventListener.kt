@@ -45,10 +45,8 @@ class AdyenTokenRegistrationEventListener(
 
   @EventHandler
   fun on(e: PendingAdyenTokenRegistrationUpdatedEvent) {
-    val tokenRegistration =
-      AdyenTokenRegistration()
+    val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
-    tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
     tokenRegistration.memberId = e.memberId
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
@@ -58,8 +56,7 @@ class AdyenTokenRegistrationEventListener(
 
   @EventHandler
   fun on(e: AdyenTokenRegistrationCanceledEvent) {
-    val tokenRegistration =
-      AdyenTokenRegistration()
+    val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
     tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
     tokenRegistration.memberId = e.memberId

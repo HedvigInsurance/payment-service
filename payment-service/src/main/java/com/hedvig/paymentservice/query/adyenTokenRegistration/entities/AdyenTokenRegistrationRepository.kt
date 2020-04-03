@@ -6,5 +6,5 @@ import java.util.UUID
 
 @Repository
 interface AdyenTokenRegistrationRepository : CrudRepository<AdyenTokenRegistration, UUID> {
-  fun findByMemberIdOrderByCreatedAt(memberId: String): AdyenTokenRegistration?
+  fun findByMemberId(memberId: String): List<AdyenTokenRegistration>
 }
