@@ -103,7 +103,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           CreateAuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
-            tokenRegistrationId = adyenTokenId,
+            adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response
           )
         )
@@ -112,7 +112,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           CreatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
-            tokenRegistrationId = adyenTokenId,
+            adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response
           )
         )
@@ -141,7 +141,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           AuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
-            tokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )
@@ -150,7 +150,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           UpdatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
-            tokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )
@@ -159,7 +159,7 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(
           CancelAdyenTokenRegistrationCommand(
             memberId = memberId,
-            tokenRegistrationId = tokenRegistrationId,
+            adyenTokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
           )
         )

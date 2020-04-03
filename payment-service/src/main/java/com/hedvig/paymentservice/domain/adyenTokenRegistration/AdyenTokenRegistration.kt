@@ -31,7 +31,7 @@ class AdyenTokenRegistration() {
   constructor(cmd: CreateAuthorisedAdyenTokenRegistrationCommand) : this() {
     apply(
       AdyenTokenRegistrationAuthorisedEvent(
-        cmd.tokenRegistrationId,
+        cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
       )
@@ -42,7 +42,7 @@ class AdyenTokenRegistration() {
   constructor(cmd: CreatePendingAdyenTokenRegistrationCommand) : this() {
     apply(
       PendingAdyenTokenRegistrationCreatedEvent(
-        cmd.tokenRegistrationId,
+        cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
       )
@@ -53,7 +53,7 @@ class AdyenTokenRegistration() {
   fun handle(cmd: AuthorisedAdyenTokenRegistrationCommand) {
     apply(
       AdyenTokenRegistrationAuthorisedEvent(
-        cmd.tokenRegistrationId,
+        cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
       )
@@ -64,7 +64,7 @@ class AdyenTokenRegistration() {
   fun handle(cmd: UpdatePendingAdyenTokenRegistrationCommand) {
     apply(
       PendingAdyenTokenRegistrationUpdatedEvent(
-        cmd.tokenRegistrationId,
+        cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
       )
@@ -75,7 +75,7 @@ class AdyenTokenRegistration() {
   fun handle(cmd: CancelAdyenTokenRegistrationCommand) {
     apply(
       AdyenTokenRegistrationCanceledEvent(
-        cmd.tokenRegistrationId,
+        cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
       )

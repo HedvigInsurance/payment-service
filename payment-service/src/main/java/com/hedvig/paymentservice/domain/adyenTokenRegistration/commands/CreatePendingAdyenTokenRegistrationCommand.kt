@@ -6,7 +6,7 @@ import java.util.UUID
 
 data class CreatePendingAdyenTokenRegistrationCommand(
   @TargetAggregateIdentifier
-  val tokenRegistrationId: UUID,
+  val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenPaymentsResponse: AdyenPaymentsResponse
 )

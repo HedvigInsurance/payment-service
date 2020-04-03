@@ -18,7 +18,7 @@ class AdyenTokenRegistrationSaga {
   private lateinit var commandGateway: CommandGateway
 
   @StartSaga
-  @SagaEventHandler(associationProperty = ADYEN_TOKEN_ID)
+  @SagaEventHandler(associationProperty = ADYEN_TOKEN_REGISTRATION_ID)
   @EndSaga
   fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
     commandGateway.sendAndWait<Void>(
@@ -31,6 +31,6 @@ class AdyenTokenRegistrationSaga {
   }
 
   companion object {
-    const val ADYEN_TOKEN_ID: String = "adyenTokenId"
+    const val ADYEN_TOKEN_REGISTRATION_ID: String = "adyenTokenRegistrationId"
   }
 }

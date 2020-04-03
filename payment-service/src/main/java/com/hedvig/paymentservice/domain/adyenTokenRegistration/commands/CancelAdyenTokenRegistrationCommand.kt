@@ -6,7 +6,7 @@ import java.util.UUID
 
 class CancelAdyenTokenRegistrationCommand(
   @TargetAggregateIdentifier
-  val tokenRegistrationId: UUID,
+  val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenPaymentsResponse: AdyenPaymentsResponse
 )
