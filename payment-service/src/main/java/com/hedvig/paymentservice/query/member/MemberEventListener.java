@@ -17,6 +17,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent;
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
@@ -190,7 +191,8 @@ public class MemberEventListener {
 
     Member m = member.get();
 
-    m.setAdyenAccountId(e.getAdyenTokenId());
+    m.setAdyenRecurringDetailReference(e.getRecurringDetailReference());
+    m.setPayinMethodStatus(PayinMethodStatus.Companion.fromAdyenAccountStatus(e.getAccountStatus()));
 
     memberRepository.save(m);
   }
@@ -206,7 +208,8 @@ public class MemberEventListener {
 
     Member m = member.get();
 
-    m.setAdyenAccountId(e.getAdyenTokenId());
+    m.setAdyenRecurringDetailReference(e.getRecurringDetailReference());
+    m.setPayinMethodStatus(PayinMethodStatus.Companion.fromAdyenAccountStatus(e.getAccountStatus()));
 
     memberRepository.save(m);
   }
