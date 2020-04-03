@@ -34,15 +34,11 @@ data class AdyenPaymentsResponse(
       REDIRECTSHOPPER,
       PARTIALLYAUTHORISED,
       PRESENTTOSHOPPER,
-      UNKNOWN -> {
-        PaymentResponseResultCode.PENDING
-      }
+      UNKNOWN -> PaymentResponseResultCode.PENDING
 
       ERROR,
       CANCELLED,
-      REFUSED -> {
-        PaymentResponseResultCode.FAILED
-      }
+      REFUSED -> PaymentResponseResultCode.FAILED
       else -> throw RuntimeException("Cannot translate ResultCodeEnum to PaymentResponseResultCode  [PaymentsResponse: ${this.paymentsResponse} ] ")
     }
   }
