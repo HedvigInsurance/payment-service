@@ -1,12 +1,12 @@
-package com.hedvig.paymentservice.domain.adyen.commands
+package com.hedvig.paymentservice.domain.tokenRegistration.commands
 
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.UUID
 
-data class CreateAdyenTokenCommand(
+class AuthorisedTokenRegistrationCommand(
   @TargetAggregateIdentifier
-  val adyenTokenId: UUID,
+  val tokenRegistrationId: UUID,
   val memberId: String,
-  val tokenizationResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse
 )

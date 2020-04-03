@@ -1,7 +1,8 @@
-package com.hedvig.paymentservice.domain.adyen.sagas
+package com.hedvig.paymentservice.domain.tokenRegistration.sagas
 
-import com.hedvig.paymentservice.domain.adyen.events.AdyenTokenCreatedEvent
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.enums.TokenRegistrationStatus
+import com.hedvig.paymentservice.domain.tokenRegistration.events.TokenRegistrationAuthorisedEvent
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.eventhandling.saga.EndSaga
 import org.axonframework.eventhandling.saga.SagaEventHandler
@@ -10,7 +11,7 @@ import org.axonframework.spring.stereotype.Saga
 import org.springframework.beans.factory.annotation.Autowired
 
 @Saga
-class AdyenTokenSaga {
+class TokenRegistrationSaga {
 
   @Autowired
   @Transient
@@ -19,13 +20,12 @@ class AdyenTokenSaga {
   @StartSaga
   @SagaEventHandler(associationProperty = ADYEN_TOKEN_ID)
   @EndSaga
-  fun on(e: AdyenTokenCreatedEvent) {
+  fun on(e: TokenRegistrationAuthorisedEvent) {
     commandGateway.sendAndWait<Void>(
       UpdateAdyenAccountCommand(
         e.memberId,
-        e.adyenTokenId.toString(),
-        e.tokenizationResponse.getRecurringDetailReference(),
-        e.tokenizationResponse.getTokenStatus()
+        e.adyenPaymentsResponse.getRecurringDetailReference()!!,
+        TokenRegistrationStatus.AUTHORISED
       )
     )
   }

@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface AdyenTokenRepository : CrudRepository<AdyenToken, UUID>
+interface AdyenTokenRepository : CrudRepository<TokenRegistration, UUID> {
+  fun findByMemberIdOrderByCreatedAt(memberId: String): TokenRegistration?
+}
