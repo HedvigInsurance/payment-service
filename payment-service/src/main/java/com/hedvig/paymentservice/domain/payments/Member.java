@@ -147,9 +147,9 @@ public class Member {
   @CommandHandler
   public void cmd(UpdateAdyenAccountCommand cmd) {
     if (adyenAccount == null || !adyenAccount.getRecurringDetailReference().equals(cmd.getRecurringDetailReference())) {
-      apply(new AdyenAccountCreatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getTokenStatus())));
+      apply(new AdyenAccountCreatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getAdyenTokenStatus())));
     } else {
-      apply(new AdyenAccountUpdatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getTokenStatus())));
+      apply(new AdyenAccountUpdatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getAdyenTokenStatus())));
     }
   }
 

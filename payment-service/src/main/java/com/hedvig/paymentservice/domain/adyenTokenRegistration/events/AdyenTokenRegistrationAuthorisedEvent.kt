@@ -1,10 +1,10 @@
-package com.hedvig.paymentservice.domain.tokenRegistration.events
+package com.hedvig.paymentservice.domain.adyenTokenRegistration.events
 
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import java.util.UUID
 
-class AdyenTokenAuthorizedEvent(
-  val adyenTokenId: UUID,
+data class AdyenTokenRegistrationAuthorisedEvent(
+  val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenPaymentsResponse: AdyenPaymentsResponse
 )

@@ -10,19 +10,19 @@ import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
-import com.hedvig.paymentservice.domain.tokenRegistration.commands.AuthorisedTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.tokenRegistration.commands.CancelTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.tokenRegistration.commands.CreateAuthorisedTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.tokenRegistration.commands.CreatePendingTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.tokenRegistration.commands.UpdatePendingTokenRegistrationCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
-import com.hedvig.paymentservice.query.tokenRegistration.entities.TokenRegistrationRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
@@ -42,7 +42,7 @@ class AdyenServiceImpl(
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
   val commandGateway: CommandGateway,
-  val tokenRegistrationRepository: TokenRegistrationRepository,
+  val adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository,
   @param:Value("\${hedvig.adyen.merchantAccount}")
   val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl}")
@@ -101,7 +101,7 @@ class AdyenServiceImpl(
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
         commandGateway.sendAndWait<Void>(
-          CreateAuthorisedTokenRegistrationCommand(
+          CreateAuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             tokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response
@@ -110,7 +110,7 @@ class AdyenServiceImpl(
       }
       PaymentResponseResultCode.PENDING -> {
         commandGateway.sendAndWait<Void>(
-          CreatePendingTokenRegistrationCommand(
+          CreatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
             tokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response
@@ -133,13 +133,13 @@ class AdyenServiceImpl(
       throw ex
     }
 
-    val tokenRegistrationId = (tokenRegistrationRepository.findByMemberIdOrderByCreatedAt(memberId)
-      ?: throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")).tokenRegistrationId
+    val tokenRegistrationId = (adyenTokenRegistrationRepository.findByMemberIdOrderByCreatedAt(memberId)
+      ?: throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")).adyenTokenRegistrationId
 
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
         commandGateway.sendAndWait<Void>(
-          AuthorisedTokenRegistrationCommand(
+          AuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             tokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
@@ -148,7 +148,7 @@ class AdyenServiceImpl(
       }
       PaymentResponseResultCode.PENDING -> {
         commandGateway.sendAndWait<Void>(
-          UpdatePendingTokenRegistrationCommand(
+          UpdatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
             tokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
@@ -157,7 +157,7 @@ class AdyenServiceImpl(
       }
       PaymentResponseResultCode.FAILED -> {
         commandGateway.sendAndWait<Void>(
-          CancelTokenRegistrationCommand(
+          CancelAdyenTokenRegistrationCommand(
             memberId = memberId,
             tokenRegistrationId = tokenRegistrationId,
             adyenPaymentsResponse = response
@@ -213,7 +213,7 @@ class AdyenServiceImpl(
     if (adyenResponse.storedPaymentMethods == null || adyenResponse.storedPaymentMethods.isEmpty()) {
       return null
     }
-    
+
     return ActivePaymentMethodsResponse(
       storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(adyenResponse.storedPaymentMethods.first())
     )

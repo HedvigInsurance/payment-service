@@ -1,6 +1,6 @@
 package com.hedvig.paymentservice.domain.payments.enums
 
-import com.hedvig.paymentservice.domain.tokenRegistration.enums.TokenRegistrationStatus
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 
 enum class AdyenAccountStatus {
   AUTHORISED,
@@ -8,11 +8,11 @@ enum class AdyenAccountStatus {
   CANCELLED;
 
   companion object {
-    fun fromTokenRegistrationStatus(s: TokenRegistrationStatus): AdyenAccountStatus {
+    fun fromTokenRegistrationStatus(s: AdyenTokenRegistrationStatus): AdyenAccountStatus {
       return when (s) {
-        TokenRegistrationStatus.AUTHORISED -> AUTHORISED
-        TokenRegistrationStatus.PENDING -> PENDING
-        TokenRegistrationStatus.CANCELLED -> CANCELLED
+        AdyenTokenRegistrationStatus.AUTHORISED -> AUTHORISED
+        AdyenTokenRegistrationStatus.PENDING -> PENDING
+        AdyenTokenRegistrationStatus.CANCELLED -> CANCELLED
       }
     }
   }
