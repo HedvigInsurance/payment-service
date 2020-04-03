@@ -25,6 +25,7 @@ type Mutation {
   tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
   """Submite additional payment details"""
   submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
+  submitAdyenRedirection(req: SubmitAdyenRedirectionRequest): SubmitAdyenRedirectionResponse!
 }
 
 type AvailablePaymentMethodsResponse {
@@ -63,6 +64,12 @@ input AdditionalPaymentsDetailsRequest{
   paymentsDetailsRequest: PaymentsDetailsRequest!
 }
 
+input SubmitAdyenRedirectionRequest{
+  md: String!,
+  pares: String!
+}
+
+
 union TokenizationResponse = TokenizationResponseFinished | TokenizationResponseAction
 
 type TokenizationResponseFinished {
@@ -81,6 +88,10 @@ type AdditionalPaymentsDetailsResponseFinished {
 
 type AdditionalPaymentsDetailsResponseAction {
   action: CheckoutPaymentsAction!
+}
+
+type SubmitAdyenRedirectionResponse{
+  resultCode: String!
 }
 
 type StoredPaymentMethodsDetails{

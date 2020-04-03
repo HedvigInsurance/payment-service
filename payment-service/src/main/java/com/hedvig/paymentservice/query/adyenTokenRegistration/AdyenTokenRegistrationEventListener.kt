@@ -38,7 +38,8 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.memberId = e.memberId
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
-
+    tokenRegistration.paymentDataFromAction = e.paymentDataFromAction
+    
     adyenAdyenTokenRepository.save(tokenRegistration)
   }
 

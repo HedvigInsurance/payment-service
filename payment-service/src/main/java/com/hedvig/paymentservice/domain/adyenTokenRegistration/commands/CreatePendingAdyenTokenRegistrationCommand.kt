@@ -8,5 +8,6 @@ data class CreatePendingAdyenTokenRegistrationCommand(
   @TargetAggregateIdentifier
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val adyenPaymentsResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse,
+  val paymentDataFromAction: String
 )

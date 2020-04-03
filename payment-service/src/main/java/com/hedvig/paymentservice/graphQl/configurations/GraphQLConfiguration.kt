@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.hedvig.graphql.commons.scalars.LocalDateScalar
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
+import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import graphql.language.StringValue
@@ -295,7 +296,9 @@ class GraphQLConfiguration(
           AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseFinished::class.java,
           AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseAction::class.java,
           StoredPaymentMethodsDetails::class.java,
-          BrowserInfo::class.java
+          BrowserInfo::class.java,
+          SubmitAdyenRedirectionResponse::class.java
+          
         )
       )
   }

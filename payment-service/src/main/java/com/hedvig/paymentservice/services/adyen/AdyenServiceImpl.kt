@@ -19,6 +19,8 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
+import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
+import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
@@ -114,7 +116,8 @@ class AdyenServiceImpl(
           CreatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
-            adyenPaymentsResponse = response
+            adyenPaymentsResponse = response,
+            paymentDataFromAction = response.paymentsResponse.action.paymentData
           )
         )
       }
@@ -173,6 +176,33 @@ class AdyenServiceImpl(
       }
     }
     return response!!
+  }
+
+  //Extra method for web
+  override fun submitAdyenRedirection(
+    req: SubmitAdyenRedirectionRequest,
+    memberId: String
+  ): SubmitAdyenRedirectionResponse {
+    val listOfTokenRegistrations = adyenTokenRegistrationRepository.findByMemberId(memberId)
+
+    if (listOfTokenRegistrations.isNullOrEmpty()) {
+      throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")
+    }
+    val adyenTokenRegistration = listOfTokenRegistrations.maxBy(AdyenTokenRegistration::getCreatedAt)!!
+
+    require(adyenTokenRegistration.paymentDataFromAction != null) { "No payment data found! [MemberId: $memberId] [Req: $req] " }
+
+    val paymentsDetailsRequest = PaymentsDetailsRequest()
+    paymentsDetailsRequest.paymentData = adyenTokenRegistration.paymentDataFromAction
+
+    val details: MutableMap<String, String> = HashMap()
+    details[MD] = req.md
+    details[PARES] = req.pares
+    paymentsDetailsRequest.details = details
+
+    val response = this.submitAdditionalPaymentDetails(paymentsDetailsRequest, memberId)
+
+    return SubmitAdyenRedirectionResponse(resultCode = response.paymentsResponse.resultCode.value)
   }
 
   override fun fetchAdyenPublicKey(): String {
@@ -238,5 +268,7 @@ class AdyenServiceImpl(
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)
     const val ALLOW_3DS2: String = "allow3DS2"
+    const val MD: String = "MD"
+    const val PARES: String = "PaRes"
   }
 }

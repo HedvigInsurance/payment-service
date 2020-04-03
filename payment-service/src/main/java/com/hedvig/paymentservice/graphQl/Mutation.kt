@@ -7,6 +7,8 @@ import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
+import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
+import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
@@ -89,6 +91,19 @@ class Mutation(
     return AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseFinished(
       resultCode = adyenResponse.paymentsResponse.resultCode.value
     )
+  }
+
+  fun submitAdyenRedirection(
+    request: SubmitAdyenRedirectionRequest,
+    env: DataFetchingEnvironment
+  ): SubmitAdyenRedirectionResponse {
+    val memberId = env.getTokenOrNull()
+    if (memberId == null) {
+      logger.error("submitAdyenRedirection - hedvig.token is missing")
+      throw RuntimeException("submitAdyenRedirection - hedvig.token is missing")
+    }
+
+    return adyenService.submitAdyenRedirection(request, memberId)
   }
 
   fun cancelDirectDebitRequest(env: DataFetchingEnvironment): CancelDirectDebitStatus {
