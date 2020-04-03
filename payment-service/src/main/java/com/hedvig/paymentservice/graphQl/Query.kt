@@ -36,7 +36,7 @@ class Query(
     return bankAccountService.getNextChargeDate(memberId)
   }
 
-  @Deprecated("replaced by 'chargeablePaymentMethodStatus '")
+  @Deprecated("replaced by 'payinMethodStatus'")
   fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus {
     val memberId: String? = env.getTokenOrNull()
     return bankAccountService.getDirectDebitStatus(memberId)
