@@ -4,6 +4,7 @@ import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodsRequest
+import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
@@ -201,12 +202,18 @@ class AdyenServiceImpl(
       .merchantAccount(merchantAccount)
       .shopperReference(memberId)
 
-    val adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
-
-    if (adyenResponse.storedPaymentMethods.isEmpty()) {
-      return null
+    val adyenResponse: PaymentMethodsResponse
+    try {
+      adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
+    } catch (ex: Exception) {
+      logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest] [Exception: $ex]")
+      throw ex
     }
 
+    if (adyenResponse.storedPaymentMethods == null || adyenResponse.storedPaymentMethods.isEmpty()) {
+      return null
+    }
+    
     return ActivePaymentMethodsResponse(
       storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(adyenResponse.storedPaymentMethods.first())
     )
