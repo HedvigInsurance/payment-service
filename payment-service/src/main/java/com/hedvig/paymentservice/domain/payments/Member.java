@@ -9,6 +9,7 @@ import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus;
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent;
@@ -145,10 +146,10 @@ public class Member {
 
   @CommandHandler
   public void cmd(UpdateAdyenAccountCommand cmd) {
-    if (adyenAccount == null || !adyenAccount.getAdyenTokenId().equals(cmd.getAdyenTokenId())) {
-      apply(new AdyenAccountCreatedEvent(cmd.getMemberId(), cmd.getAdyenTokenId(), cmd.getRecurringDetailReference(), cmd.getTokenStatus()));
+    if (adyenAccount == null || !adyenAccount.getRecurringDetailReference().equals(cmd.getRecurringDetailReference())) {
+      apply(new AdyenAccountCreatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getTokenStatus())));
     } else {
-      apply(new AdyenAccountUpdatedEvent(cmd.getMemberId(), cmd.getAdyenTokenId(), cmd.getRecurringDetailReference(), cmd.getTokenStatus()));
+      apply(new AdyenAccountUpdatedEvent(cmd.getMemberId(), cmd.getRecurringDetailReference(), AdyenAccountStatus.Companion.fromTokenRegistrationStatus(cmd.getTokenStatus())));
     }
   }
 
@@ -295,12 +296,18 @@ public class Member {
 
   @EventSourcingHandler
   public void on(AdyenAccountCreatedEvent e) {
-    this.adyenAccount = new AdyenAccount(e.getAdyenTokenId(), e.getRecurringDetailReference(), e.getTokenStatus());
+    this.adyenAccount = new AdyenAccount(
+      e.getRecurringDetailReference(),
+      e.getAccountStatus()
+    );
   }
 
   @EventSourcingHandler
   public void on(AdyenAccountUpdatedEvent e) {
-    this.adyenAccount = new AdyenAccount(e.getAdyenTokenId(), e.getRecurringDetailReference(), e.getTokenStatus());
+    this.adyenAccount = new AdyenAccount(
+      e.getRecurringDetailReference(),
+      e.getAccountStatus()
+    );
   }
 
   private static Transaction getSingleTransaction(

@@ -1,9 +1,8 @@
 package com.hedvig.paymentservice.domain.payments
 
-import com.adyen.model.checkout.PaymentsResponse
+import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 
 data class AdyenAccount(
-  val adyenTokenId: String,
   val recurringDetailReference: String,
-  val status: PaymentsResponse.ResultCodeEnum
+  val status: AdyenAccountStatus
 )

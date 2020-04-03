@@ -1,10 +1,9 @@
 package com.hedvig.paymentservice.domain.payments.events
 
-import com.adyen.model.checkout.PaymentsResponse
+import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 
 class AdyenAccountUpdatedEvent(
   val memberId: String,
-  val adyenTokenId: String,
   val recurringDetailReference: String,
-  val tokenStatus: PaymentsResponse.ResultCodeEnum
+  val accountStatus: AdyenAccountStatus
 )
