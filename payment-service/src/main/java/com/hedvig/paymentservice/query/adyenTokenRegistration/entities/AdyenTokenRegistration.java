@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.query.adyenTokenRegistration.entities;
 
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -19,7 +20,9 @@ public class AdyenTokenRegistration {
   private AdyenTokenRegistrationStatus tokenStatus;
   private String recurringDetailReference;
   @CreationTimestamp
-  private Instant createdAt;
+  Instant createdAt;
+  @UpdateTimestamp
+  Instant updatedAt;
 
   public AdyenTokenRegistration() {
   }
@@ -58,10 +61,6 @@ public class AdyenTokenRegistration {
 
   public void setRecurringDetailReference(String recurringDetailReference) {
     this.recurringDetailReference = recurringDetailReference;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
   }
 
   public boolean equals(final Object o) {
