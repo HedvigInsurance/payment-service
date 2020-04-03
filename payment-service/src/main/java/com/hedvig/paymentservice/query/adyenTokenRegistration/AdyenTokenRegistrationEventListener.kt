@@ -20,7 +20,7 @@ class AdyenTokenRegistrationEventListener(
   @EventHandler
   fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
     val tokenRegistration =
-      AdyenTokenRegistration()
+      adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElse(AdyenTokenRegistration())
 
     tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
     tokenRegistration.memberId = e.memberId
@@ -32,8 +32,7 @@ class AdyenTokenRegistrationEventListener(
 
   @EventHandler
   fun on(e: PendingAdyenTokenRegistrationCreatedEvent) {
-    val tokenRegistration =
-      AdyenTokenRegistration()
+    val tokenRegistration = AdyenTokenRegistration()
 
     tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
     tokenRegistration.memberId = e.memberId

@@ -6,7 +6,6 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAu
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenAuthorizedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
@@ -97,15 +96,7 @@ class AdyenTokenRegistration() {
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
   }
-
-  @EventSourcingHandler
-  fun on(e: AdyenTokenAuthorizedEvent) {
-    this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
-    this.memberId = e.memberId
-    this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
-    this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
-  }
-
+  
   @EventSourcingHandler
   fun on(e: PendingAdyenTokenRegistrationUpdatedEvent) {
     this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
