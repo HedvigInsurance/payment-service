@@ -7,19 +7,24 @@ import com.adyen.model.checkout.PaymentMethodsRequest
 import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
-import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
-import com.hedvig.paymentservice.domain.adyen.commands.CreateAdyenTokenCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.commands.AuthorisedTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.commands.CancelTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.commands.CreateAuthorisedTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.commands.CreatePendingTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.tokenRegistration.commands.UpdatePendingTokenRegistrationCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyen.entities.TokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
+import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.axonframework.commandhandling.gateway.CommandGateway
@@ -36,10 +41,15 @@ class AdyenServiceImpl(
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
   val commandGateway: CommandGateway,
-  @param:Value("\${hedvig.adyen.merchantAccount}") val merchantAccount: String,
-  @param:Value("\${hedvig.adyen.returnUrl}") val returnUrl: String,
-  @param:Value("\${hedvig.adyen.allow3DS2}") val allow3DS2: Boolean,
-  @param:Value("\${hedvig.adyen.public.key}") val adyenPublicKey: String
+  val tokenRegistrationRepository: TokenRegistrationRepository,
+  @param:Value("\${hedvig.adyen.merchantAccount}")
+  val merchantAccount: String,
+  @param:Value("\${hedvig.adyen.returnUrl}")
+  val returnUrl: String,
+  @param:Value("\${hedvig.adyen.allow3DS2}")
+  val allow3DS2: Boolean,
+  @param:Value("\${hedvig.adyen.public.key}")
+  val adyenPublicKey: String
 ) : AdyenService {
   override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
     val paymentMethodsRequest = PaymentMethodsRequest()
@@ -87,24 +97,74 @@ class AdyenServiceImpl(
       throw ex
     }
 
-    if (response.paymentsResponse.resultCode == PaymentsResponse.ResultCodeEnum.AUTHORISED) {
-      commandGateway.sendAndWait<Void>(
-        CreateAdyenTokenCommand(
-          memberId = memberId,
-          adyenTokenId = adyenTokenId,
-          tokenizationResponse = response
+    when (response.getResultCode()) {
+      PaymentResponseResultCode.AUTHORISED -> {
+        commandGateway.sendAndWait<Void>(
+          CreateAuthorisedTokenRegistrationCommand(
+            memberId = memberId,
+            tokenRegistrationId = adyenTokenId,
+            adyenPaymentsResponse = response
+          )
         )
-      )
-    }  //TODO: Change me
-
-
-    //TODO: Cancel rest
-
+      }
+      PaymentResponseResultCode.PENDING -> {
+        commandGateway.sendAndWait<Void>(
+          CreatePendingTokenRegistrationCommand(
+            memberId = memberId,
+            tokenRegistrationId = adyenTokenId,
+            adyenPaymentsResponse = response
+          )
+        )
+      }
+      PaymentResponseResultCode.FAILED -> {
+        logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $req] [Response: $response]")
+      }
+    }
     return response!!
   }
 
-  override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest): AdyenPaymentsResponse {
-    return AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
+  override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse {
+    var response: AdyenPaymentsResponse? = null
+    try {
+      response = AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
+    } catch (ex: Exception) {
+      logger.error("Submitting additional payment details with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
+      throw ex
+    }
+
+    val tokenRegistrationId = (tokenRegistrationRepository.findByMemberIdOrderByCreatedAt(memberId)
+      ?: throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")).tokenRegistrationId
+
+    when (response.getResultCode()) {
+      PaymentResponseResultCode.AUTHORISED -> {
+        commandGateway.sendAndWait<Void>(
+          AuthorisedTokenRegistrationCommand(
+            memberId = memberId,
+            tokenRegistrationId = tokenRegistrationId,
+            adyenPaymentsResponse = response
+          )
+        )
+      }
+      PaymentResponseResultCode.PENDING -> {
+        commandGateway.sendAndWait<Void>(
+          UpdatePendingTokenRegistrationCommand(
+            memberId = memberId,
+            tokenRegistrationId = tokenRegistrationId,
+            adyenPaymentsResponse = response
+          )
+        )
+      }
+      PaymentResponseResultCode.FAILED -> {
+        commandGateway.sendAndWait<Void>(
+          CancelTokenRegistrationCommand(
+            memberId = memberId,
+            tokenRegistrationId = tokenRegistrationId,
+            adyenPaymentsResponse = response
+          )
+        )
+      }
+    }
+    return response!!
   }
 
   override fun fetchAdyenPublicKey(): String {
