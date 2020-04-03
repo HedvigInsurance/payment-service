@@ -31,8 +31,8 @@ class Query(
     return bankAccountService.getBankAccount(memberId)
   }
 
-  fun nextChargeDate(env: DataFetchingEnvironment): LocalDate {
-    val memberId: String = env.getToken()
+  fun nextChargeDate(env: DataFetchingEnvironment): LocalDate? {
+    val memberId: String? = env.getToken()
     return bankAccountService.getNextChargeDate(memberId)
   }
 
