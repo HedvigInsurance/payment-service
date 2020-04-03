@@ -6,5 +6,6 @@ import java.util.UUID
 class PendingAdyenTokenRegistrationCreatedEvent(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val adyenPaymentsResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse,
+  val paymentDataFromAction: String
 )
