@@ -8,7 +8,7 @@ type Query {
   chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
   nextChargeDate: LocalDate
   registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
-  directDebitStatus: DirectDebitStatus!  @deprecated(reason: "Use `chargeablePaymentMethodStatus`")
+  directDebitStatus: DirectDebitStatus!  @deprecated(reason: "Use `payinMethodStatus`")
   """Returns the status for the payin method (Trustly's direct debit for Sweden) (Adyen for Norway)"""
   payinMethodStatus: PayinMethodStatus!
   """Returns all the available payments methods before the client requests a tokenization"""
