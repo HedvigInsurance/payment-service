@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.query.member.entities;
 
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -11,6 +12,7 @@ import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,15 +27,27 @@ public class Member {
 
   String trustlyAccountNumber;
 
-  String adyenAccountId;
+  String adyenRecurringDetailReference;
 
   @Enumerated(EnumType.STRING)
   DirectDebitStatus directDebitStatus;
+
+  @Enumerated(EnumType.STRING)
+  PayinMethodStatus payinMethodStatus;
 
   String bank;
   String descriptor;
 
   public Member() {
+  }
+
+
+  public PayinMethodStatus getPayinMethodStatus() {
+    return payinMethodStatus;
+  }
+
+  public void setPayinMethodStatus(PayinMethodStatus payinMethodStatus) {
+    this.payinMethodStatus = payinMethodStatus;
   }
 
   public Transaction getTransaction(UUID transactionId) {
@@ -56,8 +70,8 @@ public class Member {
     return this.trustlyAccountNumber;
   }
 
-  public String getAdyenAccountId() {
-    return this.adyenAccountId;
+  public String getAdyenRecurringDetailReference() {
+    return this.adyenRecurringDetailReference;
   }
 
   public DirectDebitStatus getDirectDebitStatus() {
@@ -84,8 +98,8 @@ public class Member {
     this.trustlyAccountNumber = trustlyAccountNumber;
   }
 
-  public void setAdyenAccountId(String adyenAccountId) {
-    this.adyenAccountId = adyenAccountId;
+  public void setAdyenRecurringDetailReference(String adyenRecurringDetailReference) {
+    this.adyenRecurringDetailReference = adyenRecurringDetailReference;
   }
 
   public void setDirectDebitStatus(DirectDebitStatus directDebitStatus) {
@@ -100,65 +114,23 @@ public class Member {
     this.descriptor = descriptor;
   }
 
-  public boolean equals(final Object o) {
-    if (o == this) return true;
-    if (!(o instanceof Member)) return false;
-    final Member other = (Member) o;
-    if (!other.canEqual((Object) this)) return false;
-    final Object this$id = this.getId();
-    final Object other$id = other.getId();
-    if (this$id == null ? other$id != null : !this$id.equals(other$id)) return false;
-    final Object this$transactions = this.getTransactions();
-    final Object other$transactions = other.getTransactions();
-    if (this$transactions == null ? other$transactions != null : !this$transactions.equals(other$transactions))
-      return false;
-    final Object this$trustlyAccountNumber = this.getTrustlyAccountNumber();
-    final Object other$trustlyAccountNumber = other.getTrustlyAccountNumber();
-    if (this$trustlyAccountNumber == null ? other$trustlyAccountNumber != null : !this$trustlyAccountNumber.equals(other$trustlyAccountNumber))
-      return false;
-    final Object this$adyenAccountId = this.getAdyenAccountId();
-    final Object other$adyenAccountId = other.getAdyenAccountId();
-    if (this$adyenAccountId == null ? other$adyenAccountId != null : !this$adyenAccountId.equals(other$adyenAccountId))
-      return false;
-    final Object this$directDebitStatus = this.getDirectDebitStatus();
-    final Object other$directDebitStatus = other.getDirectDebitStatus();
-    if (this$directDebitStatus == null ? other$directDebitStatus != null : !this$directDebitStatus.equals(other$directDebitStatus))
-      return false;
-    final Object this$bank = this.getBank();
-    final Object other$bank = other.getBank();
-    if (this$bank == null ? other$bank != null : !this$bank.equals(other$bank)) return false;
-    final Object this$descriptor = this.getDescriptor();
-    final Object other$descriptor = other.getDescriptor();
-    if (this$descriptor == null ? other$descriptor != null : !this$descriptor.equals(other$descriptor))
-      return false;
-    return true;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Member member = (Member) o;
+    return Objects.equals(id, member.id) &&
+      Objects.equals(transactions, member.transactions) &&
+      Objects.equals(trustlyAccountNumber, member.trustlyAccountNumber) &&
+      Objects.equals(adyenRecurringDetailReference, member.adyenRecurringDetailReference) &&
+      directDebitStatus == member.directDebitStatus &&
+      payinMethodStatus == member.payinMethodStatus &&
+      Objects.equals(bank, member.bank) &&
+      Objects.equals(descriptor, member.descriptor);
   }
 
-  protected boolean canEqual(final Object other) {
-    return other instanceof Member;
-  }
-
+  @Override
   public int hashCode() {
-    final int PRIME = 59;
-    int result = 1;
-    final Object $id = this.getId();
-    result = result * PRIME + ($id == null ? 43 : $id.hashCode());
-    final Object $transactions = this.getTransactions();
-    result = result * PRIME + ($transactions == null ? 43 : $transactions.hashCode());
-    final Object $trustlyAccountNumber = this.getTrustlyAccountNumber();
-    result = result * PRIME + ($trustlyAccountNumber == null ? 43 : $trustlyAccountNumber.hashCode());
-    final Object $adyenAccountId = this.getAdyenAccountId();
-    result = result * PRIME + ($adyenAccountId == null ? 43 : $adyenAccountId.hashCode());
-    final Object $directDebitStatus = this.getDirectDebitStatus();
-    result = result * PRIME + ($directDebitStatus == null ? 43 : $directDebitStatus.hashCode());
-    final Object $bank = this.getBank();
-    result = result * PRIME + ($bank == null ? 43 : $bank.hashCode());
-    final Object $descriptor = this.getDescriptor();
-    result = result * PRIME + ($descriptor == null ? 43 : $descriptor.hashCode());
-    return result;
-  }
-
-  public String toString() {
-    return "Member(id=" + this.getId() + ", transactions=" + this.getTransactions() + ", trustlyAccountNumber=" + this.getTrustlyAccountNumber() + ", adyenAccountId=" + this.getAdyenAccountId() + ", directDebitStatus=" + this.getDirectDebitStatus() + ", bank=" + this.getBank() + ", descriptor=" + this.getDescriptor() + ")";
+    return Objects.hash(id, transactions, trustlyAccountNumber, adyenRecurringDetailReference, directDebitStatus, payinMethodStatus, bank, descriptor);
   }
 }

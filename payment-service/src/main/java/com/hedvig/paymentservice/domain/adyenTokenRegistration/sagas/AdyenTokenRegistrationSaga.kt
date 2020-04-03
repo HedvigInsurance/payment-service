@@ -1,6 +1,7 @@
-package com.hedvig.paymentservice.domain.adyen.sagas
+package com.hedvig.paymentservice.domain.adyenTokenRegistration.sagas
 
-import com.hedvig.paymentservice.domain.adyen.events.AdyenTokenCreatedEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.eventhandling.saga.EndSaga
@@ -10,27 +11,26 @@ import org.axonframework.spring.stereotype.Saga
 import org.springframework.beans.factory.annotation.Autowired
 
 @Saga
-class AdyenTokenSaga {
+class AdyenTokenRegistrationSaga {
 
   @Autowired
   @Transient
   private lateinit var commandGateway: CommandGateway
 
   @StartSaga
-  @SagaEventHandler(associationProperty = ADYEN_TOKEN_ID)
+  @SagaEventHandler(associationProperty = ADYEN_TOKEN_REGISTRATION_ID)
   @EndSaga
-  fun on(e: AdyenTokenCreatedEvent) {
+  fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
     commandGateway.sendAndWait<Void>(
       UpdateAdyenAccountCommand(
         e.memberId,
-        e.adyenTokenId.toString(),
-        e.tokenizationResponse.getRecurringDetailReference(),
-        e.tokenizationResponse.getTokenStatus()
+        e.adyenPaymentsResponse.getRecurringDetailReference()!!,
+        AdyenTokenRegistrationStatus.AUTHORISED
       )
     )
   }
 
   companion object {
-    const val ADYEN_TOKEN_ID: String = "adyenTokenId"
+    const val ADYEN_TOKEN_REGISTRATION_ID: String = "adyenTokenRegistrationId"
   }
 }

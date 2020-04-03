@@ -78,7 +78,7 @@ class Mutation(
       return null
     }
 
-    val adyenResponse = adyenService.submitAdditionalPaymentDetails(request.paymentsDetailsRequest)
+    val adyenResponse = adyenService.submitAdditionalPaymentDetails(request.paymentsDetailsRequest, memberId)
 
     if (adyenResponse.paymentsResponse.action != null) {
       return AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseAction(
