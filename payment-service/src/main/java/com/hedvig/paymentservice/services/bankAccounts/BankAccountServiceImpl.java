@@ -114,6 +114,10 @@ public class BankAccountServiceImpl implements BankAccountService {
         return PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId));
       }
 
+      if (member.getAdyenRecurringDetailReference() != null) {
+        return member.getPayinMethodStatus();
+      }
+
     }
     return PayinMethodStatus.NEEDS_SETUP;
   }
