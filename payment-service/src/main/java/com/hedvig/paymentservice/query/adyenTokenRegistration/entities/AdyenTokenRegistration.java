@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenR
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -19,6 +20,7 @@ public class AdyenTokenRegistration {
   @Enumerated(EnumType.STRING)
   private AdyenTokenRegistrationStatus tokenStatus;
   private String recurringDetailReference;
+  @Column(columnDefinition = "TEXT")
   private String paymentDataFromAction;
   @CreationTimestamp
   Instant createdAt;
