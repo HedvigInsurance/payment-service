@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.web;
 
-import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
@@ -52,7 +51,7 @@ public class DirectDebitController {
 
     Member member = om.get();
 
-    return ResponseEntity.ok(new DirectDebitStatusDTO(member.getId(), member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)));
+    return ResponseEntity.ok(new DirectDebitStatusDTO(member.getId(), member.isDirectDebitMandateActive()));
   }
 
   @PostMapping(path = "register")
