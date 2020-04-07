@@ -55,7 +55,7 @@ public class Member {
   }
 
   public Boolean isDirectDebitMandateActive() {
-    return directDebitStatus != null && directDebitStatus.equals(DirectDebitStatus.CONNECTED);
+    return (directDebitStatus != null && directDebitStatus.equals(DirectDebitStatus.CONNECTED)) || (adyenRecurringDetailReference != null && payinMethodStatus.equals(PayinMethodStatus.ACTIVE));
   }
 
   public String getId() {
