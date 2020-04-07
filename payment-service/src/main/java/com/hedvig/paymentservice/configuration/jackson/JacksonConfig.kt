@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.configuration.jackson
 
-import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethodDetails
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.Version
@@ -8,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
@@ -22,7 +22,7 @@ class JacksonConfig {
     paymentMethodDetailsModule.setAbstractTypes(
       SimpleAbstractTypeResolver().addMapping(
         PaymentMethodDetails::class.java,
-        DefaultPaymentMethodDetails::class.java
+        HedvigPaymentMethodDetails::class.java
       )
     )
 
