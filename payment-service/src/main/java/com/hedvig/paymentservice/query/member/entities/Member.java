@@ -56,7 +56,7 @@ public class Member {
 
   public Boolean isDirectDebitMandateActive() {
     return (trustlyAccountNumber != null && directDebitStatus != null && directDebitStatus.equals(DirectDebitStatus.CONNECTED))
-      || (adyenRecurringDetailReference != null && payinMethodStatus.equals(PayinMethodStatus.ACTIVE));
+      || (adyenRecurringDetailReference != null && payinMethodStatus != null && payinMethodStatus.equals(PayinMethodStatus.ACTIVE));
   }
 
   public String getId() {
