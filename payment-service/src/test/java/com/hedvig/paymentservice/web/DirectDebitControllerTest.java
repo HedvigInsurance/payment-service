@@ -53,45 +53,49 @@ public class DirectDebitControllerTest {
     given(memberRepository.findById(Mockito.anyString())).willReturn(Optional.empty());
 
     mockMvc
-        .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-        .andExpect(status().isBadRequest());
+      .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+      .andExpect(status().isBadRequest());
   }
 
   @Test
   public void Should_ReturnDirectDebitStatus_WhenMemberHasDirectDebit() throws Exception {
 
     given(memberRepository.findById(Mockito.anyString()))
-        .willReturn(Optional.of(makeMember(MEMBER_ID, true)));
+      .willReturn(Optional.of(makeMember(MEMBER_ID, true)));
 
     mockMvc
-        .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-        .andExpect(jsonPath("$.directDebitActivated").value(true));
+      .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+      .andExpect(status().is2xxSuccessful())
+      .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
+      .andExpect(jsonPath("$.directDebitActivated").value(true));
   }
 
   @Test
   public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
 
     given(trustlyService.requestDirectDebitAccount(any(), any(), any()))
-        .willReturn(new DirectDebitResponse("url", "orderId"));
+      .willReturn(new DirectDebitResponse("url", "orderId"));
 
     mockMvc
-        .perform(post("/directDebit/register")
-            .header("hedvig.token", MEMBER_ID)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(
-                new RegisterDirectDebitRequestDTO("Tst",
-                    "tdst", "198902171234", null))))
-        .andExpect(status().is2xxSuccessful())
-        .andExpect(jsonPath(".url").value("url"));
+      .perform(post("/directDebit/register")
+        .header("hedvig.token", MEMBER_ID)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(
+          new RegisterDirectDebitRequestDTO("Tst",
+            "tdst", "198902171234", null))))
+      .andExpect(status().is2xxSuccessful())
+      .andExpect(jsonPath(".url").value("url"));
   }
 
 
   private Member makeMember(String memberId, boolean isConnected) {
     Member member = new Member();
     member.setId(memberId);
-    member.setDirectDebitStatus(isConnected ? DirectDebitStatus.CONNECTED : DirectDebitStatus.DISCONNECTED );
+
+    if (isConnected) {
+      member.setTrustlyAccountNumber("Test");
+    }
+    member.setDirectDebitStatus(isConnected ? DirectDebitStatus.CONNECTED : DirectDebitStatus.DISCONNECTED);
 
     return member;
   }
