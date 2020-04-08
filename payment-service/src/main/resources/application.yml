@@ -3,6 +3,11 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
+
+  security:
+    user:
+      name: test
+      password: test
 spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
 
@@ -23,11 +28,9 @@ graphiql:
 
 
 
+
 hedvig:
   adyen:
-    webhook:
-      name: test
-      password: test
     public:
       key: test
     allow3DS2: true

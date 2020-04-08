@@ -6,14 +6,16 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 
+
 @Configuration
 @EnableWebSecurity
 class SecurityConfig : WebSecurityConfigurerAdapter() {
+
   @Throws(Exception::class)
   override fun configure(http: HttpSecurity) {
     http
       .authorizeRequests()
-      .antMatchers("/hooks/adyen/*").authenticated()
+      .antMatchers("/hooks/adyen/**").authenticated()
       .anyRequest().permitAll()
       .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
       .and()
