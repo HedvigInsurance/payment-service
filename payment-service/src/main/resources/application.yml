@@ -32,6 +32,7 @@ hedvig:
     merchantAccount: test
     enviroment: TEST
     apiKey: test
+    urlPrefix: test
   trustly:
     validRedirectHosts: []
     URLScheme: test

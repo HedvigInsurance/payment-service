@@ -15,9 +15,16 @@ class AdyenCheckoutConfig {
   @Value("\${hedvig.adyen.enviroment}")
   lateinit var environment: Environment
 
+  @Value("\${hedvig.adyen.urlPrefix}")
+  lateinit var prefix: String
+
   @Bean
   fun createAdyenCheckout(): Checkout {
-    val client = Client(apiKey, environment)
+    val client: Client = if (environment == Environment.LIVE) {
+      Client(apiKey, environment, prefix)
+    } else {
+      Client(apiKey, environment)
+    }
     return Checkout(client)
   }
 }
