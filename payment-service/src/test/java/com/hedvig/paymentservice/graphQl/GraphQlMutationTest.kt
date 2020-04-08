@@ -60,7 +60,6 @@ class GraphQlMutationTest {
     assert(response.readTree()["data"]["tokenizePaymentDetails"]["resultCode"].textValue() == "Authorised")
   }
 
-
   private fun makeMember() = Member(
     memberId = MEMBER_ID_ONE,
     firstName = "",

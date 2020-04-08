@@ -28,6 +28,7 @@ import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenToke
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
+import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
@@ -79,7 +80,7 @@ class AdyenServiceImpl(
     val paymentsRequest = PaymentsRequest()
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(req.channel))
       .shopperIP(endUserIp ?: "1.1.1.1")
-      .paymentMethod(req.paymentMethodDetails)
+      .paymentMethod((req.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
       .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
       .merchantAccount(merchantAccount)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
