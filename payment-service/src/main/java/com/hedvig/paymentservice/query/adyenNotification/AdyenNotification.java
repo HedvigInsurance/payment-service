@@ -1,6 +1,6 @@
 package com.hedvig.paymentservice.query.adyenNotification;
 
-import com.adyen.model.notification.NotificationRequestItem;
+import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -58,16 +58,16 @@ public class AdyenNotification {
 
   public static AdyenNotification fromNotificationRequestItem(NotificationRequestItem item) {
     return new AdyenNotification(
-      item.getAmount().getValue(),
-      item.getAmount().getCurrency(),
+      item.getAmount() != null ? item.getAmount().getValue() : 0L,
+      item.getAmount() != null ? item.getAmount().getCurrency() : null,
       item.getEventCode(),
-      item.getEventDate().toString(),
+      item.getEventDate(),
       item.getMerchantAccountCode(),
       item.getMerchantReference(),
       item.getOriginalReference(),
       item.getPspReference(),
       item.getReason(),
-      item.isSuccess(),
+      item.getSuccess(),
       item.getPaymentMethod(),
       item.getOperations(),
       item.getAdditionalData()

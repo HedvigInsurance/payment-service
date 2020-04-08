@@ -1,8 +1,6 @@
 package com.hedvig.paymentservice.web.dtos.adyen
 
-import com.adyen.model.notification.NotificationRequestItemContainer
-
-class NotificationRequest(
+data class NotificationRequest(
   var live: String?,
   val notificationItems: List<NotificationRequestItemContainer>?
 )
