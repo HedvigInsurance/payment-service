@@ -1,8 +1,8 @@
 package com.hedvig.paymentservice.web
 
-import com.adyen.model.notification.NotificationRequest
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotification
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotificationRepository
+import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequest
 import lombok.extern.slf4j.Slf4j
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -18,7 +18,7 @@ class AdyenNotificationController(
 ) {
   @PostMapping(value = ["notifications"], produces = ["application/json"])
   fun notifications(@RequestBody requestBody: NotificationRequest?): ResponseEntity<String> {
-    requestBody!!.notificationItemContainers.forEach { item ->
+    requestBody!!.notificationItems!!.forEach { item ->
       adyenNotificationRepository.save(
         AdyenNotification.fromNotificationRequestItem(item.notificationItem)
       )
