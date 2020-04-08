@@ -12,7 +12,8 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SuppressWarnings("ALL")
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = PaymentServiceTestConfiguration.class)
-@WebMvcTest(controllers = TrustlyController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class TrustlyControllerTest {
 
   public static final String TRUSTLY_IFRAME_URL = "https://example.url";
