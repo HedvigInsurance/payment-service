@@ -48,10 +48,11 @@ class GraphQlMutationTest {
   fun tokenizePaymentMethods() {
     Mockito.`when`(memberService.getMember(Mockito.any())).thenReturn(Optional.of(makeMember()))
 
-    Mockito.`when`(adyenService.tokenizePaymentDetails(anyObject(), Mockito.anyString()))
+    Mockito.`when`(adyenService.tokenizePaymentDetails(anyObject(), Mockito.anyString(), Mockito.eq("1.1.1.2")))
       .thenAnswer { AdyenPaymentsResponse(PaymentsResponse().resultCode(PaymentsResponse.ResultCodeEnum.AUTHORISED)) }
 
     graphQLTestTemplate.addHeader("hedvig.token", MEMBER_ID_ONE)
+    graphQLTestTemplate.addHeader("x-forwarded-for", "1.1.1.2")
 
     val response = graphQLTestTemplate.perform("/mutations/registerCard.graphql", null)
 

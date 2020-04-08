@@ -235,7 +235,7 @@
     <dependency>
       <groupId>com.hedvig.graphql.commons</groupId>
       <artifactId>graphql-commons</artifactId>
-      <version>1.0.4</version>
+      <version>1.0.6</version>
     </dependency>
     <dependency>
       <groupId>com.graphql-java-kickstart</groupId>

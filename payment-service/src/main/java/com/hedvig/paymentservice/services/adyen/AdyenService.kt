@@ -11,7 +11,7 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 
 interface AdyenService {
   fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
-  fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): AdyenPaymentsResponse
+  fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
   fun chargeMemberWithToken(req: ChargeMemberRequest): Any
   fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
   fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse

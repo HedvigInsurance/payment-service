@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.graphQl
 
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
+import com.hedvig.graphql.commons.extensions.getEndUserIp
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsRequest
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
@@ -59,7 +60,9 @@ class Mutation(
       return null
     }
 
-    val adyenResponse = adyenService.tokenizePaymentDetails(request, memberId)
+    val endUserIp = env.getEndUserIp()
+
+    val adyenResponse = adyenService.tokenizePaymentDetails(request, memberId, endUserIp)
 
     if (adyenResponse.paymentsResponse.action != null) {
       return TokenizationResponse.TokenizationResponseAction(action = adyenResponse.paymentsResponse.action)
