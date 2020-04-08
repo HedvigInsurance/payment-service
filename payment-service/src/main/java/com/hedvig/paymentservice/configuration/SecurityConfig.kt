@@ -12,11 +12,13 @@ class SecurityConfig : WebSecurityConfigurerAdapter() {
   @Throws(Exception::class)
   override fun configure(http: HttpSecurity) {
     http
-      .csrf().disable()
-      .httpBasic().and()
       .authorizeRequests()
-      .antMatchers("/**").permitAll()
-      .antMatchers("/hooks/adyen/**").authenticated()
+      .antMatchers("/hooks/adyen/*").authenticated()
+      .anyRequest().permitAll()
       .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+      .and()
+      .httpBasic()
+      .and()
+      .csrf().disable()
   }
 }
