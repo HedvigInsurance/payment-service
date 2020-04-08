@@ -17,12 +17,12 @@ class AdyenNotificationController(
   val adyenNotificationRepository: AdyenNotificationRepository
 ) {
   @PostMapping(value = ["notifications"], produces = ["application/json"])
-  fun notifications(@RequestBody requestBody: NotificationRequest?): ResponseEntity<Void> {
+  fun notifications(@RequestBody requestBody: NotificationRequest?): ResponseEntity<String> {
     requestBody!!.notificationItemContainers.forEach { item ->
       adyenNotificationRepository.save(
         AdyenNotification.fromNotificationRequestItem(item.notificationItem)
       )
     }
-    return ResponseEntity.accepted().build()
+    return ResponseEntity.ok("[accepted]")
   }
 }
