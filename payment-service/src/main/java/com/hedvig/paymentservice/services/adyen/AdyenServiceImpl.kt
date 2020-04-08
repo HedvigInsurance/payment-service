@@ -64,7 +64,11 @@ class AdyenServiceImpl(
     return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
   }
 
-  override fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String): AdyenPaymentsResponse {
+  override fun tokenizePaymentDetails(
+    req: TokenizationRequest,
+    memberId: String,
+    endUserIp: String?
+  ): AdyenPaymentsResponse {
     val optionalMember = memberService.getMember(memberId)
     require(optionalMember.isPresent) { "Member not found" }
 
@@ -74,7 +78,7 @@ class AdyenServiceImpl(
 
     val paymentsRequest = PaymentsRequest()
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(req.channel))
-      .shopperIP("1.1.1.1")
+      .shopperIP(endUserIp ?: "1.1.1.1")
       .paymentMethod(req.paymentMethodDetails)
       .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
       .merchantAccount(merchantAccount)
