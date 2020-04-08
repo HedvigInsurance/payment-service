@@ -62,7 +62,15 @@ class AdyenServiceImpl(
       .countryCode("NO") //TODO: Change me by checking the contract
       //TODO: Add locale
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
-    return AvailablePaymentMethodsResponse(paymentMethodsResponse = adyenCheckout.paymentMethods(paymentMethodsRequest))
+
+    val response: PaymentMethodsResponse
+    try {
+      response = adyenCheckout.paymentMethods(paymentMethodsRequest)
+    } catch (ex: Exception) {
+      logger.error("Tokenization with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
+      throw ex
+    }
+    return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
   }
 
   override fun tokenizePaymentDetails(
