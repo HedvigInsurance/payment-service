@@ -22,7 +22,7 @@ public class TrustlyNotificationController {
   private final NotificationHandler notificationHandler;
 
   public TrustlyNotificationController(
-      TrustlyService trustlyService, NotificationHandler notificationHandler) {
+    TrustlyService trustlyService, NotificationHandler notificationHandler) {
     this.trustlyService = trustlyService;
     this.notificationHandler = notificationHandler;
   }
@@ -37,8 +37,8 @@ public class TrustlyNotificationController {
     final ResponseStatus responseStatus = trustlyService.receiveNotification(notification);
 
     final Response response =
-        notificationHandler.prepareNotificationResponse(
-            notification.getMethod(), notification.getUUID(), responseStatus);
+      notificationHandler.prepareNotificationResponse(
+        notification.getMethod(), notification.getUUID(), responseStatus);
 
     final Gson gson = new Gson();
     return ResponseEntity.ok(gson.toJson(response));

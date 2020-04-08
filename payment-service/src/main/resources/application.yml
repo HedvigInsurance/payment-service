@@ -25,6 +25,9 @@ graphiql:
 
 hedvig:
   adyen:
+    webhook:
+      name: test
+      password: test
     public:
       key: test
     allow3DS2: true
@@ -33,6 +36,7 @@ hedvig:
     enviroment: TEST
     apiKey: test
     urlPrefix: test
+
   trustly:
     validRedirectHosts: []
     URLScheme: test
