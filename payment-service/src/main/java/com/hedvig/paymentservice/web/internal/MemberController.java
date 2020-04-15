@@ -82,10 +82,14 @@ public class MemberController {
   @GetMapping(path = "{memberId}/transactions")
   public ResponseEntity<PaymentMemberDTO> getTransactionsByMember(@PathVariable String memberId) {
 
-    val member = memberRepository.findById(memberId);
+    val memberMaybe = memberRepository.findById(memberId);
 
-    return member.map(member1 -> ResponseEntity.ok().body(PaymentMemberDTO.fromMember(member1)))
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    if (memberMaybe.isPresent()) {
+      val member = memberMaybe.get();
+      return ResponseEntity.ok(PaymentMemberDTO.Companion.fromMember(member));
+    }
+
+    return ResponseEntity.notFound().build();
   }
 
   @PostMapping(path = "{memberId}/updateTrustlyAccount")

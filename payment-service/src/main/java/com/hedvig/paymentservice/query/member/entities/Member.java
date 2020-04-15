@@ -55,8 +55,13 @@ public class Member {
   }
 
   public Boolean isDirectDebitMandateActive() {
-    return (trustlyAccountNumber != null && directDebitStatus != null && directDebitStatus.equals(DirectDebitStatus.CONNECTED))
-      || (adyenRecurringDetailReference != null && payinMethodStatus != null && payinMethodStatus.equals(PayinMethodStatus.ACTIVE));
+    if (trustlyAccountNumber != null) {
+      return directDebitStatus.equals(DirectDebitStatus.CONNECTED);
+    }
+    if (adyenRecurringDetailReference != null) {
+      return payinMethodStatus.equals(PayinMethodStatus.ACTIVE);
+    }
+    return false;
   }
 
   public String getId() {
