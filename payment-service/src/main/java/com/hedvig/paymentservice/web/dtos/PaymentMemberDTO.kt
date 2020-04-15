@@ -16,7 +16,7 @@ data class PaymentMemberDTO(
     fun fromMember(member: Member) = PaymentMemberDTO(
       id = member.getId(),
       transactions = member.transactions.entries.map { entry -> entry.key to TransactionDTO.fromTransaction(entry.value) }.toMap(),
-      directDebitMandateActive = member.hasActiveMandate,
+      directDebitMandateActive = member.isDirectDebitMandateActive,
       trustlyAccountNumber = member.trustlyAccountNumber
     )
   }
