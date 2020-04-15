@@ -115,6 +115,13 @@ public class Member {
     this.descriptor = descriptor;
   }
 
+  public boolean getHasActiveMandate() {
+    if (trustlyAccountNumber != null) {
+      return directDebitStatus == DirectDebitStatus.CONNECTED;
+    }
+    return payinMethodStatus == PayinMethodStatus.ACTIVE;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
