@@ -267,6 +267,14 @@
       <artifactId>adyen-java-api-library</artifactId>
       <version>4.1.0</version>
     </dependency>
+    <!-- Adyen -->
+
+    <dependency>
+      <groupId>io.mockk</groupId>
+      <artifactId>mockk</artifactId>
+      <version>1.10.0</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 
