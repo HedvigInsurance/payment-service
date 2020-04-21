@@ -26,9 +26,7 @@ class ProductPricingServiceImpl(
       when (ex.status()) {
         500 -> {
           logger.error("Product-pricing returned 500 response")
-          return Optional.empty()
         }
-        404 -> return Optional.empty()
       }
     }
     return Optional.empty()
