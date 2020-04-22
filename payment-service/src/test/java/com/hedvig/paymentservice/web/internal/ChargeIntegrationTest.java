@@ -34,10 +34,25 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
-import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.CREATED_BY;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.HEDVIG_ORDER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_CITY;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_LAST_NAME;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_SSN;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_STREET;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_ZIP;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVAN_FIRST_NAME;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRANSACTION_AMOUNT;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_BANK;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_CLEARING_HOUSE;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_DESCRIPTOR;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_DIRECTDEBIT_TRUE;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_ID;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ACCOUNT_LAST_DIGITS;
+import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TRUSTLY_ORDER_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -74,6 +89,8 @@ public class ChargeIntegrationTest {
   @Test
   public void givenMemberWithoutDirectDebitMandate_WhenCreatingCharge_ThenShouldReturnForbidden()
     throws Exception {
+
+    given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
@@ -231,7 +248,7 @@ public class ChargeIntegrationTest {
       trustlyApiResponse.setError(error);
     }
 
-    given(signedApi.sendRequest(any(),any())).willReturn(trustlyApiResponse);
+    given(signedApi.sendRequest(any(), any())).willReturn(trustlyApiResponse);
   }
 
   private enum TrustlyApiResponseResult {

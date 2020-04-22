@@ -66,7 +66,7 @@ public class Member {
   @CommandHandler
   public ChargeMemberResult cmd(CreateChargeCommand cmd) {
 
-    if (trustlyAccount == null) {
+    if (trustlyAccount == null) { //TODO: ADYEN
       log.info("Cannot charge account - no account set up in Trustly");
       apply(
         new ChargeCreationFailedEvent(
@@ -89,6 +89,8 @@ public class Member {
           "direct debit mandate not received in Trustly"));
       return new ChargeMemberResult(cmd.getTransactionId(), ChargeMemberResultType.NO_DIRECT_DEBIT);
     }
+
+    //ChargeCreatedEvent -> Tustrly
 
     apply(
       new ChargeCreatedEvent(

@@ -14,7 +14,8 @@ public class ChargeCreatedEvent {
   UUID transactionId;
   MonetaryAmount amount;
   Instant timestamp;
-  String accountId;
+  String accountId; //providerId
+  //provider ENUM
   String email;
   String createdBy;
 }
