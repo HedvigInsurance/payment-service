@@ -4,12 +4,14 @@ import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
+import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO
 import com.hedvig.paymentservice.web.dtos.ChargeRequest
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
@@ -26,12 +28,17 @@ import java.util.UUID
 class MemberControllerV2(
   private val paymentService: PaymentService,
   private val memberService: MemberService,
-  private val meerkat: Meerkat
+  private val meerkat: Meerkat,
+  private val productPricingService: ProductPricingService
 ) {
 
   @PostMapping("{memberId}/charge")
   fun chargeMember(@PathVariable memberId: String, @RequestBody request: ChargeRequest): ResponseEntity<UUID> {
-    //Add check for currency from Contracts -  desiredContract == request.amount.currency
+    val marketInfo = productPricingService.getMarketInfo(memberId)
+    if (marketInfo.preferredCurrency != request.amount.currency) {
+      logger.error("Currency mismatch while charging [MemberId: $memberId] [PreferredCurrency: ${marketInfo.preferredCurrency}] [RequestCurrency: ${request.amount.currency}]")
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+    }
 
     val result = paymentService.chargeMember(ChargeMemberRequest.fromChargeRequest(memberId, request))
 
@@ -93,6 +100,10 @@ class MemberControllerV2(
     return result.map { uuid -> ResponseEntity.accepted().body(uuid) }.orElseGet {
       ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build()
     }
+  }
+
+  companion object {
+    val logger = LoggerFactory.getLogger(this::class.java)!!
   }
 
 }
