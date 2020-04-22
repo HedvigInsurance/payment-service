@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGu
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -35,6 +36,6 @@ interface ProductPricingClient {
     @RequestParam("period") period: YearMonth
   ): ResponseEntity<Map<UUID, Optional<PolicyGuessResponseDto>>>
 
-  @PostMapping(path = ["/_/contracts/members/{memberId}/contract/market/info"])
+  @GetMapping(path = ["/_/contracts/members/{memberId}/contract/market/info"])
   fun getMarketInfo(@RequestParam memberId: String): ResponseEntity<MarketInfo>
 }
