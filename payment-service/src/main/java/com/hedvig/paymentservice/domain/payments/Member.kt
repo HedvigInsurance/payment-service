@@ -11,6 +11,7 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountComm
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus.Companion.fromTokenRegistrationStatus
+import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent
@@ -100,13 +101,14 @@ class Member() {
 
     apply(
       ChargeCreatedEvent(
-        id,
-        cmd.transactionId,
-        cmd.amount,
-        cmd.timestamp,
-        trustlyAccount!!.accountId,
-        cmd.email,
-        cmd.createdBy
+        memberId = id,
+        transactionId = cmd.transactionId,
+        amount = cmd.amount,
+        timestamp = cmd.timestamp,
+        providerId = trustlyAccount?.accountId ?: adyenAccount!!.recurringDetailReference,
+        provider = if (trustlyAccount != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
+        email = cmd.email,
+        createdBy = cmd.createdBy
       )
     )
     return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.SUCCESS)
