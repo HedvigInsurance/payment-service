@@ -4,10 +4,8 @@ import com.adyen.model.checkout.PaymentsResponse
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.AuthoriseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.CancelAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePendingResponseAdyenTransaction
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
-import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
@@ -18,7 +16,6 @@ import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.time.Instant
 
 @Saga
 class AdyenTransactionSaga {
@@ -100,8 +97,9 @@ class AdyenTransactionSaga {
     }
   }
 
+/* Comment until ADYEN will let us know when the charge will be considered final
   @StartSaga
-  @SagaEventHandler(associationProperty = AdyenTransactionSaga.TRANSACTION_ID)
+  @SagaEventHandler(associationProperty = TRANSACTION_ID)
   @EndSaga
   fun on(e: AdyenTransactionAuthorisedEvent) {
     commandGateway.sendAndWait<Void>(
@@ -113,9 +111,10 @@ class AdyenTransactionSaga {
       )
     )
   }
+*/
 
   @StartSaga
-  @SagaEventHandler(associationProperty = AdyenTransactionSaga.TRANSACTION_ID)
+  @SagaEventHandler(associationProperty = TRANSACTION_ID)
   @EndSaga
   fun on(e: AdyenTransactionCanceledEvent) {
     commandGateway.sendAndWait<Void>(
