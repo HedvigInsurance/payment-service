@@ -8,6 +8,7 @@ import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
+import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
@@ -28,10 +29,10 @@ import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenToke
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
+import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
 import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
-import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -222,8 +223,16 @@ class AdyenServiceImpl(
     return adyenPublicKey
   }
 
-  override fun chargeMemberWithToken(req: ChargeMemberRequest): Any {
-    val member = memberRepository.findById(req.memberId).orElse(null) ?: TODO("Shall we throw an exception?")
+  override fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse {
+    val member = memberRepository.findById(req.memberId).orElse(null)
+      ?: throw RuntimeException("ChargeMemberWithToken - Member ${req.memberId} doesn't exist")
+
+    require(member.adyenRecurringDetailReference == req.recurringDetailReference)
+    {
+      "RecurringDetailReference mismatch [MemberId : ${member.id}] " +
+        "[MemberRecurringDetailReference: ${member.adyenRecurringDetailReference} " +
+        "[RequestRecurringDetailReference: ${req.recurringDetailReference}] ] "
+    }
 
     val paymentsRequest = PaymentsRequest()
       .amount(
@@ -235,16 +244,23 @@ class AdyenServiceImpl(
       .paymentMethod(
         DefaultPaymentMethodDetails()
           .type(ApiConstants.PaymentMethodType.TYPE_SCHEME)
-          .recurringDetailReference("RECURRING_DETAIL_REFERENCE_FROM_TOKEN") //TODO: CHANGE ME
+          .recurringDetailReference(req.recurringDetailReference)
       )
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
-      .reference("ORDER_NUMBER")
-      .returnUrl(returnUrl)
+      .reference(req.transactionId.toString())
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
       .shopperReference(req.memberId)
-      .storePaymentMethod(true)
 
-    return adyenCheckout.payments(paymentsRequest)
+    val paymentsResponse: PaymentsResponse
+
+    try {
+      paymentsResponse = adyenCheckout.payments(paymentsRequest)
+    } catch (ex: Exception) {
+      logger.error("Tokenization with Adyen exploded 💥 [MemberId: ${req.memberId}] [Request: $req] [Exception: $ex]")
+      throw ex
+    }
+
+    return paymentsResponse
   }
 
   override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
