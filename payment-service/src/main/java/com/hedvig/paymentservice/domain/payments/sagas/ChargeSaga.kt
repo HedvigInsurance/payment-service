@@ -48,10 +48,9 @@ class ChargeSaga {
         )
       }
       PayinProvider.ADYEN -> {
-        val transactionId = uuidGenerator.generateRandom()
         commandGateway.sendAndWait<Void>(
           InitiateAdyenTransactionCommand(
-            transactionId,
+            e.transactionId,
             e.memberId,
             e.providerId,
             e.amount
