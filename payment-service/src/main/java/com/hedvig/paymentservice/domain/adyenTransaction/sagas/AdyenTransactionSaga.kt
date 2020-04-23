@@ -91,7 +91,7 @@ class AdyenTransactionSaga {
           e.memberId,
           e.recurringDetailReference,
           e.amount,
-          EXCEPTION_MESSAGE
+          ex.message ?: EXCEPTION_MESSAGE
         )
       )
     }
