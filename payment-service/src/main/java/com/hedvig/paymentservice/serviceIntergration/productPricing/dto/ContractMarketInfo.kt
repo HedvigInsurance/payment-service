@@ -2,7 +2,7 @@ package com.hedvig.paymentservice.serviceIntergration.productPricing.dto
 
 import javax.money.CurrencyUnit
 
-data class MarketInfo(
+data class ContractMarketInfo(
   val market: Market,
   val preferredCurrency: CurrencyUnit
 )

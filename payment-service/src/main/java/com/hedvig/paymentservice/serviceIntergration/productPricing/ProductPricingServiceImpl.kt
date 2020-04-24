@@ -1,8 +1,8 @@
 package com.hedvig.paymentservice.serviceIntergration.productPricing
 
 import com.hedvig.paymentservice.query.member.entities.Transaction
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.InsuranceStatus
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.MarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto
 import feign.FeignException
@@ -45,8 +45,8 @@ class ProductPricingServiceImpl(
     return client.guessPolicyTypes(policyGuessDtos, period).body!!
   }
 
-  override fun getMarketInfo(memberId: String): MarketInfo {
-    return client.getMarketInfo(memberId).body!!
+  override fun getContractMarketInfo(memberId: String): ContractMarketInfo {
+    return client.getContractMarketInfo(memberId).body!!
   }
 
   companion object {

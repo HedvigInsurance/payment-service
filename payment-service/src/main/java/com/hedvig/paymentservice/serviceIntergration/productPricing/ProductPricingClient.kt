@@ -1,8 +1,8 @@
 package com.hedvig.paymentservice.serviceIntergration.productPricing
 
 import com.hedvig.paymentservice.configuration.FeignConfiguration
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.InsuranceStatus
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.MarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto
 import org.springframework.cloud.openfeign.FeignClient
@@ -37,5 +37,5 @@ interface ProductPricingClient {
   ): ResponseEntity<Map<UUID, Optional<PolicyGuessResponseDto>>>
 
   @GetMapping(path = ["/_/contracts/members/{memberId}/contract/market/info"])
-  fun getMarketInfo(@RequestParam memberId: String): ResponseEntity<MarketInfo>
+  fun getContractMarketInfo(@RequestParam memberId: String): ResponseEntity<ContractMarketInfo>
 }
