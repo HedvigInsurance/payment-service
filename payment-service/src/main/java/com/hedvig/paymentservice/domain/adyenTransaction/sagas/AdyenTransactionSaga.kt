@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePending
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand
 import com.hedvig.paymentservice.services.adyen.AdyenService
@@ -121,11 +122,23 @@ class AdyenTransactionSaga {
       )
     )
   }
-  
+
   @StartSaga
   @SagaEventHandler(associationProperty = TRANSACTION_ID)
   @EndSaga
   fun on(e: AdyenTransactionCanceledEvent) {
+    commandGateway.sendAndWait<Void>(
+      ChargeFailedCommand(
+        memberId = e.memberId,
+        transactionId = e.transactionId
+      )
+    )
+  }
+
+  @StartSaga
+  @SagaEventHandler(associationProperty = TRANSACTION_ID)
+  @EndSaga
+  fun on(e: CaptureFailureAdyenTransactionReceivedEvent) {
     commandGateway.sendAndWait<Void>(
       ChargeFailedCommand(
         memberId = e.memberId,

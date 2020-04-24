@@ -4,5 +4,6 @@ enum class AdyenTransactionStatus {
   AUTHORISED,
   PENDING,
   CANCELLED,
-  INITIATED
+  INITIATED,
+  CAPTURE_FAILED
 }
