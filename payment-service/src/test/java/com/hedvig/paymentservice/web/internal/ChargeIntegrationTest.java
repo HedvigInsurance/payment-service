@@ -14,8 +14,8 @@ import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEven
 import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentErrorReceivedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentResponseReceivedEvent;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.MarketInfo;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -98,7 +98,7 @@ public class ChargeIntegrationTest {
     throws Exception {
 
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
-    given(productPricingService.getMarketInfo(any())).willReturn(new MarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
+    given(productPricingService.getContractMarketInfo(any())).willReturn(new ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
 
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
@@ -120,7 +120,7 @@ public class ChargeIntegrationTest {
   public void
   givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsSuccess_ThenShouldReturnAccepted()
     throws Exception {
-    given(productPricingService.getMarketInfo(any())).willReturn(new MarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
+    given(productPricingService.getContractMarketInfo(any())).willReturn(new ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
 
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
     commandGateway.sendAndWait(
@@ -164,8 +164,8 @@ public class ChargeIntegrationTest {
   public void
   givenMemberWithDirectDebitMandate_WhenCreatingChargeAndTrustlyReturnsError_ThenShouldReturnAccepted()
     throws Exception {
-    given(productPricingService.getMarketInfo(any())).willReturn(new MarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
-    
+    given(productPricingService.getContractMarketInfo(any())).willReturn(new ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
+
     commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
     commandGateway.sendAndWait(
       new UpdateTrustlyAccountCommand(
@@ -227,7 +227,7 @@ public class ChargeIntegrationTest {
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
     given(uuidGenerator.generateRandom()).willReturn(HEDVIG_ORDER_ID);
-    given(productPricingService.getMarketInfo(any())).willReturn(new MarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
+    given(productPricingService.getContractMarketInfo(any())).willReturn(new ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK")));
 
     val chargeRequest = new ChargeRequest(TRANSACTION_AMOUNT, CREATED_BY);
 

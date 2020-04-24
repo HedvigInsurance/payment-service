@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.web.internal;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.MarketInfo;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
@@ -34,25 +33,15 @@ public class MemberController {
 
   private final PaymentService paymentService;
   private final MemberRepository memberRepository;
-  private final ProductPricingService productPricingService;
 
   public MemberController(PaymentService paymentService, MemberRepository memberRepository, ProductPricingService productPricingService) {
     this.paymentService = paymentService;
     this.memberRepository = memberRepository;
-    this.productPricingService = productPricingService;
   }
 
   @PostMapping(path = "{memberId}/charge")
   public ResponseEntity<?> chargeMember(
     @PathVariable String memberId, @RequestBody ChargeRequest request) {
-
-    MarketInfo marketInfo = productPricingService.getMarketInfo(memberId);
-    if (marketInfo.getPreferredCurrency() != request.getAmount().getCurrency()) {
-      log.error("Currency mismatch while charging [MemberId: {}] [PreferredCurrency: {}}] [RequestCurrency: {}]",
-        memberId, marketInfo.getPreferredCurrency(), request.getAmount().getCurrency());
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-
     val chargeMemberRequest = new ChargeMemberRequest(memberId, request.getAmount(), request.getRequestedBy());
     val result = paymentService.chargeMember(chargeMemberRequest);
 

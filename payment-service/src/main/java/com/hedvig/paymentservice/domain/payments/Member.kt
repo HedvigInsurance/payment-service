@@ -30,6 +30,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent.Companion.fromUpdateTrustlyAccountCmd
+import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import org.axonframework.commandhandling.CommandHandler
@@ -48,12 +49,15 @@ import javax.money.MonetaryAmount
 class Member() {
   @AggregateIdentifier
   lateinit var id: String
+
   var transactions: MutableList<Transaction> = ArrayList()
   var trustlyAccount: TrustlyAccount? = null
   var adyenAccount: AdyenAccount? = null
 
   @CommandHandler
-  constructor(cmd: CreateMemberCommand) : this() {
+  constructor(
+    cmd: CreateMemberCommand
+  ) : this() {
     apply(
       MemberCreatedEvent(
         cmd.memberId
@@ -62,7 +66,20 @@ class Member() {
   }
 
   @CommandHandler
-  fun cmd(cmd: CreateChargeCommand): ChargeMemberResult {
+  fun cmd(cmd: CreateChargeCommand, productPricingService: ProductPricingService): ChargeMemberResult {
+    val contractMarketInfo = productPricingService.getContractMarketInfo(cmd.memberId)
+    if (contractMarketInfo.preferredCurrency != cmd.amount.currency) {
+      log.error("Currency mismatch while charging [MemberId: $cmd.memberId] [PreferredCurrency: ${contractMarketInfo.preferredCurrency}] [RequestCurrency: ${cmd.amount.currency}]")
+      failChargeCreation(
+        memberId = id,
+        transactionId = cmd.transactionId,
+        amount = cmd.amount,
+        timestamp = cmd.timestamp,
+        reason = "currency mismatch"
+      )
+      return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
+    }
+
     if (trustlyAccount == null && adyenAccount == null) {
       log.info("Cannot charge account - no account set up ${cmd.memberId}")
       failChargeCreation(

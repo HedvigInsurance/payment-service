@@ -4,7 +4,6 @@ import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
-import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
@@ -28,18 +27,11 @@ import java.util.UUID
 class MemberControllerV2(
   private val paymentService: PaymentService,
   private val memberService: MemberService,
-  private val meerkat: Meerkat,
-  private val productPricingService: ProductPricingService
+  private val meerkat: Meerkat
 ) {
 
   @PostMapping("{memberId}/charge")
   fun chargeMember(@PathVariable memberId: String, @RequestBody request: ChargeRequest): ResponseEntity<UUID> {
-    val marketInfo = productPricingService.getMarketInfo(memberId)
-    if (marketInfo.preferredCurrency != request.amount.currency) {
-      logger.error("Currency mismatch while charging [MemberId: $memberId] [PreferredCurrency: ${marketInfo.preferredCurrency}] [RequestCurrency: ${request.amount.currency}]")
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-    }
-
     val result = paymentService.chargeMember(ChargeMemberRequest.fromChargeRequest(memberId, request))
 
     return if (result.type != ChargeMemberResultType.SUCCESS) {
