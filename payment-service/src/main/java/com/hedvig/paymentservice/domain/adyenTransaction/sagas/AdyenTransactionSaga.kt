@@ -4,8 +4,10 @@ import com.adyen.model.checkout.PaymentsResponse
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.AuthoriseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.CancelAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePendingResponseAdyenTransaction
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
+import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
@@ -16,6 +18,7 @@ import org.axonframework.eventhandling.saga.StartSaga
 import org.axonframework.spring.stereotype.Saga
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.Instant
 
 @Saga
 class AdyenTransactionSaga {
@@ -97,7 +100,14 @@ class AdyenTransactionSaga {
     }
   }
 
-/* Comment until ADYEN will let us know when the charge will be considered final
+
+  /*
+  * When the capture delay is set to immediate and the authorisation is successful, the funds are immediately captured.
+  * Because it is immediate, Adyen only send an authorisation notification.
+  * In that scenario, we can indeed consider the transaction is successful after the authorisation.
+  *
+  * If for some reason the capture fails, we will receive a capture_failed notification as described in Adyen's documentation.
+  * */
   @StartSaga
   @SagaEventHandler(associationProperty = TRANSACTION_ID)
   @EndSaga
@@ -111,8 +121,7 @@ class AdyenTransactionSaga {
       )
     )
   }
-*/
-
+  
   @StartSaga
   @SagaEventHandler(associationProperty = TRANSACTION_ID)
   @EndSaga
