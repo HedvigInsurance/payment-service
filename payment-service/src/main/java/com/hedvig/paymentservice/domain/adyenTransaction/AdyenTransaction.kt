@@ -41,6 +41,7 @@ class AdyenTransaction() {
     transactionId = e.transactionId
     memberId = e.memberId
     recurringDetailReference = e.recurringDetailReference
+    transactionStatus = AdyenTransactionStatus.INITIATED
   }
 
   @CommandHandler
