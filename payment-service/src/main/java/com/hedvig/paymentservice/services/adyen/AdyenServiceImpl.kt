@@ -16,6 +16,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
@@ -40,6 +41,7 @@ import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.util.Optional
 import java.util.UUID
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
@@ -233,6 +235,24 @@ class AdyenServiceImpl(
 
     commandGateway.sendAndWait<Void>(
       ReceiveCaptureFailureAdyenTransactionCommand(
+        transaction.transactionId,
+        transaction.memberId
+      )
+    )
+  }
+
+  override fun handleAuthorisation(adyenTransactionId: UUID) {
+    val transactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(adyenTransactionId)
+
+    if (!transactionMaybe.isPresent) {
+      logger.info("Handle Authorisation -  Could find Adyen transaction $adyenTransactionId")
+      return
+    }
+
+    val transaction = transactionMaybe.get()
+
+    commandGateway.sendAndWait<Void>(
+      ReceiveAuthorisationAdyenTransactionCommand(
         transaction.transactionId,
         transaction.memberId
       )

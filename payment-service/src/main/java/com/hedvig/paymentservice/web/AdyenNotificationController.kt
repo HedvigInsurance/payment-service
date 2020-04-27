@@ -27,6 +27,9 @@ class AdyenNotificationController(
         if (item.notificationItem?.eventCode?.toUpperCase() == CAPTURE_FAILED) {
           adyenService.handleSettlementError(UUID.fromString(item.notificationItem?.merchantReference!!))
         }
+        if (item.notificationItem?.eventCode?.toUpperCase() == AUTHORISATION) {
+          adyenService.handleAuthorisation(UUID.fromString(item.notificationItem?.merchantReference!!))
+        }
       } catch (e: Exception) {
         logger.error("Cannot process notification [Type: $CAPTURE_FAILED] [Exception: $e]")
       }
@@ -40,5 +43,6 @@ class AdyenNotificationController(
   companion object {
     val logger = LoggerFactory.getLogger(this.javaClass)!!
     const val CAPTURE_FAILED = "CAPTURE_FAILED"
+    const val AUTHORISATION = "AUTHORISATION"
   }
 }
