@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.adyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.AuthoriseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.CancelAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePendingResponseAdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
@@ -10,6 +11,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionPendingResponseReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
@@ -98,16 +100,35 @@ class AdyenTransaction() {
 
   @CommandHandler
   fun handle(cmd: ReceiveCaptureFailureAdyenTransactionCommand) {
-    apply(
-      CaptureFailureAdyenTransactionReceivedEvent(
-        transactionId = cmd.transactionId,
-        memberId = cmd.memberId
+    if (transactionStatus != AdyenTransactionStatus.CAPTURE_FAILED) {
+      apply(
+        CaptureFailureAdyenTransactionReceivedEvent(
+          transactionId = cmd.transactionId,
+          memberId = cmd.memberId
+        )
       )
-    )
+    }
   }
 
   @EventSourcingHandler
   fun on(e: CaptureFailureAdyenTransactionReceivedEvent) {
     transactionStatus = AdyenTransactionStatus.CAPTURE_FAILED
+  }
+
+  @CommandHandler
+  fun handle(cmd: ReceiveAuthorisationAdyenTransactionCommand) {
+    if (transactionStatus != AdyenTransactionStatus.AUTHORISED) {
+      apply(
+        AuthorisationAdyenTransactionReceivedEvent(
+          cmd.transactionId,
+          cmd.memberId
+        )
+      )
+    }
+  }
+
+  @EventSourcingHandler
+  fun on(e: AuthorisationAdyenTransactionReceivedEvent) {
+    transactionStatus = AdyenTransactionStatus.AUTHORISED
   }
 }

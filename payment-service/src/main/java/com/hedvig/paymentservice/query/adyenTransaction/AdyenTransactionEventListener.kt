@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePending
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
@@ -64,6 +65,15 @@ class AdyenTransactionEventListener(
     val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
 
     adyenTransaction.transactionStatus = AdyenTransactionStatus.CAPTURE_FAILED
+
+    adyenTransactionRepository.save(adyenTransaction)
+  }
+
+  @EventHandler
+  fun on(e: AuthorisationAdyenTransactionReceivedEvent) {
+    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+
+    adyenTransaction.transactionStatus = AdyenTransactionStatus.AUTHORISED
 
     adyenTransactionRepository.save(adyenTransaction)
   }

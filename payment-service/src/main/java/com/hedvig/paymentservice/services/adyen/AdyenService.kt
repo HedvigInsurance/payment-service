@@ -20,4 +20,5 @@ interface AdyenService {
   fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
   fun fetchAdyenPublicKey(): String
   fun handleSettlementError(adyenTransactionId: UUID)
+  fun handleAuthorisation(adyenTransactionId: UUID)
 }
