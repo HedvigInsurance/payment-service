@@ -37,6 +37,9 @@ public class AdyenTransaction {
     this.transactionStatus = transactionStatus;
   }
 
+  public AdyenTransaction() {
+  }
+
   public UUID getTransactionId() {
     return this.transactionId;
   }
