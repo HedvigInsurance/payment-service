@@ -3,25 +3,25 @@ package com.hedvig.paymentservice.domain.payments.events.upcasters
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent
 import org.axonframework.serialization.SimpleSerializedType
-import org.axonframework.serialization.upcasting.event.EventMultiUpcaster
 import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation
+import org.axonframework.serialization.upcasting.event.SingleEventUpcaster
 import org.dom4j.Document
-import java.util.stream.Stream
 
-class ChargeCreatedEventUpcaster : EventMultiUpcaster() {
+class ChargeCreatedEventUpcaster : SingleEventUpcaster() {
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
-    return intermediateRepresentation.type == SimpleSerializedType(
-      ChargeCreatedEvent::class.java.typeName,
-      "1.0"
-    ) && (intermediateRepresentation.type.revision == "1.0" || intermediateRepresentation.type.revision == null)
+    val initialEvent = SimpleSerializedType(ChargeCreatedEvent::class.java.typeName, null)
+    val firstRevision = SimpleSerializedType(ChargeCreatedEvent::class.java.typeName, "1.0")
+
+    return (intermediateRepresentation.type == initialEvent && intermediateRepresentation.type.revision == null) ||
+      (intermediateRepresentation.type == firstRevision && intermediateRepresentation.type.revision == firstRevision.revision)
   }
 
-  override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
+  override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation {
     val trustlyAccountId = intermediateRepresentation.getData(org.dom4j.Document::class.java)
       .data.rootElement.element("accountId")
 
 
-    return Stream.of(intermediateRepresentation.upcastPayload(
+    return intermediateRepresentation.upcastPayload(
       SimpleSerializedType(
         ChargeCreatedEvent::class.java.typeName,
         "2.0"
@@ -34,6 +34,6 @@ class ChargeCreatedEventUpcaster : EventMultiUpcaster() {
       root.addElement("provider").text = PayinProvider.TRUSTLY.name
       document
     }
-    )
   }
+
 }

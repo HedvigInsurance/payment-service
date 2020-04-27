@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.configuration;
 
+import com.hedvig.paymentservice.domain.payments.events.upcasters.ChargeCreatedEventUpcaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventUpCaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.TrustlyAccountCreatedUpCaster;
 import org.axonframework.config.EventProcessingConfiguration;
@@ -17,7 +18,8 @@ public class Axon {
   public EventUpcasterChain eventUpcasters() {
     return new EventUpcasterChain(
       new TrustlyAccountCreatedUpCaster(),
-      new PayoutCreatedEventUpCaster()
+      new PayoutCreatedEventUpCaster(),
+      new ChargeCreatedEventUpcaster()
     );
   }
 
