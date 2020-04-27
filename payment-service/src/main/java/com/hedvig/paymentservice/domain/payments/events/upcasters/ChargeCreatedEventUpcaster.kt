@@ -13,7 +13,7 @@ class ChargeCreatedEventUpcaster : EventMultiUpcaster() {
     return intermediateRepresentation.type == SimpleSerializedType(
       ChargeCreatedEvent::class.java.typeName,
       "1.0"
-    ) && intermediateRepresentation.type.revision == "1.0"
+    ) && (intermediateRepresentation.type.revision == "1.0" || intermediateRepresentation.type.revision == null)
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
