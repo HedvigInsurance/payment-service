@@ -9,6 +9,7 @@ import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
+import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import java.util.UUID
 
 interface AdyenService {
@@ -19,6 +20,6 @@ interface AdyenService {
   fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
   fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
   fun fetchAdyenPublicKey(): String
-  fun handleSettlementError(adyenTransactionId: UUID)
-  fun handleAuthorisation(adyenTransactionId: UUID)
+  fun handleSettlementErrorNotification(adyenTransactionId: UUID)
+  fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
 }
