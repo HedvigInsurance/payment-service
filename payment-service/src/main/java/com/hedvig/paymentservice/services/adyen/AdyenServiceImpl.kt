@@ -17,6 +17,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAu
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
@@ -37,6 +38,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenReques
 import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
+import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -68,7 +70,6 @@ class AdyenServiceImpl(
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(merchantAccount)
       .countryCode("NO") //TODO: Change me by checking the contract
-      //TODO: Add locale
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
 
     val response: PaymentMethodsResponse
@@ -241,7 +242,9 @@ class AdyenServiceImpl(
     )
   }
 
-  override fun handleAuthorisationNotification(adyenTransactionId: UUID) {
+  override fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem) {
+    val adyenTransactionId = UUID.fromString(adyenNotification.merchantReference!!)
+
     val transactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(adyenTransactionId)
 
     if (!transactionMaybe.isPresent) {
@@ -251,12 +254,23 @@ class AdyenServiceImpl(
 
     val transaction = transactionMaybe.get()
 
-    commandGateway.sendAndWait<Void>(
-      ReceiveAuthorisationAdyenTransactionCommand(
-        transaction.transactionId,
-        transaction.memberId
+    if (adyenNotification.success) {
+      commandGateway.sendAndWait<Void>(
+        ReceiveAuthorisationAdyenTransactionCommand(
+          transactionId = transaction.transactionId,
+          memberId = transaction.memberId
+        )
       )
-    )
+    } else {
+      commandGateway.sendAndWait<Void>(
+        ReceiveCancellationResponseAdyenTransactionCommand(
+          transactionId = transaction.transactionId,
+          memberId = transaction.memberId,
+          reason = adyenNotification.reason ?: "No reason provided"
+        )
+      )
+    }
+
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse {
@@ -335,6 +349,5 @@ class AdyenServiceImpl(
     const val ALLOW_3DS2: String = "allow3DS2"
     const val MD: String = "MD"
     const val PARES: String = "PaRes"
-    const val CAPTURE_FAILED = "capture failed"
   }
 }

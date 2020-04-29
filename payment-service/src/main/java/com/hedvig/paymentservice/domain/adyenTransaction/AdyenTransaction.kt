@@ -1,15 +1,14 @@
 package com.hedvig.paymentservice.domain.adyenTransaction
 
 import com.adyen.model.checkout.PaymentsResponse
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.AuthoriseAdyenTransactionCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.CancelAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePendingResponseAdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionPendingResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
@@ -113,31 +112,9 @@ class AdyenTransaction() {
     transactionStatus = AdyenTransactionStatus.INITIATED
   }
 
-  @CommandHandler
-  fun handle(cmd: AuthoriseAdyenTransactionCommand) {
-    apply(
-      AdyenTransactionAuthorisedEvent(
-        transactionId = cmd.transactionId,
-        memberId = cmd.memberId,
-        recurringDetailReference = cmd.recurringDetailReference,
-        amount = cmd.amount
-      )
-    )
-  }
-
   @EventSourcingHandler
   fun on(e: AdyenTransactionAuthorisedEvent) {
     transactionStatus = AdyenTransactionStatus.AUTHORISED
-  }
-
-  @CommandHandler
-  fun handle(cmd: ReceivePendingResponseAdyenTransaction) {
-    apply(
-      AdyenTransactionPendingResponseReceivedEvent(
-        cmd.transactionId,
-        cmd.reason
-      )
-    )
   }
 
   @EventSourcingHandler
@@ -145,21 +122,25 @@ class AdyenTransaction() {
     transactionStatus = AdyenTransactionStatus.PENDING
   }
 
+  @EventSourcingHandler
+  fun on(e: AdyenTransactionCanceledEvent) {
+    transactionStatus = AdyenTransactionStatus.CANCELLED
+  }
+
   @CommandHandler
-  fun handle(cmd: CancelAdyenTransactionCommand) {
-    apply(
-      AdyenTransactionCanceledEvent(
-        transactionId = cmd.transactionId,
-        memberId = cmd.reason,
-        recurringDetailReference = cmd.recurringDetailReference,
-        amount = cmd.amount,
-        reason = cmd.reason
+  fun handle(cmd: ReceiveCancellationResponseAdyenTransactionCommand) {
+    if (transactionStatus != AdyenTransactionStatus.CANCELLED)
+      apply(
+        AdyenTransactionCancellationResponseReceivedEvent(
+          transactionId = cmd.transactionId,
+          memberId = cmd.memberId,
+          reason = cmd.reason
+        )
       )
-    )
   }
 
   @EventSourcingHandler
-  fun on(e: AdyenTransactionCanceledEvent) {
+  fun on(e: AdyenTransactionCancellationResponseReceivedEvent) {
     transactionStatus = AdyenTransactionStatus.CANCELLED
   }
 

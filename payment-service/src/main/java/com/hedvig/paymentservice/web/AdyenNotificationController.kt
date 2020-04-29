@@ -28,7 +28,7 @@ class AdyenNotificationController(
           adyenService.handleSettlementErrorNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
         }
         if (item.notificationItem?.eventCode?.toUpperCase() == AUTHORISATION) {
-          adyenService.handleAuthorisationNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
+          adyenService.handleAuthorisationNotification(item.notificationItem!!)
         }
       } catch (e: Exception) {
         logger.error("Cannot process notification [Type: $CAPTURE_FAILED] [Exception: $e]")
