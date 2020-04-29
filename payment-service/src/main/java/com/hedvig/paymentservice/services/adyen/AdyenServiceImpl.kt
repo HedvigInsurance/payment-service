@@ -230,7 +230,7 @@ class AdyenServiceImpl(
     return adyenPublicKey
   }
 
-  override fun handleSettlementError(adyenTransactionId: UUID) {
+  override fun handleSettlementErrorNotification(adyenTransactionId: UUID) {
     val transaction: AdyenTransaction = adyenTransactionRepository.findById(adyenTransactionId).orElseThrow()
 
     commandGateway.sendAndWait<Void>(
@@ -241,7 +241,7 @@ class AdyenServiceImpl(
     )
   }
 
-  override fun handleAuthorisation(adyenTransactionId: UUID) {
+  override fun handleAuthorisationNotification(adyenTransactionId: UUID) {
     val transactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(adyenTransactionId)
 
     if (!transactionMaybe.isPresent) {
