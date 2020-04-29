@@ -1,9 +1,9 @@
 package com.hedvig.paymentservice.query.adyenTransaction
 
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.CancelAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivePendingResponseAdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
@@ -52,7 +52,7 @@ class AdyenTransactionEventListener(
   }
 
   @EventHandler
-  fun on(e: CancelAdyenTransactionCommand) {
+  fun on(e: AdyenTransactionCanceledEvent) {
     val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
 
     adyenTransaction.transactionStatus = AdyenTransactionStatus.CANCELLED
