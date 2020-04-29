@@ -1,7 +1,9 @@
 package com.hedvig.paymentservice.web.internal
 
 import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
+import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand
 import com.hedvig.paymentservice.web.dtos.CompleteChargeRequestDTO
+import com.hedvig.paymentservice.web.dtos.FailChargeRequestDTO
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -23,6 +25,17 @@ class ChargeTransactionController(
         transactionId = req.transactionId,
         amount = req.amount,
         timestamp = req.timestamp ?: Instant.now()
+      )
+    )
+    return ResponseEntity.accepted().build()
+  }
+
+  @PostMapping(value = ["charge/fail"])
+  fun failCharge(@RequestBody req: FailChargeRequestDTO): ResponseEntity<Void> {
+    commandGateway.sendAndWait<Void>(
+      ChargeFailedCommand(
+        memberId = req.memberId,
+        transactionId = req.transactionId
       )
     )
     return ResponseEntity.accepted().build()
