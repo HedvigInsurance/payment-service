@@ -99,11 +99,8 @@ class MemberControllerV2(
   @GetMapping("connectedToProvider")
   fun getMemberConnectedToProvider(
     @RequestParam paymentProvider: PaymentProvider
-  ): ResponseEntity<List<String>> = when(paymentProvider) {
-    PaymentProvider.TRUSTLY -> TODO()
-    PaymentProvider.ADYEN -> TODO()
-    PaymentProvider.ALL -> TODO()
-  }
+  ): ResponseEntity<List<String>> =
+    ResponseEntity.ok(memberService.getMembersConnectedToProvider(paymentProvider))
 
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)!!
