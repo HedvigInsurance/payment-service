@@ -9,10 +9,12 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO
 import com.hedvig.paymentservice.web.dtos.ChargeRequest
+import com.hedvig.paymentservice.web.dtos.PaymentProvider
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 @RestController
 @RequestMapping(path = ["/v2/_/members/"])
@@ -94,8 +96,18 @@ class MemberControllerV2(
     }
   }
 
+  @GetMapping("connectedToProvider")
+  fun getMemberConnectedToProvider(
+    @RequestParam paymentProvider: PaymentProvider
+  ): ResponseEntity<List<String>> = when(paymentProvider) {
+    PaymentProvider.TRUSTLY -> TODO()
+    PaymentProvider.ADYEN -> TODO()
+    PaymentProvider.ALL -> TODO()
+  }
+
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)!!
   }
 
 }
+
