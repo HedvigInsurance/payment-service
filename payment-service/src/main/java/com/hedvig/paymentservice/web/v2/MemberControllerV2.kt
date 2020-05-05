@@ -96,7 +96,7 @@ class MemberControllerV2(
     }
   }
 
-  @GetMapping("connectedToProvider")
+  @GetMapping("connectedToProvider/{paymentProvider}")
   fun getMemberConnectedToProvider(
     @RequestParam paymentProvider: PaymentProvider
   ): ResponseEntity<List<String>> =
