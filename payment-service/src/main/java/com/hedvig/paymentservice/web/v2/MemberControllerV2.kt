@@ -97,7 +97,7 @@ class MemberControllerV2(
   }
 
   @GetMapping("connectedToProvider/{paymentProvider}")
-  fun getMemberConnectedToProvider(
+  fun getMembersConnectedToProvider(
     @PathVariable paymentProvider: PaymentProvider
   ): ResponseEntity<List<String>> =
     ResponseEntity.ok(memberService.getMembersConnectedToProvider(paymentProvider))
