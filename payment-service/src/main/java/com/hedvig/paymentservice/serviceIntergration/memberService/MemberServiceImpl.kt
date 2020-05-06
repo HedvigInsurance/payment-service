@@ -36,8 +36,6 @@ class MemberServiceImpl(
       PaymentProvider.ADYEN -> {
         members.filter { it.adyenRecurringDetailReference != null }
       }
-      PaymentProvider.ALL ->
-        members.filter { it.trustlyAccountNumber != null || it.adyenRecurringDetailReference != null }
     }.map { it.id }
   }
 

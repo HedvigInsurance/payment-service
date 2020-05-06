@@ -109,23 +109,6 @@ class MemberServiceImplTest {
     assertThat(result).contains("1234")
   }
 
-  @Test
-  fun `get two members when fetching for all providers and when one member with trustly and one with adyen is provided`() {
-    whenever(memberRepository.findAll()).thenReturn(listOf(
-      buildMemberEntity(
-        trustlyAccountNumber = "123"
-      ),
-      buildMemberEntity(
-        id = "1234",
-        adyenRecurringDetailReference = "ref"
-      )
-    ))
-
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.ALL)
-
-    assertThat(result).contains("321", "1234")
-  }
-
   private fun buildMemberEntity(
     id: String = "321",
     trustlyAccountNumber: String? = null,
