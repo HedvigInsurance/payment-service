@@ -27,9 +27,9 @@ class MemberServiceImpl(
     }
   }
 
-  override fun getMembersByPayinProvider(paymentProvider: PayinProvider): List<String> {
+  override fun getMembersByPayinProvider(payinProvider: PayinProvider): List<String> {
     val members = memberRepository.findAll()
-    return when (paymentProvider) {
+    return when (payinProvider) {
       PayinProvider.TRUSTLY -> {
         members.filter { it.trustlyAccountNumber != null }
       }

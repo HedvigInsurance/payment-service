@@ -96,11 +96,11 @@ class MemberControllerV2(
     }
   }
 
-  @GetMapping("payinProvider/{paymentProvider}")
+  @GetMapping("payinProvider/{payinProvider}")
   fun getMembersConnectedToProvider(
-    @PathVariable paymentProvider: PayinProvider
+    @PathVariable payinProvider: PayinProvider
   ): ResponseEntity<List<String>> =
-    ResponseEntity.ok(memberService.getMembersByPayinProvider(paymentProvider))
+    ResponseEntity.ok(memberService.getMembersByPayinProvider(payinProvider))
 
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)!!
