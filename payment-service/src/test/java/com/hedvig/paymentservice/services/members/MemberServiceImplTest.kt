@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.members
 
+import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberServiceClient
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberServiceImpl
@@ -10,7 +11,6 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import com.hedvig.paymentservice.query.member.entities.Member
-import com.hedvig.paymentservice.web.dtos.PaymentProvider
 import org.assertj.core.api.Assertions.assertThat
 
 @RunWith(MockitoJUnitRunner::class)
@@ -39,7 +39,7 @@ class MemberServiceImplTest {
       )
     ))
 
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.TRUSTLY)
+    val result = classUnderTest.getMembersByPayinProvider(PayinProvider.TRUSTLY)
 
     assertThat(result).contains("321")
   }
@@ -56,7 +56,7 @@ class MemberServiceImplTest {
       )
     ))
 
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.TRUSTLY)
+    val result = classUnderTest.getMembersByPayinProvider(PayinProvider.TRUSTLY)
 
     assertThat(result).contains("321", "1234")
   }
@@ -69,7 +69,7 @@ class MemberServiceImplTest {
       )
     ))
 
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.ADYEN)
+    val result = classUnderTest.getMembersByPayinProvider(PayinProvider.ADYEN)
 
     assertThat(result).contains("321")
   }
@@ -87,7 +87,7 @@ class MemberServiceImplTest {
       )
     ))
 
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.TRUSTLY)
+    val result = classUnderTest.getMembersByPayinProvider(PayinProvider.TRUSTLY)
 
     assertThat(result).contains("321")
   }
@@ -104,7 +104,7 @@ class MemberServiceImplTest {
       )
     ))
 
-    val result = classUnderTest.getMembersConnectedToProvider(PaymentProvider.ADYEN)
+    val result = classUnderTest.getMembersByPayinProvider(PayinProvider.ADYEN)
 
     assertThat(result).contains("1234")
   }

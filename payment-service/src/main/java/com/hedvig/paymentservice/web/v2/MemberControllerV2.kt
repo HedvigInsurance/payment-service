@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web.v2
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
+import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
@@ -9,7 +10,6 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO
 import com.hedvig.paymentservice.web.dtos.ChargeRequest
-import com.hedvig.paymentservice.web.dtos.PaymentProvider
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -96,11 +96,11 @@ class MemberControllerV2(
     }
   }
 
-  @GetMapping("connectedToProvider/{paymentProvider}")
+  @GetMapping("payinProvider/{paymentProvider}")
   fun getMembersConnectedToProvider(
-    @PathVariable paymentProvider: PaymentProvider
+    @PathVariable paymentProvider: PayinProvider
   ): ResponseEntity<List<String>> =
-    ResponseEntity.ok(memberService.getMembersConnectedToProvider(paymentProvider))
+    ResponseEntity.ok(memberService.getMembersByPayinProvider(paymentProvider))
 
   companion object {
     val logger = LoggerFactory.getLogger(this::class.java)!!
