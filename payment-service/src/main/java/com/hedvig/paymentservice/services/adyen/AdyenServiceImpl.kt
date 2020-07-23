@@ -107,7 +107,7 @@ class AdyenServiceImpl(
       .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    val browserInfo = if (req.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browerInfo) else AdyenBrowserInfo()
+    val browserInfo = if (req.browserInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browserInfo) else AdyenBrowserInfo()
 
     paymentsRequest.browserInfo(browserInfo)
 
