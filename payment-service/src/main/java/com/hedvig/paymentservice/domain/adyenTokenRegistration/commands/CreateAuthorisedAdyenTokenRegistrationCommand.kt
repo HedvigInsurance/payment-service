@@ -8,5 +8,6 @@ data class CreateAuthorisedAdyenTokenRegistrationCommand(
   @TargetAggregateIdentifier
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val adyenPaymentsResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse,
+  val isPayoutSetup: Boolean = false
 )

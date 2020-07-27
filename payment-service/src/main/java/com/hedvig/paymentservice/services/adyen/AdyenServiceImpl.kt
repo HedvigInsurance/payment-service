@@ -14,9 +14,7 @@ import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
@@ -140,20 +138,22 @@ class AdyenServiceImpl(
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
         commandGateway.sendAndWait<Void>(
-          CreateAuthorisedAdyenPayoutTokenRegistrationCommand(
+          CreateAuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
-            adyenPaymentsResponse = response
+            adyenPaymentsResponse = response,
+            isPayoutSetup = true
           )
         )
       }
       PaymentResponseResultCode.PENDING -> {
         commandGateway.sendAndWait<Void>(
-          CreatePendingAdyenPayoutTokenRegistrationCommand(
+          CreatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
-            paymentDataFromAction = response.paymentsResponse.action.paymentData
+            paymentDataFromAction = response.paymentsResponse.action.paymentData,
+            isPayoutSetup = true
           )
         )
       }

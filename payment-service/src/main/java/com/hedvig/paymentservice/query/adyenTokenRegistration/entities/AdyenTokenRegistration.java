@@ -26,6 +26,8 @@ public class AdyenTokenRegistration {
   Instant createdAt;
   @UpdateTimestamp
   Instant updatedAt;
+  @Column(columnDefinition = "boolean default false")
+  private boolean isForPayout;
 
   public AdyenTokenRegistration() {
   }
@@ -78,6 +80,14 @@ public class AdyenTokenRegistration {
     this.paymentDataFromAction = paymentDataFromAction;
   }
 
+  public void setIsForPayout(boolean isForPayout) {
+    this.isForPayout = isForPayout;
+  }
+
+  public boolean getIsForPayout() {
+    return isForPayout;
+  }
+
   public boolean equals(final Object o) {
     if (o == this) return true;
     if (!(o instanceof AdyenTokenRegistration))
@@ -109,6 +119,9 @@ public class AdyenTokenRegistration {
     final Object this$updatedAt = this.getUpdatedAt();
     final Object other$updatedAt = other.getUpdatedAt();
     if (this$updatedAt == null ? other$updatedAt != null : !this$updatedAt.equals(other$updatedAt)) return false;
+    final Object this$isForPayout = this.getIsForPayout();
+    final Object other$isForPayout = other.getIsForPayout();
+    if (!this$isForPayout.equals(other$isForPayout)) return false;
     return true;
   }
 
@@ -133,6 +146,8 @@ public class AdyenTokenRegistration {
     result = result * PRIME + ($createdAt == null ? 43 : $createdAt.hashCode());
     final Object $updatedAt = this.getUpdatedAt();
     result = result * PRIME + ($updatedAt == null ? 43 : $updatedAt.hashCode());
+    final Object $isForPayout = this.getIsForPayout();
+    result = result * PRIME + ($isForPayout.hashCode());
     return result;
   }
 

@@ -1,0 +1,28 @@
+package com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters
+
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
+import org.axonframework.serialization.SimpleSerializedType
+import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation
+import org.axonframework.serialization.upcasting.event.SingleEventUpcaster
+import org.dom4j.Document
+
+class AdyenTokenRegistrationAuthorisedEventUpcaster : SingleEventUpcaster() {
+  private val targetType = SimpleSerializedType(AdyenTokenRegistrationAuthorisedEvent::class.java.typeName, null)
+
+  override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
+    return intermediateRepresentation.type == targetType
+  }
+
+  override fun doUpcast(
+    intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation? {
+    return intermediateRepresentation.upcastPayload(
+      SimpleSerializedType(targetType.name, "2.0"),
+      Document::class.java
+    ) { document: Document ->
+      document.rootElement
+        .addElement("isPayoutSetup").data = false
+      document
+    }
+  }
+}
+
