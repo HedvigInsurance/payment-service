@@ -15,6 +15,7 @@ import java.util.UUID
 interface AdyenService {
   fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
   fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+  fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
   fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
   fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
   fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
@@ -22,4 +23,5 @@ interface AdyenService {
   fun fetchAdyenPublicKey(): String
   fun handleSettlementErrorNotification(adyenTransactionId: UUID)
   fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
+  fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
 }

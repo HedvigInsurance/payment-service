@@ -30,6 +30,9 @@ class AdyenNotificationController(
         if (item.notificationItem?.eventCode?.toUpperCase() == AUTHORISATION) {
           adyenService.handleAuthorisationNotification(item.notificationItem!!)
         }
+        if (item.notificationItem?.eventCode?.toUpperCase() == RECURRING_CONTRACT) {
+          adyenService.handleRecurringContractNotification(item.notificationItem!!)
+        }
       } catch (e: Exception) {
         logger.error("Cannot process notification [Type: $CAPTURE_FAILED] [Exception: $e]")
       }
@@ -44,5 +47,6 @@ class AdyenNotificationController(
     val logger = LoggerFactory.getLogger(this.javaClass)!!
     const val CAPTURE_FAILED = "CAPTURE_FAILED"
     const val AUTHORISATION = "AUTHORISATION"
+    const val RECURRING_CONTRACT = "RECURRING_CONTRACT"
   }
 }

@@ -1,13 +1,19 @@
 package com.hedvig.paymentservice.domain.adyenTokenRegistration
 
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenPayoutTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenPayoutTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import org.axonframework.commandhandling.CommandHandler
@@ -39,9 +45,32 @@ class AdyenTokenRegistration() {
   }
 
   @CommandHandler
+  constructor(cmd: CreateAuthorisedAdyenPayoutTokenRegistrationCommand) : this() {
+    apply(
+      AdyenPayoutTokenRegistrationAuthorisedEvent(
+        cmd.adyenTokenRegistrationId,
+        cmd.memberId,
+        cmd.adyenPaymentsResponse
+      )
+    )
+  }
+
+  @CommandHandler
   constructor(cmd: CreatePendingAdyenTokenRegistrationCommand) : this() {
     apply(
       PendingAdyenTokenRegistrationCreatedEvent(
+        cmd.adyenTokenRegistrationId,
+        cmd.memberId,
+        cmd.adyenPaymentsResponse,
+        cmd.paymentDataFromAction
+      )
+    )
+  }
+
+  @CommandHandler
+  constructor(cmd: CreatePendingAdyenPayoutTokenRegistrationCommand) : this() {
+    apply(
+      PendingAdyenPayoutTokenRegistrationCreatedEvent(
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
@@ -57,6 +86,17 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse
+      )
+    )
+  }
+
+  @CommandHandler
+  fun handle(cmd: AuthoriseAdyenTokenRegistrationFromNotificationCommand) {
+    apply(
+      AdyenTokenRegistrationAuthorisedFromNotificationEvent(
+        cmd.adyenTokenRegistrationId,
+        cmd.memberId,
+        cmd.adyenNotification
       )
     )
   }
@@ -89,6 +129,11 @@ class AdyenTokenRegistration() {
     this.memberId = e.memberId
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
+  }
+
+  @EventSourcingHandler
+  fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
+    TODO("Implement!")
   }
 
   @EventSourcingHandler

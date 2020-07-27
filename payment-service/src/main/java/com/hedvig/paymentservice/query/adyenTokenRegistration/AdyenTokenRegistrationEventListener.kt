@@ -1,8 +1,11 @@
 package com.hedvig.paymentservice.query.adyenTokenRegistration
 
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenPayoutTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenPayoutTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
@@ -31,6 +34,16 @@ class AdyenTokenRegistrationEventListener(
   }
 
   @EventHandler
+  fun on(e: AdyenPayoutTokenRegistrationAuthorisedEvent) {
+    TODO("Implement")
+  }
+
+  @EventHandler
+  fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
+    TODO("Implement")
+  }
+
+  @EventHandler
   fun on(e: PendingAdyenTokenRegistrationCreatedEvent) {
     val tokenRegistration = AdyenTokenRegistration()
 
@@ -39,8 +52,13 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
     tokenRegistration.paymentDataFromAction = e.paymentDataFromAction
-    
+
     adyenAdyenTokenRepository.save(tokenRegistration)
+  }
+
+  @EventHandler
+  fun on(e: PendingAdyenPayoutTokenRegistrationCreatedEvent) {
+    TODO("Implement")
   }
 
   @EventHandler

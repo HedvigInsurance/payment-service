@@ -11,9 +11,12 @@ import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.service.Checkout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenPayoutTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
@@ -46,7 +49,6 @@ import org.springframework.stereotype.Service
 import java.util.Optional
 import java.util.UUID
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
-
 
 @Service
 class AdyenServiceImpl(
@@ -87,41 +89,12 @@ class AdyenServiceImpl(
     memberId: String,
     endUserIp: String?
   ): AdyenPaymentsResponse {
-    val optionalMember = memberService.getMember(memberId)
-    require(optionalMember.isPresent) { "Member not found" }
+    val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
+    val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
+      req, memberId, endUserIp, amount
+    )
 
-    createMember(memberId)
-
-    val adyenTokenId = uuidGenerator.generateRandom()
-
-    val paymentsRequest = PaymentsRequest()
-      .channel(TokenizationChannel.toPaymentsRequestChannelEnum(req.channel))
-      .shopperIP(endUserIp ?: "1.1.1.1")
-      .paymentMethod((req.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
-      .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
-      .merchantAccount(merchantAccount)
-      .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
-      .reference(adyenTokenId.toString())
-      .returnUrl(req.returnUrl)
-      .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
-      .shopperReference(memberId)
-      .storePaymentMethod(true)
-
-    val browserInfo = if (req.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browerInfo) else AdyenBrowserInfo()
-
-    paymentsRequest.browserInfo(browserInfo)
-
-    val additionalData: MutableMap<String, String> = HashMap()
-    additionalData[ALLOW_3DS2] = allow3DS2.toString()
-    paymentsRequest.additionalData = additionalData
-
-    var response: AdyenPaymentsResponse? = null
-    try {
-      response = AdyenPaymentsResponse(paymentsResponse = adyenCheckout.payments(paymentsRequest))
-    } catch (ex: Exception) {
-      logger.error("Tokenization with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
-      throw ex
-    }
+    val response = preformCheckout(paymentsRequest, memberId, req)
 
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
@@ -147,7 +120,94 @@ class AdyenServiceImpl(
         logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $req] [Response: $response]")
       }
     }
-    return response!!
+    return response
+  }
+
+  override fun tokenizePayoutDetails(
+    request: TokenizationRequest,
+    memberId: String,
+    endUserIp: String?
+  ): AdyenPaymentsResponse {
+    val amount = Amount().value(30).currency("NOK") //TODO: change me by checking the contract
+    val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
+      request, memberId, endUserIp, amount
+    )
+
+    paymentsRequest.enablePayOut(true)
+
+    val response = preformCheckout(paymentsRequest, memberId, request)
+
+    when (response.getResultCode()) {
+      PaymentResponseResultCode.AUTHORISED -> {
+        commandGateway.sendAndWait<Void>(
+          CreateAuthorisedAdyenPayoutTokenRegistrationCommand(
+            memberId = memberId,
+            adyenTokenRegistrationId = adyenTokenId,
+            adyenPaymentsResponse = response
+          )
+        )
+      }
+      PaymentResponseResultCode.PENDING -> {
+        commandGateway.sendAndWait<Void>(
+          CreatePendingAdyenPayoutTokenRegistrationCommand(
+            memberId = memberId,
+            adyenTokenRegistrationId = adyenTokenId,
+            adyenPaymentsResponse = response,
+            paymentDataFromAction = response.paymentsResponse.action.paymentData
+          )
+        )
+      }
+      PaymentResponseResultCode.FAILED -> {
+        logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $request] [Response: $response]")
+      }
+    }
+
+    return response
+  }
+
+  private fun preformCheckout(paymentsRequest: PaymentsRequest, memberId: String, req: TokenizationRequest) = try {
+    val res = adyenCheckout.payments(paymentsRequest)
+    AdyenPaymentsResponse(paymentsResponse = res)
+  } catch (ex: Exception) {
+    logger.error("Tokenization with Adyen exploded 💥 [MemberId: $memberId] [Request: $req] [Exception: $ex]")
+    throw ex
+  }
+
+  private fun createTokenizePaymentsRequest(
+    request: TokenizationRequest,
+    memberId: String,
+    endUserIp: String?,
+    amount: Amount
+  ): Pair<UUID, PaymentsRequest> {
+//    val optionalMember = memberService.getMember(memberId)
+//    require(optionalMember.isPresent) { "Member not found" }
+
+    createMember(memberId)
+
+    val adyenTokenId = uuidGenerator.generateRandom()
+
+    val paymentsRequest = PaymentsRequest()
+      .channel(TokenizationChannel.toPaymentsRequestChannelEnum(request.channel))
+      .shopperIP(endUserIp ?: "1.1.1.1")
+      .paymentMethod((request.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
+      .amount(amount)
+      .merchantAccount(merchantAccount)
+      .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
+      .reference(adyenTokenId.toString())
+      .returnUrl(request.returnUrl)
+      .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
+      .shopperReference(memberId)
+      .storePaymentMethod(true)
+
+    val browserInfo = if (request.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browerInfo) else AdyenBrowserInfo()
+
+    paymentsRequest.browserInfo(browserInfo)
+
+    val additionalData: MutableMap<String, String> = HashMap()
+    additionalData[ALLOW_3DS2] = allow3DS2.toString()
+    paymentsRequest.additionalData = additionalData
+
+    return Pair(adyenTokenId, paymentsRequest)
   }
 
   override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse {
@@ -271,6 +331,31 @@ class AdyenServiceImpl(
       )
     }
 
+  }
+
+  override fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem) {
+    val adyenTokenRegistrationId = UUID.fromString(adyenNotification.originalReference)
+
+    val tokenRegistrationMaybe = adyenTokenRegistrationRepository.findById(adyenTokenRegistrationId)
+
+    if (!tokenRegistrationMaybe.isPresent) {
+      logger.info("Handle token registration - Could not find adyen token registration $adyenTokenRegistrationId")
+      return
+    }
+
+    val tokenRegistration = tokenRegistrationMaybe.get()
+
+    if (adyenNotification.success) {
+      commandGateway.sendAndWait<Void>(
+        AuthoriseAdyenTokenRegistrationFromNotificationCommand(
+          adyenTokenRegistrationId = adyenTokenRegistrationId,
+          memberId = tokenRegistration.memberId,
+          adyenNotification = adyenNotification
+        )
+      )
+    } else {
+      //TODO: Figure out what to do if it is not successful. Maybe keeping it in pending state is okay, maybe we should cancel it
+    }
   }
 
   override fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse {

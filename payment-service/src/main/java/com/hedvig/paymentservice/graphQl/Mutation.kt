@@ -73,6 +73,23 @@ class Mutation(
     )
   }
 
+  fun tokenizePayoutDetails(
+    request: TokenizationRequest,
+    env: DataFetchingEnvironment
+  ): TokenizationResponse? {
+    // TODO("Implement, break out parts of the function above")
+
+    val adyenResponse = adyenService.tokenizePayoutDetails(request, "1234", "1.1.1.1")
+
+    if (adyenResponse.paymentsResponse.action != null) {
+      return TokenizationResponse.TokenizationResponseAction(action = adyenResponse.paymentsResponse.action)
+    }
+
+    return TokenizationResponse.TokenizationResponseFinished(
+      resultCode = adyenResponse.paymentsResponse.resultCode.value
+    )
+  }
+
   fun submitAdditionalPaymentDetails(
     request: AdditionalPaymentsDetailsRequest,
     env: DataFetchingEnvironment
