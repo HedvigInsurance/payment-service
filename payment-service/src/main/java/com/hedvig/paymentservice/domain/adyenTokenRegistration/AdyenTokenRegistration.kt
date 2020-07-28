@@ -29,6 +29,7 @@ class AdyenTokenRegistration() {
   var recurringDetailReference: String? = null
   var paymentDataFromAction: String? = null
   var isForPayout: Boolean = false
+  var shopperReference: String? = null
 
   @CommandHandler
   constructor(cmd: CreateAuthorisedAdyenTokenRegistrationCommand) : this() {
@@ -37,7 +38,8 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
-        cmd.isPayoutSetup
+        cmd.isPayoutSetup,
+        cmd.shopperReference
       )
     )
   }
@@ -50,7 +52,8 @@ class AdyenTokenRegistration() {
         cmd.memberId,
         cmd.adyenPaymentsResponse,
         cmd.paymentDataFromAction,
-        cmd.isPayoutSetup
+        cmd.isPayoutSetup,
+        cmd.shopperReference
       )
     )
   }
@@ -62,7 +65,8 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
-        false
+        false,
+        cmd.shopperReference
       )
     )
   }
@@ -73,7 +77,8 @@ class AdyenTokenRegistration() {
       AdyenTokenRegistrationAuthorisedFromNotificationEvent(
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
-        cmd.adyenNotification
+        cmd.adyenNotification,
+        cmd.shopperReference
       )
     )
   }
@@ -107,6 +112,7 @@ class AdyenTokenRegistration() {
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
     this.isForPayout = e.isPayoutSetup
+    this.shopperReference = e.shopperReference
   }
 
   @EventSourcingHandler
@@ -125,6 +131,7 @@ class AdyenTokenRegistration() {
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
     this.paymentDataFromAction = e.paymentDataFromAction
     this.isForPayout = e.isPayoutSetup
+    this.shopperReference = e.shopperReference
   }
 
   @EventSourcingHandler

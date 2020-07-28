@@ -15,12 +15,19 @@ class AdyenTokenRegistrationAuthorisedEventUpcaster : SingleEventUpcaster() {
 
   override fun doUpcast(
     intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation? {
+
+    val memberId = intermediateRepresentation.getData(org.dom4j.Document::class.java)
+      .data.rootElement.element("memberId")
+
     return intermediateRepresentation.upcastPayload(
       SimpleSerializedType(targetType.name, "2.0"),
       Document::class.java
     ) { document: Document ->
       document.rootElement
         .addElement("isPayoutSetup").data = false
+      document.rootElement
+        .addElement("shopperReference").text = memberId.text
+
       document
     }
   }

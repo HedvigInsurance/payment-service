@@ -9,5 +9,6 @@ data class AdyenTokenRegistrationAuthorisedEvent(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenPaymentsResponse: AdyenPaymentsResponse,
-  val isPayoutSetup: Boolean
+  val isPayoutSetup: Boolean,
+  val shopperReference: String
 )

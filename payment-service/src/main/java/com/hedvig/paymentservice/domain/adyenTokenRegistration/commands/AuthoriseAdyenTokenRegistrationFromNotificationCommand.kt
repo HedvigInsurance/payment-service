@@ -8,5 +8,6 @@ class AuthoriseAdyenTokenRegistrationFromNotificationCommand(
   @TargetAggregateIdentifier
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val adyenNotification: NotificationRequestItem
+  val adyenNotification: NotificationRequestItem,
+  val shopperReference: String
 )

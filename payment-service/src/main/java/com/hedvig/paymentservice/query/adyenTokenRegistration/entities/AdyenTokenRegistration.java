@@ -28,6 +28,7 @@ public class AdyenTokenRegistration {
   Instant updatedAt;
   @Column(columnDefinition = "boolean default false")
   private boolean isForPayout;
+  private String shopperReference;
 
   public AdyenTokenRegistration() {
   }
@@ -88,6 +89,14 @@ public class AdyenTokenRegistration {
     return isForPayout;
   }
 
+  public void setShopperReference(String shopperReference) {
+    this.shopperReference = shopperReference;
+  }
+
+  public String getShopperReference() {
+    return shopperReference;
+  }
+
   public boolean equals(final Object o) {
     if (o == this) return true;
     if (!(o instanceof AdyenTokenRegistration))
@@ -122,6 +131,9 @@ public class AdyenTokenRegistration {
     final Object this$isForPayout = this.getIsForPayout();
     final Object other$isForPayout = other.getIsForPayout();
     if (!this$isForPayout.equals(other$isForPayout)) return false;
+    final Object this$shopperReference = this.getShopperReference();
+    final Object other$shopperReference = other.getShopperReference();
+    if (!this$shopperReference.equals(other$shopperReference)) return false;
     return true;
   }
 
@@ -148,6 +160,8 @@ public class AdyenTokenRegistration {
     result = result * PRIME + ($updatedAt == null ? 43 : $updatedAt.hashCode());
     final Object $isForPayout = this.getIsForPayout();
     result = result * PRIME + ($isForPayout.hashCode());
+    final Object $shopperReference = this.getShopperReference();
+    result = result * PRIME + ($shopperReference.hashCode());
     return result;
   }
 

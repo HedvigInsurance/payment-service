@@ -6,5 +6,6 @@ import java.util.UUID
 data class AdyenTokenRegistrationAuthorisedFromNotificationEvent(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val notificationRequestItem: NotificationRequestItem
+  val notificationRequestItem: NotificationRequestItem,
+  val shopperReference: String
 )

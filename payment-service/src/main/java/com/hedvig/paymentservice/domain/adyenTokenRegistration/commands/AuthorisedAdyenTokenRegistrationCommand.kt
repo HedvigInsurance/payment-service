@@ -8,5 +8,6 @@ class AuthorisedAdyenTokenRegistrationCommand(
   @TargetAggregateIdentifier
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
-  val adyenPaymentsResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse,
+  val shopperReference: String
 )

@@ -89,7 +89,11 @@ class AdyenServiceImpl(
   ): AdyenPaymentsResponse {
     val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
-      req, memberId, endUserIp, amount
+      request = req,
+      memberId = memberId,
+      endUserIp = endUserIp,
+      amount = amount,
+      shopperReference = memberId
     )
 
     val response = preformCheckout(paymentsRequest, memberId, req)
@@ -100,7 +104,8 @@ class AdyenServiceImpl(
           CreateAuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
-            adyenPaymentsResponse = response
+            adyenPaymentsResponse = response,
+            shopperReference = memberId
           )
         )
       }
@@ -110,7 +115,8 @@ class AdyenServiceImpl(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
-            paymentDataFromAction = response.paymentsResponse.action.paymentData
+            paymentDataFromAction = response.paymentsResponse.action.paymentData,
+            shopperReference = memberId
           )
         )
       }
@@ -127,8 +133,13 @@ class AdyenServiceImpl(
     endUserIp: String?
   ): AdyenPaymentsResponse {
     val amount = Amount().value(30).currency("NOK") //TODO: change me by checking the contract
+    val shopperReference = "payout_$memberId"
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
-      request, memberId, endUserIp, amount
+      request = request,
+      memberId = memberId,
+      endUserIp = endUserIp,
+      amount = amount,
+      shopperReference = shopperReference
     )
 
     paymentsRequest.enablePayOut(true)
@@ -142,7 +153,8 @@ class AdyenServiceImpl(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
-            isPayoutSetup = true
+            isPayoutSetup = true,
+            shopperReference = shopperReference
           )
         )
       }
@@ -153,7 +165,8 @@ class AdyenServiceImpl(
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
             paymentDataFromAction = response.paymentsResponse.action.paymentData,
-            isPayoutSetup = true
+            isPayoutSetup = true,
+            shopperReference = shopperReference
           )
         )
       }
@@ -177,7 +190,8 @@ class AdyenServiceImpl(
     request: TokenizationRequest,
     memberId: String,
     endUserIp: String?,
-    amount: Amount
+    amount: Amount,
+    shopperReference: String
   ): Pair<UUID, PaymentsRequest> {
 //    val optionalMember = memberService.getMember(memberId)
 //    require(optionalMember.isPresent) { "Member not found" }
@@ -196,7 +210,7 @@ class AdyenServiceImpl(
       .reference(adyenTokenId.toString())
       .returnUrl(request.returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
-      .shopperReference(memberId)
+      .shopperReference(shopperReference)
       .storePaymentMethod(true)
 
     val browserInfo = if (request.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browerInfo) else AdyenBrowserInfo()
@@ -234,7 +248,8 @@ class AdyenServiceImpl(
           AuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenRegistrationId,
-            adyenPaymentsResponse = response
+            adyenPaymentsResponse = response,
+            shopperReference = memberId
           )
         )
       }
@@ -350,7 +365,8 @@ class AdyenServiceImpl(
         AuthoriseAdyenTokenRegistrationFromNotificationCommand(
           adyenTokenRegistrationId = adyenTokenRegistrationId,
           memberId = tokenRegistration.memberId,
-          adyenNotification = adyenNotification
+          adyenNotification = adyenNotification,
+          shopperReference = tokenRegistration.shopperReference
         )
       )
     } else {

@@ -8,12 +8,15 @@ import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand
+import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenPayoutAccountCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus.Companion.fromTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent
+import com.hedvig.paymentservice.domain.payments.events.AdyenPayoutAccountCreatedEvent
+import com.hedvig.paymentservice.domain.payments.events.AdyenPayoutAccountUpdatedEvent
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEvent
@@ -53,6 +56,7 @@ class Member() {
   var transactions: MutableList<Transaction> = ArrayList()
   var trustlyAccount: TrustlyAccount? = null
   var adyenAccount: AdyenAccount? = null
+  var adyenPayoutAccount: AdyenPayoutAccount? = null
 
   @CommandHandler
   constructor(
@@ -133,32 +137,37 @@ class Member() {
 
   @CommandHandler
   fun cmd(cmd: CreatePayoutCommand): Boolean {
-    if (trustlyAccount == null) {
-      log.info("Cannot payout account - no account set up in Trustly")
+    trustlyAccount?.let { account ->
       apply(
-        PayoutCreationFailedEvent(id, cmd.transactionId, cmd.amount, cmd.timestamp)
+        PayoutCreatedEvent(
+          id,
+          cmd.transactionId,
+          cmd.amount,
+          cmd.address,
+          cmd.countryCode,
+          cmd.dateOfBirth,
+          cmd.firstName,
+          cmd.lastName,
+          cmd.timestamp,
+          account.accountId,
+          cmd.category,
+          cmd.referenceId,
+          cmd.note,
+          cmd.handler
+        )
       )
-      return false
+      return true
     }
+
+    adyenPayoutAccount?.let { account ->
+      TODO("Implement with account.shopperReference")
+    }
+
+    log.info("Cannot payout account - no payout account is set up")
     apply(
-      PayoutCreatedEvent(
-        id,
-        cmd.transactionId,
-        cmd.amount,
-        cmd.address,
-        cmd.countryCode,
-        cmd.dateOfBirth,
-        cmd.firstName,
-        cmd.lastName,
-        cmd.timestamp,
-        trustlyAccount!!.accountId,
-        cmd.category,
-        cmd.referenceId,
-        cmd.note,
-        cmd.handler
-      )
+      PayoutCreationFailedEvent(id, cmd.transactionId, cmd.amount, cmd.timestamp)
     )
-    return true
+    return false
   }
 
   @CommandHandler
@@ -196,6 +205,27 @@ class Member() {
         AdyenAccountUpdatedEvent(
           cmd.memberId,
           cmd.recurringDetailReference,
+          fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+        )
+      )
+    }
+  }
+
+  @CommandHandler
+  fun cmd(cmd: UpdateAdyenPayoutAccountCommand) {
+    if (adyenPayoutAccount == null) {
+      apply(
+        AdyenPayoutAccountCreatedEvent(
+          cmd.memberId,
+          cmd.shopperReference,
+          fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+        )
+      )
+    } else {
+      apply(
+        AdyenPayoutAccountUpdatedEvent(
+          cmd.memberId,
+          cmd.shopperReference,
           fromTokenRegistrationStatus(cmd.adyenTokenStatus)
         )
       )
@@ -399,9 +429,25 @@ class Member() {
   }
 
   @EventSourcingHandler
+  fun on(e: AdyenPayoutAccountCreatedEvent) {
+    adyenPayoutAccount = AdyenPayoutAccount(
+      e.shopperReference,
+      e.accountStatus
+    )
+  }
+
+  @EventSourcingHandler
   fun on(e: AdyenAccountUpdatedEvent) {
     adyenAccount = AdyenAccount(
       e.recurringDetailReference,
+      e.accountStatus
+    )
+  }
+
+  @EventSourcingHandler
+  fun on(e: AdyenPayoutAccountUpdatedEvent) {
+    adyenPayoutAccount = AdyenPayoutAccount(
+      e.shopperReference,
       e.accountStatus
     )
   }
