@@ -111,7 +111,10 @@ class AdyenTokenRegistration() {
 
   @EventSourcingHandler
   fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
-    TODO("Implement!")
+    this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
+    this.memberId = e.memberId
+    //TODO: To be future proof maybe we should look at the notification item to see if we can add recurring payment details
+    this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
   }
 
   @EventSourcingHandler
