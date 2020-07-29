@@ -140,27 +140,45 @@ class Member() {
     trustlyAccount?.let { account ->
       apply(
         PayoutCreatedEvent(
-          id,
-          cmd.transactionId,
-          cmd.amount,
-          cmd.address,
-          cmd.countryCode,
-          cmd.dateOfBirth,
-          cmd.firstName,
-          cmd.lastName,
-          cmd.timestamp,
-          account.accountId,
-          cmd.category,
-          cmd.referenceId,
-          cmd.note,
-          cmd.handler
+          memberId = id,
+          transactionId = cmd.transactionId,
+          amount = cmd.amount,
+          address = cmd.address,
+          countryCode = cmd.countryCode,
+          dateOfBirth = cmd.dateOfBirth,
+          firstName = cmd.firstName,
+          lastName = cmd.lastName,
+          timestamp = cmd.timestamp,
+          trustlyAccountId = account.accountId,
+          category = cmd.category,
+          referenceId = cmd.referenceId,
+          note = cmd.note,
+          handler = cmd.handler,
+          adyenShopperReference = null
         )
       )
       return true
     }
 
     adyenPayoutAccount?.let { account ->
-      TODO("Implement with account.shopperReference")
+      PayoutCreatedEvent(
+        memberId = id,
+        transactionId = cmd.transactionId,
+        amount = cmd.amount,
+        address = cmd.address,
+        countryCode = cmd.countryCode,
+        dateOfBirth = cmd.dateOfBirth,
+        firstName = cmd.firstName,
+        lastName = cmd.lastName,
+        timestamp = cmd.timestamp,
+        category = cmd.category,
+        referenceId = cmd.referenceId,
+        note = cmd.note,
+        handler = cmd.handler,
+        adyenShopperReference = account.shopperReference,
+        trustlyAccountId = null
+      )
+      return true
     }
 
     log.info("Cannot payout account - no payout account is set up")

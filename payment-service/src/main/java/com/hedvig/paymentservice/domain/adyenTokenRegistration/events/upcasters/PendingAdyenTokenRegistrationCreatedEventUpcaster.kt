@@ -24,7 +24,7 @@ class PendingAdyenTokenRegistrationCreatedEventUpcaster : SingleEventUpcaster() 
       Document::class.java
     ) { document: Document ->
       document.rootElement
-        .addElement("isPayoutSetup").data = false
+        .addElement("isPayoutSetup").text = "false"
       document.rootElement
         .addElement("shopperReference").text = memberId.text
       document
