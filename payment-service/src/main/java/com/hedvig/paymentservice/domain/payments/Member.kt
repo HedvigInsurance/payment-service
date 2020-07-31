@@ -154,7 +154,8 @@ class Member() {
           referenceId = cmd.referenceId,
           note = cmd.note,
           handler = cmd.handler,
-          adyenShopperReference = null
+          adyenShopperReference = null,
+          email = cmd.email
         )
       )
       return true
@@ -176,7 +177,8 @@ class Member() {
         note = cmd.note,
         handler = cmd.handler,
         adyenShopperReference = account.shopperReference,
-        trustlyAccountId = null
+        trustlyAccountId = null,
+        email = cmd.email
       )
       return true
     }

@@ -69,7 +69,8 @@ class GraphQlMutationTest {
     zipCode = "",
     ssn = "",
     country = "",
-    city = ""
+    city = "",
+    email = ""
   )
 
   private fun <T> anyObject(): T {

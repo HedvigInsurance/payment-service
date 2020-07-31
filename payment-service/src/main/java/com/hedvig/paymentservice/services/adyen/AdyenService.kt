@@ -11,6 +11,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import java.util.UUID
+import javax.money.MonetaryAmount
 
 interface AdyenService {
   fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
@@ -24,4 +25,5 @@ interface AdyenService {
   fun handleSettlementErrorNotification(adyenTransactionId: UUID)
   fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
   fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
+  fun startPayoutOrder(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String, hedvigOrderId: UUID)
 }

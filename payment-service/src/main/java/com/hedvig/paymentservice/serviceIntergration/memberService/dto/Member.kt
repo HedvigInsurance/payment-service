@@ -15,5 +15,7 @@ data class Member(
   val zipCode: String?,
   val country: String?,
 
-  val ssn: String
+  val ssn: String,
+
+  val email: String
 )

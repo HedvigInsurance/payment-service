@@ -9,7 +9,10 @@ import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
+import com.adyen.model.payout.PayoutRequest
+import com.adyen.model.recurring.Recurring
 import com.adyen.service.Checkout
+import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
@@ -21,6 +24,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthori
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.AdyenPayoutResponseReceivedCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
@@ -46,11 +50,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.Optional
 import java.util.UUID
+import javax.money.MonetaryAmount
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 @Service
 class AdyenServiceImpl(
   val adyenCheckout: Checkout,
+  val adyenPayout: Payout,
   val memberRepository: MemberRepository,
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
@@ -433,6 +439,32 @@ class AdyenServiceImpl(
 
     return ActivePaymentMethodsResponse(
       storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(adyenResponse.storedPaymentMethods.first())
+    )
+  }
+
+  override fun startPayoutOrder(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String, hedvigOrderId: UUID) {
+    val payoutRequest = PayoutRequest()
+      .amount(
+        Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
+      )
+      .merchantAccount(merchantAccount)
+      .recurring(
+        Recurring().contract(Recurring.ContractEnum.PAYOUT)
+      )
+      .reference(payoutReference)
+      .shopperEmail(shopperEmail)
+      .shopperReference(shopperReference)
+      .selectedRecurringDetailReference("LATEST")
+
+
+    val payoutResponse = adyenPayout.payout(payoutRequest)
+
+    commandGateway.sendAndWait<Any>(
+      AdyenPayoutResponseReceivedCommand(
+        hedvigOrderId,
+        payoutResponse.pspReference,
+        amount
+      )
     )
   }
 

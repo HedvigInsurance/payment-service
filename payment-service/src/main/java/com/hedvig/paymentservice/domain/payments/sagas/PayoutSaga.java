@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.domain.payments.sagas;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand;
+import com.hedvig.paymentservice.services.adyen.AdyenService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
 
@@ -22,6 +23,8 @@ public class PayoutSaga {
   transient CommandGateway commandGateway;
   @Autowired
   transient TrustlyService trustlyService;
+  @Autowired
+  transient AdyenService adyenService;
   @Autowired
   transient UUIDGenerator uuidGenerator;
 
@@ -63,7 +66,10 @@ public class PayoutSaga {
     }
 
     if (e.getAdyenShopperReference() != null) {
-      //TODO: adyenService.startPayout
+      //TODO: Create order
+      //TODO: adyenService.startPayoutOrder
+      //TODO: store response
+      //TODO: confirm payout /confirmThirdParty
       return;
     }
 

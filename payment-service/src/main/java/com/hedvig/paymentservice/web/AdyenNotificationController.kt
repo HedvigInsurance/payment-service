@@ -33,6 +33,7 @@ class AdyenNotificationController(
         if (item.notificationItem?.eventCode?.toUpperCase() == RECURRING_CONTRACT) {
           adyenService.handleRecurringContractNotification(item.notificationItem!!)
         }
+        //TODO: handle PAYOUT_THIRDPARTY
       } catch (e: Exception) {
         logger.error("Cannot process notification [Type: $CAPTURE_FAILED] [Exception: $e]")
       }
