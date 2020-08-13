@@ -66,8 +66,8 @@ public class PayoutSaga {
     }
 
     if (e.getAdyenShopperReference() != null) {
-      //TODO: Create order
-      //TODO: adyenService.startPayoutOrder
+      //TODO: Create InitiateAdyenTransactionPayoutCommand
+      //TODO: adyenService.startPayoutTransaction
       //TODO: store response
       //TODO: confirm payout /confirmThirdParty
       return;
