@@ -146,7 +146,8 @@ class AdyenPayoutTransaction() {
         FailedAdyenPayoutTransactionReceivedEvent(
           cmd.transactionId,
           cmd.memberId,
-          cmd.amount
+          cmd.amount,
+          cmd.reason
         )
       )
     }
@@ -164,7 +165,8 @@ class AdyenPayoutTransaction() {
         DeclinedAdyenPayoutTransactionReceivedEvent(
           cmd.transactionId,
           cmd.memberId,
-          cmd.amount
+          cmd.amount,
+          cmd.reason
         )
       )
     }
@@ -182,7 +184,8 @@ class AdyenPayoutTransaction() {
         ExpiredAdyenPayoutTransactionReceivedEvent(
           cmd.transactionId,
           cmd.memberId,
-          cmd.amount
+          cmd.amount,
+          cmd.reason
         )
       )
     }
@@ -200,7 +203,8 @@ class AdyenPayoutTransaction() {
         ReservedAdyenPayoutTransactionReceivedEvent(
           cmd.transactionId,
           cmd.memberId,
-          cmd.amount
+          cmd.amount,
+          cmd.reason
         )
       )
     }

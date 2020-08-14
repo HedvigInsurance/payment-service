@@ -31,8 +31,8 @@ public class AdyenPayoutTransaction {
   @UpdateTimestamp
   Instant updatedAt;
 
-  @java.beans.ConstructorProperties({"transactionId", "memberId", "recurringDetailReference", "amount", "currency", "transactionStatus"})
-  public AdyenPayoutTransaction(UUID transactionId, String memberId, String recurringDetailReference, BigDecimal amount, String currency, AdyenPayoutTransactionStatus transactionStatus) {
+  @java.beans.ConstructorProperties({"transactionId", "memberId", "shopperReference", "amount", "currency", "transactionStatus"})
+  public AdyenPayoutTransaction(UUID transactionId, String memberId, String shopperReference, BigDecimal amount, String currency, AdyenPayoutTransactionStatus transactionStatus) {
     this.transactionId = transactionId;
     this.memberId = memberId;
     this.shopperReference = shopperReference;

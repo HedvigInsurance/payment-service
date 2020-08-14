@@ -8,5 +8,6 @@ data class ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand(
   @TargetAggregateIdentifier
   val transactionId: UUID,
   val memberId: String,
-  val amount: MonetaryAmount
+  val amount: MonetaryAmount,
+  val reason: String?
 )

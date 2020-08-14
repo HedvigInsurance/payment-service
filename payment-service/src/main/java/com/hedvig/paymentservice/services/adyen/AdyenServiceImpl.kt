@@ -504,7 +504,8 @@ class AdyenServiceImpl(
         ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
           transaction.transactionId,
           transaction.memberId,
-          Money.of(transaction.amount, transaction.currency)
+          Money.of(transaction.amount, transaction.currency),
+          adyenNotification.reason
         )
       )
     }
@@ -515,7 +516,8 @@ class AdyenServiceImpl(
         ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand(
           transaction.transactionId,
           transaction.memberId,
-          Money.of(transaction.amount, transaction.currency)
+          Money.of(transaction.amount, transaction.currency),
+          adyenNotification.reason
         )
       )
     }
@@ -526,7 +528,8 @@ class AdyenServiceImpl(
         ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
           transaction.transactionId,
           transaction.memberId,
-          Money.of(transaction.amount, transaction.currency)
+          Money.of(transaction.amount, transaction.currency),
+          adyenNotification.reason
         )
       )
     }

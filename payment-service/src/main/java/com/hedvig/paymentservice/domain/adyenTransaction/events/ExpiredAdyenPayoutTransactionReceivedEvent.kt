@@ -6,5 +6,6 @@ import javax.money.MonetaryAmount
 class ExpiredAdyenPayoutTransactionReceivedEvent(
   val transactionId: UUID,
   val memberId: String,
-  val amount: MonetaryAmount
+  val amount: MonetaryAmount,
+  val reason: String?
 )
