@@ -147,7 +147,7 @@ class AdyenServiceImpl(
     memberId: String,
     endUserIp: String?
   ): AdyenPaymentsResponse {
-    val shopperReference = "payout_$memberId"
+    val shopperReference = "payout_${memberId}_${UUID.randomUUID()}"
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
       request = request,
       memberId = memberId,
