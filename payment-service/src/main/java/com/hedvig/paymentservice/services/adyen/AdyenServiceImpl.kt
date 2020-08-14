@@ -104,12 +104,10 @@ class AdyenServiceImpl(
     memberId: String,
     endUserIp: String?
   ): AdyenPaymentsResponse {
-    val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
       request = req,
       memberId = memberId,
       endUserIp = endUserIp,
-      amount = amount,
       shopperReference = memberId
     )
 
@@ -149,13 +147,11 @@ class AdyenServiceImpl(
     memberId: String,
     endUserIp: String?
   ): AdyenPaymentsResponse {
-    val amount = Amount().value(30).currency("NOK") //TODO: change me by checking the contract
     val shopperReference = "payout_$memberId"
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
       request = request,
       memberId = memberId,
       endUserIp = endUserIp,
-      amount = amount,
       shopperReference = shopperReference
     )
 
@@ -207,15 +203,16 @@ class AdyenServiceImpl(
     request: TokenizationRequest,
     memberId: String,
     endUserIp: String?,
-    amount: Amount,
     shopperReference: String
   ): Pair<UUID, PaymentsRequest> {
-//    val optionalMember = memberService.getMember(memberId)
-//    require(optionalMember.isPresent) { "Member not found" }
+    val optionalMember = memberService.getMember(memberId)
+    require(optionalMember.isPresent) { "Member not found" }
 
     createMember(memberId)
 
     val adyenTokenId = uuidGenerator.generateRandom()
+
+    val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
 
     val paymentsRequest = PaymentsRequest()
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(request.channel))
