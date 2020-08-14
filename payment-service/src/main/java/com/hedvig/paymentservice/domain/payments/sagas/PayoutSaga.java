@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.domain.payments.sagas;
 
 import com.hedvig.paymentservice.common.UUIDGenerator;
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionPayoutCommand;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand;
 import com.hedvig.paymentservice.services.adyen.AdyenService;
@@ -66,10 +67,15 @@ public class PayoutSaga {
     }
 
     if (e.getAdyenShopperReference() != null) {
-      //TODO: Create InitiateAdyenTransactionPayoutCommand
-      //TODO: adyenService.startPayoutTransaction
-      //TODO: store response
-      //TODO: confirm payout /confirmThirdParty
+      commandGateway.sendAndWait(
+        new InitiateAdyenTransactionPayoutCommand(
+          e.getTransactionId(),
+          e.getMemberId(),
+          e.getAdyenShopperReference(),
+          e.getAmount(),
+          e.getEmail()
+        )
+      );
       return;
     }
 

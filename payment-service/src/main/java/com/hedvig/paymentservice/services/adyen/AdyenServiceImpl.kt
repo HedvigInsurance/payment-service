@@ -9,7 +9,10 @@ import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
+import com.adyen.model.payout.ConfirmThirdPartyRequest
+import com.adyen.model.payout.ConfirmThirdPartyResponse
 import com.adyen.model.payout.PayoutRequest
+import com.adyen.model.payout.PayoutResponse
 import com.adyen.model.recurring.Recurring
 import com.adyen.service.Checkout
 import com.adyen.service.Payout
@@ -20,11 +23,15 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedFailedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedReservedAdyenPayoutTransactionFromNotificationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.AdyenPayoutResponseReceivedCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
@@ -34,6 +41,8 @@ import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
+import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransaction
+import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -45,6 +54,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
+import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -63,6 +73,7 @@ class AdyenServiceImpl(
   val commandGateway: CommandGateway,
   val adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository,
   val adyenTransactionRepository: AdyenTransactionRepository,
+  val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
   @param:Value("\${hedvig.adyen.merchantAccount}")
   val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl}")
@@ -442,7 +453,7 @@ class AdyenServiceImpl(
     )
   }
 
-  override fun startPayoutOrder(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String, hedvigOrderId: UUID) {
+  override fun startPayoutTransaction(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String): PayoutResponse {
     val payoutRequest = PayoutRequest()
       .amount(
         Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
@@ -457,15 +468,84 @@ class AdyenServiceImpl(
       .selectedRecurringDetailReference("LATEST")
 
 
-    val payoutResponse = adyenPayout.payout(payoutRequest)
+    return adyenPayout.payout(payoutRequest)
+  }
 
-    commandGateway.sendAndWait<Any>(
-      AdyenPayoutResponseReceivedCommand(
-        hedvigOrderId,
-        payoutResponse.pspReference,
-        amount
+  override fun confirmPayout(payoutReference: String): ConfirmThirdPartyResponse {
+    val request = ConfirmThirdPartyRequest().also {
+      it.merchantAccount = merchantAccount
+      it.originalReference = payoutReference
+    }
+    return adyenPayout.confirmThirdParty(request)
+  }
+
+  override fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem) =
+    getPayoutTransactionAndApplyComand(adyenNotification) { transaction ->
+      if (adyenNotification.success) {
+        commandGateway.sendAndWait<Void>(
+          ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand(
+            transaction.transactionId,
+            transaction.memberId,
+            Money.of(transaction.amount, transaction.currency)
+          )
+        )
+      } else {
+        commandGateway.sendAndWait<Void>(
+          ReceivedFailedAdyenPayoutTransactionFromNotificationCommand(
+            transaction.transactionId,
+            transaction.memberId,
+            Money.of(transaction.amount, transaction.currency),
+            adyenNotification.reason
+          )
+        )
+      }
+    }
+
+  override fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem) =
+    getPayoutTransactionAndApplyComand(adyenNotification) { transaction ->
+      commandGateway.sendAndWait<Void>(
+        ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
+          transaction.transactionId,
+          transaction.memberId,
+          Money.of(transaction.amount, transaction.currency)
+        )
       )
-    )
+    }
+
+  override fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem) =
+    getPayoutTransactionAndApplyComand(adyenNotification) { transaction ->
+      commandGateway.sendAndWait<Void>(
+        ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand(
+          transaction.transactionId,
+          transaction.memberId,
+          Money.of(transaction.amount, transaction.currency)
+        )
+      )
+    }
+
+  override fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem) =
+    getPayoutTransactionAndApplyComand(adyenNotification) { transaction ->
+      commandGateway.sendAndWait<Void>(
+        ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
+          transaction.transactionId,
+          transaction.memberId,
+          Money.of(transaction.amount, transaction.currency)
+        )
+      )
+    }
+
+  private fun getPayoutTransactionAndApplyComand(adyenNotification: NotificationRequestItem, command: (AdyenPayoutTransaction) -> Unit) {
+    val adyenTransactionId = UUID.fromString(adyenNotification.originalReference)
+
+    val adyenTransactionMaybe = adyenPayoutTransactionRepository.findById(adyenTransactionId)
+
+    if (!adyenTransactionMaybe.isPresent) {
+      logger.info("Handle transaction - Could not find adyen transaction: $adyenTransactionId [adyenNotification: $adyenNotification]")
+      return
+    }
+
+    val adyenTransaction = adyenTransactionMaybe.get()
+    command(adyenTransaction)
   }
 
   private fun createMember(memberId: String) {
