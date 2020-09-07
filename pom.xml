@@ -9,6 +9,10 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+  <properties>
+    <aggregate.report.dir>payment-service/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+  </properties>
+
     <modules>
         <module>payment-service</module>
         <module>trustly-client</module>
