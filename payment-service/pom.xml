@@ -36,6 +36,7 @@
     <java.version>1.8</java.version>
     <kotlin.version>1.3.61</kotlin.version>
     <kotlin.code.style>official</kotlin.code.style>
+    <byte-buddy.version>1.9.10</byte-buddy.version>
   </properties>
 
   <dependencyManagement>
