@@ -11,7 +11,6 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <sonar.coverage.jacoco.xmlReportPaths>${basedir}/../payment-service/target/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
   </properties>
 
   <dependencies>
@@ -51,6 +50,13 @@
                   <goals>
                     <goal>prepare-agent</goal>
                   </goals>
+                </execution>
+                <execution>
+                  <id>report</id>
+                  <goals>
+                    <goal>report</goal>
+                  </goals>
+                  <phase>verify</phase>
                 </execution>
               </executions>
             </plugin>
