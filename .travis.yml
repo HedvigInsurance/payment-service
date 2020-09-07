@@ -16,6 +16,6 @@ addons:
     token:
       secure: "Hy5c+xYoGsKZTwOYzKHfU12SQSMrCBbhfRKwnfi7RNWg/UNhdy5YrsjQmEm6MEN6Lmsdi8q+1YAY38HYYSj+wp4Jq4g6cnAZ6SQ2wtbBKlEfiQsOnxurmazbhkp8VoKpJDkMDkm+a21z9xvxDPwqpya9mcxh1nVX+epP2q3Hrr8U/ybxUfC8kCpWdL3V54UPDjd5cFdy9PNh4J858Vz2VUIRg57aoplfO0b1YwS8i1V0B+I0VNDxXLm7g6k7ko/QwQBgE/478+ONJIzxvXt3PnRI8BVfzwaB+2sJE7ojZV7YmJOPSPsvfZwYphRa3xeDrXPlg7JKNZ+OmOI0/lW44bNehfc2u5k6CLxlfyKxWmcwrbuQQFj7zYtXhc0OYYmxgT5dRyUM6QaL88CHjx2F/SA3OZgKdID6TUW0SyHuSUZa56gqRlgcfsV9kfTJF4P5w1qy14thJuHmKkz6EB4yQ+R+n7WRmbruoiXS52boBgs+vkurAiBBhCe2ONPKOkmttEntiBOXa/4YDWYAuFv+PWo3DY0o+yeAxL13LDRPBrFVKEuC+nTGAwtfjsbzxxeEo5w997bldaNf2ylcnraGcQf4U6wBPoFI+MGyWxKGogzhNjDkCwHpPqW4qGYPSrZbVCVClr+lCJLDAS/pTXbpPVxNJWUHcHtkG52GyGjxyX0="
 script:
-  - ./trustly-client/mvnw test verify sonar:sonar -Pcoverage -B -Dsonar.projectKey=HedvigInsurance_payment-service
+  - ./payment-service/mvnw test verify sonar:sonar -Pcoverage -B -Dsonar.projectKey=HedvigInsurance_payment-service
 git:
   depth: false
