@@ -9,33 +9,29 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class AdyenCheckoutConfig {
+class AdyenCheckoutConfig(
   @Value("\${hedvig.adyen.apiKey}")
-  lateinit var apiKey: String
-
+  val apiKey: String,
   @Value("\${hedvig.adyen.enviroment}")
-  lateinit var environment: Environment
-
+  val environment: Environment,
   @Value("\${hedvig.adyen.urlPrefix}")
-  lateinit var prefix: String
+  val prefix: String
+){
+
+  val client: Client = if (environment == Environment.LIVE) {
+    Client(apiKey, environment, prefix)
+  } else {
+    Client(apiKey, environment)
+  }
 
   @Bean
   fun createAdyenCheckout(): Checkout {
-    val client: Client = if (environment == Environment.LIVE) {
-      Client(apiKey, environment, prefix)
-    } else {
-      Client(apiKey, environment)
-    }
+
     return Checkout(client)
   }
 
   @Bean
   fun createAdyenPayout(): Payout {
-    val client: Client = if (environment == Environment.LIVE) {
-      Client(apiKey, environment, prefix)
-    } else {
-      Client(apiKey, environment)
-    }
     return Payout(client)
   }
 }

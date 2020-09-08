@@ -79,6 +79,6 @@ public class PayoutSaga {
       return;
     }
 
-    throw new RuntimeException("Payout event must have either 'arustlyAccountId' or 'adyenShopperReference' [event: " + e.toString() + "]");
+    throw new RuntimeException("Payout event must have either 'trustlyAccountId' or 'adyenShopperReference' [event: " + e.toString() + "]");
   }
 }
