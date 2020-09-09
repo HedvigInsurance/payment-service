@@ -22,6 +22,11 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import java.util.UUID
 
+/**
+ * This transaction seems to be very similar to the AdyenPayoutTransaction, but at this time we dont know
+ * if on adyen's side these are different kinds of transactions. So we are treating them differently in
+ * order to be able to handle any edge cases in the future.
+ */
 @Aggregate
 class AdyenTransaction() {
   @AggregateIdentifier
