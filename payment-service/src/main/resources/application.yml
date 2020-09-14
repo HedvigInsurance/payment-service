@@ -3,6 +3,8 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
+  mustache:
+    suffix: .html
 
   security:
     user:
