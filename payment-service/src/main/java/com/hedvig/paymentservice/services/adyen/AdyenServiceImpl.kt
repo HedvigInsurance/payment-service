@@ -212,7 +212,7 @@ class AdyenServiceImpl(
 
     val adyenTokenId = uuidGenerator.generateRandom()
 
-    val amount = Amount().value(30).currency("NOK") //TODO: change me by checking the contract
+    val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
 
     val paymentsRequest = PaymentsRequest()
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(request.channel))
