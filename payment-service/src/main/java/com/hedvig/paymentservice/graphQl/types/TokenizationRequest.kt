@@ -5,6 +5,6 @@ import com.adyen.model.checkout.PaymentMethodDetails
 data class TokenizationRequest(
   val paymentMethodDetails: PaymentMethodDetails,
   val channel: TokenizationChannel,
-  val browerInfo: BrowserInfo?,
+  val browserInfo: BrowserInfo?,
   val returnUrl: String
 )
