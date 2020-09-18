@@ -37,7 +37,8 @@ class MemberServiceImplTest {
   fun `get one member with trustly connected when one member with trustly is provided`() {
     whenever(memberRepository.findAll()).thenReturn(listOf(
       buildMemberEntity(
-        trustlyAccountNumber = "123"
+        trustlyAccountNumber = "123",
+        directDebitStatus = DirectDebitStatus.CONNECTED
       )
     ))
 
@@ -50,11 +51,13 @@ class MemberServiceImplTest {
   fun `get two member with trustly connected when two member with trustly is provided`() {
     whenever(memberRepository.findAll()).thenReturn(listOf(
       buildMemberEntity(
-        trustlyAccountNumber = "123"
+        trustlyAccountNumber = "123",
+        directDebitStatus = DirectDebitStatus.CONNECTED
       ),
       buildMemberEntity(
         id = "1234",
-        trustlyAccountNumber = "123"
+        trustlyAccountNumber = "123",
+        directDebitStatus = DirectDebitStatus.CONNECTED
       )
     ))
 
@@ -81,7 +84,8 @@ class MemberServiceImplTest {
   fun `get one member with trustly connected when one member with trustly and one with adyen is provided`() {
     whenever(memberRepository.findAll()).thenReturn(listOf(
       buildMemberEntity(
-        trustlyAccountNumber = "123"
+        trustlyAccountNumber = "123",
+        directDebitStatus = DirectDebitStatus.CONNECTED
       ),
       buildMemberEntity(
         id = "1234",
@@ -98,7 +102,8 @@ class MemberServiceImplTest {
   fun `get one member with adyen connected when one member with trustly and one with adyen is provided`() {
     whenever(memberRepository.findAll()).thenReturn(listOf(
       buildMemberEntity(
-        trustlyAccountNumber = "123"
+        trustlyAccountNumber = "123",
+        directDebitStatus = DirectDebitStatus.CONNECTED
       ),
       buildMemberEntity(
         id = "1234",
@@ -113,13 +118,14 @@ class MemberServiceImplTest {
 
   @Test
   fun `if pay in provider is Trustly only return members who have direct debit connected`() {
-    val member1 = buildMemberEntity()
-    member1.directDebitStatus = DirectDebitStatus.DISCONNECTED
-    member1.trustlyAccountNumber = "321"
-
-    val member2 = buildMemberEntity()
-    member2.directDebitStatus = DirectDebitStatus.CONNECTED
-    member2.trustlyAccountNumber = "123"
+    val member1 = buildMemberEntity(
+      trustlyAccountNumber = "322",
+      directDebitStatus = DirectDebitStatus.DISCONNECTED
+    )
+    val member2 = buildMemberEntity(
+      trustlyAccountNumber = "222",
+      directDebitStatus = DirectDebitStatus.CONNECTED
+    )
 
     whenever(memberRepository.findAll()).thenReturn(listOf(member1, member2))
 
@@ -131,12 +137,14 @@ class MemberServiceImplTest {
   private fun buildMemberEntity(
     id: String = "321",
     trustlyAccountNumber: String? = null,
-    adyenRecurringDetailReference: String? = null
+    adyenRecurringDetailReference: String? = null,
+    directDebitStatus: DirectDebitStatus? = null
   ): Member {
     val member = Member()
     member.id = id
     member.trustlyAccountNumber = trustlyAccountNumber
     member.adyenRecurringDetailReference = adyenRecurringDetailReference
+    member.directDebitStatus = directDebitStatus
 
     return member
   }
