@@ -23,12 +23,12 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedFailedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedFailedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedReservedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
@@ -58,9 +58,10 @@ import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.Optional
-import java.util.UUID
+import java.util.*
 import javax.money.MonetaryAmount
+import kotlin.collections.HashMap
+import kotlin.collections.set
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 @Service
@@ -108,7 +109,8 @@ class AdyenServiceImpl(
       request = req,
       memberId = memberId,
       endUserIp = endUserIp,
-      shopperReference = memberId
+      shopperReference = memberId,
+      isSubscription = true
     )
 
     val response = preformCheckout(paymentsRequest, memberId, req)
@@ -152,7 +154,8 @@ class AdyenServiceImpl(
       request = request,
       memberId = memberId,
       endUserIp = endUserIp,
-      shopperReference = shopperReference
+      shopperReference = shopperReference,
+      isSubscription = false
     )
 
     paymentsRequest.enablePayOut(true)
@@ -203,7 +206,8 @@ class AdyenServiceImpl(
     request: TokenizationRequest,
     memberId: String,
     endUserIp: String?,
-    shopperReference: String
+    shopperReference: String,
+    isSubscription: Boolean
   ): Pair<UUID, PaymentsRequest> {
     val optionalMember = memberService.getMember(memberId)
     require(optionalMember.isPresent) { "Member not found" }
@@ -220,14 +224,18 @@ class AdyenServiceImpl(
       .paymentMethod((request.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
       .amount(amount)
       .merchantAccount(merchantAccount)
-      .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
       .returnUrl(request.returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
       .shopperReference(shopperReference)
       .storePaymentMethod(true)
 
-    val browserInfo = if (request.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browerInfo) else AdyenBrowserInfo()
+    if (isSubscription) {
+      paymentsRequest.recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
+    }
+
+    val browserInfo =
+      if (request.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browerInfo) else AdyenBrowserInfo()
 
     paymentsRequest.browserInfo(browserInfo)
 
@@ -450,7 +458,12 @@ class AdyenServiceImpl(
     )
   }
 
-  override fun startPayoutTransaction(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String): PayoutResponse {
+  override fun startPayoutTransaction(
+    payoutReference: String,
+    amount: MonetaryAmount,
+    shopperReference: String,
+    shopperEmail: String
+  ): PayoutResponse {
     val payoutRequest = PayoutRequest()
       .amount(
         Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
@@ -534,7 +547,10 @@ class AdyenServiceImpl(
       )
     }
 
-  private fun getPayoutTransactionAndApplyComand(adyenNotification: NotificationRequestItem, command: (AdyenPayoutTransaction) -> Unit) {
+  private fun getPayoutTransactionAndApplyComand(
+    adyenNotification: NotificationRequestItem,
+    command: (AdyenPayoutTransaction) -> Unit
+  ) {
     val adyenTransactionId = UUID.fromString(adyenNotification.originalReference)
 
     val adyenTransactionMaybe = adyenPayoutTransactionRepository.findById(adyenTransactionId)
