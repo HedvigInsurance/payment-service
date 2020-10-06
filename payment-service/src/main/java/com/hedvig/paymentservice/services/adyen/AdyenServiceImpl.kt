@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.Optional
 import java.util.UUID
+import kotlin.collections.set
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 
@@ -59,8 +60,6 @@ class AdyenServiceImpl(
   val adyenTransactionRepository: AdyenTransactionRepository,
   @param:Value("\${hedvig.adyen.merchantAccount}")
   val merchantAccount: String,
-  @param:Value("\${hedvig.adyen.returnUrl}")
-  val returnUrl: String,
   @param:Value("\${hedvig.adyen.allow3DS2}")
   val allow3DS2: Boolean,
   @param:Value("\${hedvig.adyen.public.key}")
@@ -107,7 +106,8 @@ class AdyenServiceImpl(
       .shopperReference(memberId)
       .storePaymentMethod(true)
 
-    val browserInfo = if (req.browserInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browserInfo) else AdyenBrowserInfo()
+    val browserInfo =
+      if (req.browserInfo != null) BrowserInfo.toAdyenBrowserInfo(req.browserInfo) else AdyenBrowserInfo()
 
     paymentsRequest.browserInfo(browserInfo)
 
