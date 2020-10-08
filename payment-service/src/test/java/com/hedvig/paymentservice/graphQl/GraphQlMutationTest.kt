@@ -46,7 +46,7 @@ class GraphQlMutationTest {
 
   @Test
   fun tokenizePaymentMethods() {
-    Mockito.`when`(memberService.getMember(Mockito.any())).thenReturn(Optional.of(makeMember()))
+    Mockito.`when`(memberService.getMember(Mockito.anyString())).thenReturn(Optional.of(makeMember()))
 
     Mockito.`when`(adyenService.tokenizePaymentDetails(anyObject(), Mockito.anyString(), Mockito.eq("1.1.1.2")))
       .thenAnswer { AdyenPaymentsResponse(PaymentsResponse().resultCode(PaymentsResponse.ResultCodeEnum.AUTHORISED)) }
