@@ -38,6 +38,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenReques
 import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
+import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.slf4j.LoggerFactory
@@ -58,17 +59,18 @@ class AdyenServiceImpl(
   val commandGateway: CommandGateway,
   val adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository,
   val adyenTransactionRepository: AdyenTransactionRepository,
-  @param:Value("\${hedvig.adyen.merchantAccount}")
-  val merchantAccount: String,
+  val adyenMerchantPicker: AdyenMerchantPicker,
   @param:Value("\${hedvig.adyen.allow3DS2}")
   val allow3DS2: Boolean,
   @param:Value("\${hedvig.adyen.public.key}")
   val adyenPublicKey: String
 ) : AdyenService {
-  override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
+  override fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val paymentMethodsRequest = PaymentMethodsRequest()
-      .merchantAccount(merchantAccount)
-      .countryCode("NO") //TODO: Change me by checking the contract
+      .merchantAccount(adyenMerchantInfo.account)
+      .countryCode(adyenMerchantInfo.currency) //TODO: Change me by checking the contract
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
 
     val response: PaymentMethodsResponse
@@ -90,7 +92,7 @@ class AdyenServiceImpl(
     require(optionalMember.isPresent) { "Member not found" }
 
     createMember(memberId)
-
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
     val adyenTokenId = uuidGenerator.generateRandom()
 
     val paymentsRequest = PaymentsRequest()
@@ -98,7 +100,7 @@ class AdyenServiceImpl(
       .shopperIP(endUserIp ?: "1.1.1.1")
       .paymentMethod((req.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
       .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
-      .merchantAccount(merchantAccount)
+      .merchantAccount(adyenMerchantInfo.account)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
       .returnUrl(req.returnUrl)
@@ -284,13 +286,15 @@ class AdyenServiceImpl(
         "[RequestRecurringDetailReference: ${req.recurringDetailReference}] ] "
     }
 
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(req.memberId)
+
     val paymentsRequest = PaymentsRequest()
       .amount(
         Amount()
           .value(req.amount.number.longValueExact() * 100)
           .currency(req.amount.currency.currencyCode)
       )
-      .merchantAccount(merchantAccount)
+      .merchantAccount(adyenMerchantInfo.account)
       .paymentMethod(
         DefaultPaymentMethodDetails()
           .type(ApiConstants.PaymentMethodType.TYPE_SCHEME)
@@ -314,8 +318,10 @@ class AdyenServiceImpl(
   }
 
   override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val paymentMethodsRequest = PaymentMethodsRequest()
-      .merchantAccount(merchantAccount)
+      .merchantAccount(adyenMerchantInfo.account)
       .shopperReference(memberId)
 
     val adyenResponse: PaymentMethodsResponse

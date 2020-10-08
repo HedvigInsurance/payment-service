@@ -13,7 +13,7 @@ import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import java.util.UUID
 
 interface AdyenService {
-  fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
+  fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse
   fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
   fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
   fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
