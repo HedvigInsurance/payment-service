@@ -70,7 +70,7 @@ class AdyenServiceImpl(
 
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(adyenMerchantInfo.account)
-      .countryCode(adyenMerchantInfo.currency) //TODO: Change me by checking the contract
+      .countryCode(adyenMerchantInfo.countryCode.alpha2)
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
 
     val response: PaymentMethodsResponse
@@ -99,7 +99,7 @@ class AdyenServiceImpl(
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(req.channel))
       .shopperIP(endUserIp ?: "1.1.1.1")
       .paymentMethod((req.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
-      .amount(Amount().value(0L).currency("NOK")) //TODO: change me by checking the contract
+      .amount(Amount().value(0L).currency(adyenMerchantInfo.currencyCode.name))
       .merchantAccount(adyenMerchantInfo.account)
       .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
@@ -131,6 +131,7 @@ class AdyenServiceImpl(
           CreateAuthorisedAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
+            adyenMerchantInfo = adyenMerchantInfo,
             adyenPaymentsResponse = response
           )
         )
@@ -140,6 +141,7 @@ class AdyenServiceImpl(
           CreatePendingAdyenTokenRegistrationCommand(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
+            adyenMerchantInfo = adyenMerchantInfo,
             adyenPaymentsResponse = response,
             paymentDataFromAction = response.paymentsResponse.action.paymentData
           )

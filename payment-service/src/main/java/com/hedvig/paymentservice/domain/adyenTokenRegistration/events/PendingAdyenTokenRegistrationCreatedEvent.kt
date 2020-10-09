@@ -7,5 +7,6 @@ class PendingAdyenTokenRegistrationCreatedEvent(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenPaymentsResponse: AdyenPaymentsResponse,
-  val paymentDataFromAction: String
+  val paymentDataFromAction: String,
+  val adyenMerchantAccount: String
 )

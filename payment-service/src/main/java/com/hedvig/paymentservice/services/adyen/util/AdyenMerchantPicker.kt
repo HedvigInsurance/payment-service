@@ -26,7 +26,8 @@ class AdyenMerchantPicker(
 
     return AdyenMerchantInfo(
       account = merchantAccounts.merchantAccounts!![marketInfo.name] ?: error("Cannot fetch merchant account"),
-      currency = marketInfo.currencyCode.toString()
+      countryCode = marketInfo.countryCode,
+      currencyCode = marketInfo.currencyCode
     )
   }
 
