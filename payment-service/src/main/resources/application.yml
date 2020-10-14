@@ -2,7 +2,8 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
-
+  mustache:
+    suffix: .html
 
   security:
     user:
@@ -25,8 +26,6 @@ graphiql:
     graphql: /graphql
   enabled: true
   pageTitle: Payment-service GraphiQL
-
-
 
 
 hedvig:

@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.services.adyen.util
 
 import com.hedvig.paymentservice.configuration.MerchantAccounts
+import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.serviceIntergration.underwriterClient.UnderwriterService
@@ -16,10 +17,12 @@ class AdyenMerchantPicker(
   val memberService: MemberService,
   val underwriterService: UnderwriterService,
   val productPricingService: ProductPricingService,
+  val memberRepository: MemberRepository,
   val merchantAccounts: MerchantAccounts
 ) {
   fun getAdyenMerchantInfo(memberId: String): AdyenMerchantInfo {
-    val marketInfo = getMarketFromContract(memberId)
+    val marketInfo = getMerchantFromMember(memberId)
+      ?: getMarketFromContract(memberId)
       ?: getMarketFromQuote(memberId)
       ?: getMarketFromPickedLocale(memberId)
       ?: throw NullPointerException("Could not determine market for member: $memberId")
@@ -28,6 +31,21 @@ class AdyenMerchantPicker(
       account = merchantAccounts.merchantAccounts!![marketInfo.name] ?: error("Cannot fetch merchant account"),
       countryCode = marketInfo.countryCode,
       currencyCode = marketInfo.currencyCode
+    )
+  }
+
+  private fun getMerchantFromMember(memberId: String): Market? {
+    val memberMaybe = memberRepository.findById(memberId)
+
+    if (!memberMaybe.isPresent) return null
+
+    val member = memberMaybe.get()
+
+    val adyenMerchantAccount: String = member.adyenMerchantAccount ?: return null
+
+    return Market.valueOf(
+      merchantAccounts.merchantAccounts!!
+        .filterValues { it == adyenMerchantAccount }.keys.first()
     )
   }
 
