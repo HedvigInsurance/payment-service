@@ -46,7 +46,6 @@
           locale: "en-US",
           environment: "test",
           onSubmit: (state, dropin) => {
-            console.log("MPIKE")
             // Your function calling your server to make the `/payments` request
             localStorage.removeItem("paymentData")
 
@@ -71,7 +70,7 @@
                   throw Error(error);
                 });
             } else {
-              tokenizePayInDetails()
+              tokenizePayInDetails(state)
                 .then(response => {
                   if (response.action) {
                     // Drop-in handles the action object from the /payments response
@@ -126,7 +125,9 @@
   }
 
   function tokenizePayInDetails(state) {
-    let paymentMethod = JSON.stringify(state.data.paymentMethod)
+    let paymentMethodS = JSON.stringify(state.data.paymentMethod)
+
+    let paymentMethod = paymentMethodS.replaceAll('"', '\\"')
 
     return fetch("/graphql", {
       method: "POST",
@@ -137,21 +138,20 @@
       },
       body: JSON.stringify({
         query: `
-        mutation mutation{
+        mutation TokenizePayInDetails{
           tokenizePaymentDetails(req: {
             channel: IOS
             returnUrl: "http://127.0.0.1:8081/debug/adyen"
-            paymentMethodDetails: ${paymentMethod}
+            paymentMethodDetails: "${paymentMethod}"
           }){
-            ... on TokenizationResponseFinished {resultCode}
+            ... on TokenizationResponseFinished { resultCode }
             ... on TokenizationResponseAction { action }
           }
         }
         `
       })
     }).then(res => res.json())
-      .then(res =>
-        res.data.tokenizePayoutDetails
+      .then(res => res.data.tokenizePaymentDetails
       )
   }
 
