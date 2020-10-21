@@ -75,10 +75,9 @@ class AdyenMerchantPicker(
 
   private fun getMarketFromPickedLocale(receiverMemberId: String): Market? {
     return when (memberService.getPickedLocale(receiverMemberId)) {
-      "sv_SE" -> Market.SWEDEN
-      "en_SE" -> Market.SWEDEN
-      "nb_NO" -> Market.NORWAY
-      "en_NO" -> Market.NORWAY
+      "sv_SE", "en_SE" -> Market.SWEDEN
+      "nb_NO", "en_NO" -> Market.NORWAY
+      "da_DK", "en_DK" -> Market.DENMARK
       else -> null
     }
   }

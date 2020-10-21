@@ -30,16 +30,13 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
 
     adyenAdyenTokenRepository.save(tokenRegistration)
-  }
 
-  @EventHandler
-  fun onMember(e: AdyenTokenRegistrationAuthorisedEvent) {
-    val member = memberRepository.findById(e.memberId)
+    val memberMaybe = memberRepository.findById(e.memberId)
 
-    if (member.isPresent) {
-      val test = member.get()
-      test.adyenMerchantAccount = e.adyenMerchantAccount
-      memberRepository.save(test)
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
     }
   }
 
@@ -54,16 +51,13 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.paymentDataFromAction = e.paymentDataFromAction
 
     adyenAdyenTokenRepository.save(tokenRegistration)
-  }
 
-  @EventHandler
-  fun onMember(e: PendingAdyenTokenRegistrationCreatedEvent) {
-    val member = memberRepository.findById(e.memberId)
+    val memberMaybe = memberRepository.findById(e.memberId)
 
-    if (member.isPresent) {
-      val test = member.get()
-      test.adyenMerchantAccount = e.adyenMerchantAccount
-      memberRepository.save(test)
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
     }
   }
 
