@@ -41,12 +41,12 @@ class AdyenMerchantPicker(
 
     val member = memberMaybe.get()
 
-    val adyenMerchantAccount: String = member.adyenMerchantAccount ?: return null
-
-    return Market.valueOf(
-      merchantAccounts.merchantAccounts!!
-        .filterValues { it == adyenMerchantAccount }.keys.first()
-    )
+    return member.adyenMerchantAccount?.let { adyenMerchantAccount ->
+      Market.valueOf(
+        merchantAccounts.merchantAccounts!!
+          .filterValues { it == adyenMerchantAccount }.keys.first()
+      )
+    }
   }
 
   private fun getMarketFromContract(memberId: String): Market? {
