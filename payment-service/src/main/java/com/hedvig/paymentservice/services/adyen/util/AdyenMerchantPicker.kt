@@ -66,7 +66,12 @@ class AdyenMerchantPicker(
   private fun getMarketFromQuote(memberId: String): Market? {
     return try {
       val quoteMarketInfo = underwriterService.getMarketFromQuote(memberId)
-      Market.valueOf(quoteMarketInfo.market)
+      when (quoteMarketInfo.market) {
+        "SWEDEN" -> Market.SWEDEN
+        "NORWAY" -> Market.NORWAY
+        "DENMARK" -> Market.DENMARK
+        else -> null
+      }
     } catch (exception: Exception) {
       logger.error("Cannot find market from quotes for member $memberId")
       null
