@@ -9,8 +9,6 @@ import java.util.Optional
 import java.util.UUID
 
 interface ProductPricingService {
-  fun getInsuranceStatus(memberId: String?): Optional<InsuranceStatus>
-
   fun guessPolicyTypes(
     transactions: Collection<Transaction>,
     period: YearMonth
