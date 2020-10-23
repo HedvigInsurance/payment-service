@@ -10,10 +10,7 @@ class PendingAdyenTokenRegistrationCreatedEventUpcaster(
 ) : SingleEventUpcaster() {
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
     val initialEvent = SimpleSerializedType(PendingAdyenTokenRegistrationCreatedEvent::class.java.typeName, null)
-    val firstRevision = SimpleSerializedType(PendingAdyenTokenRegistrationCreatedEvent::class.java.typeName, "1.0")
-
-    return (intermediateRepresentation.type == initialEvent && intermediateRepresentation.type.revision == null) ||
-      (intermediateRepresentation.type == firstRevision && intermediateRepresentation.type.revision == firstRevision.revision)
+    return (intermediateRepresentation.type == initialEvent)
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation {
