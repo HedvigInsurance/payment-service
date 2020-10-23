@@ -47,10 +47,11 @@ class AdyenPayoutTransaction() {
     )
 
     val response = adyenService.startPayoutTransaction(
-      cmd.transactionId.toString(),
-      cmd.amount,
-      cmd.shopperReference,
-      cmd.email
+      memberId = cmd.memberId,
+      payoutReference = cmd.transactionId.toString(),
+      amount = cmd.amount,
+      shopperReference = cmd.shopperReference,
+      shopperEmail = cmd.email
     )
 
     when (response.resultCode) {
@@ -65,7 +66,10 @@ class AdyenPayoutTransaction() {
           )
         )
 
-        val confirmationResponse = adyenService.confirmPayout(response.pspReference)
+        val confirmationResponse = adyenService.confirmPayout(
+          payoutReference = response.pspReference,
+          memberId = cmd.memberId
+        )
 
         apply(
           AdyenPayoutTransactionConfirmedEvent(

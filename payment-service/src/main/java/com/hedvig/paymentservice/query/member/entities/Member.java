@@ -29,6 +29,8 @@ public class Member {
 
   String adyenRecurringDetailReference;
 
+  String adyenMerchantAccount;
+
   @Enumerated(EnumType.STRING)
   DirectDebitStatus directDebitStatus;
 
@@ -120,23 +122,32 @@ public class Member {
     this.descriptor = descriptor;
   }
 
+  public String getAdyenMerchantAccount() {
+    return adyenMerchantAccount;
+  }
+
+  public void setAdyenMerchantAccount(String adyenMerchantAccount) {
+    this.adyenMerchantAccount = adyenMerchantAccount;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (!(o instanceof Member)) return false;
     Member member = (Member) o;
-    return Objects.equals(id, member.id) &&
-      Objects.equals(transactions, member.transactions) &&
-      Objects.equals(trustlyAccountNumber, member.trustlyAccountNumber) &&
-      Objects.equals(adyenRecurringDetailReference, member.adyenRecurringDetailReference) &&
-      directDebitStatus == member.directDebitStatus &&
-      payinMethodStatus == member.payinMethodStatus &&
-      Objects.equals(bank, member.bank) &&
-      Objects.equals(descriptor, member.descriptor);
+    return Objects.equals(getId(), member.getId()) &&
+      Objects.equals(getTransactions(), member.getTransactions()) &&
+      Objects.equals(getTrustlyAccountNumber(), member.getTrustlyAccountNumber()) &&
+      Objects.equals(getAdyenRecurringDetailReference(), member.getAdyenRecurringDetailReference()) &&
+      Objects.equals(getAdyenMerchantAccount(), member.getAdyenMerchantAccount()) &&
+      getDirectDebitStatus() == member.getDirectDebitStatus() &&
+      getPayinMethodStatus() == member.getPayinMethodStatus() &&
+      Objects.equals(getBank(), member.getBank()) &&
+      Objects.equals(getDescriptor(), member.getDescriptor());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, transactions, trustlyAccountNumber, adyenRecurringDetailReference, directDebitStatus, payinMethodStatus, bank, descriptor);
+    return Objects.hash(getId(), getTransactions(), getTrustlyAccountNumber(), getAdyenRecurringDetailReference(), getAdyenMerchantAccount(), getDirectDebitStatus(), getPayinMethodStatus(), getBank(), getDescriptor());
   }
 }

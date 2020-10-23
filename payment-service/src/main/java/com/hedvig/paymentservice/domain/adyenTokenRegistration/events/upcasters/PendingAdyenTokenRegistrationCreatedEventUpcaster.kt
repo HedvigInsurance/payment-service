@@ -6,27 +6,23 @@ import org.axonframework.serialization.upcasting.event.IntermediateEventRepresen
 import org.axonframework.serialization.upcasting.event.SingleEventUpcaster
 import org.dom4j.Document
 
-class PendingAdyenTokenRegistrationCreatedEventUpcaster : SingleEventUpcaster() {
-  private val targetType = SimpleSerializedType(PendingAdyenTokenRegistrationCreatedEvent::class.java.typeName, null)
-
+class PendingAdyenTokenRegistrationCreatedEventUpcaster(
+) : SingleEventUpcaster() {
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
-    return intermediateRepresentation.type == targetType
+    val initialEvent = SimpleSerializedType(PendingAdyenTokenRegistrationCreatedEvent::class.java.typeName, null)
+    return (intermediateRepresentation.type == initialEvent)
   }
 
-  override fun doUpcast(
-    intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation? {
-
-    val memberId = intermediateRepresentation.getData(org.dom4j.Document::class.java)
-      .data.rootElement.element("memberId")
-
+  override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): IntermediateEventRepresentation {
     return intermediateRepresentation.upcastPayload(
-        SimpleSerializedType(targetType.name, "2.0"),
+      SimpleSerializedType(
+        PendingAdyenTokenRegistrationCreatedEvent::class.java.typeName,
+        "1.0"
+      ),
       Document::class.java
     ) { document: Document ->
-      document.rootElement
-        .addElement("isPayoutSetup").text = "false"
-      document.rootElement
-        .addElement("shopperReference").text = memberId.text
+      val root = document.rootElement
+      root.addElement("adyenMerchantAccount").text = "HedvigABCOM"
       document
     }
   }

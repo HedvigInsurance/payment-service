@@ -13,7 +13,6 @@ spring:
 spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
 
-
 graphql:
   servlet:
     mapping: /graphql
@@ -27,9 +26,6 @@ graphiql:
     graphql: /graphql
   enabled: true
   pageTitle: Payment-service GraphiQL
-
-
-
 
 hedvig:
   adyen:

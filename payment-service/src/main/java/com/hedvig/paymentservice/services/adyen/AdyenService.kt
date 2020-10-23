@@ -16,7 +16,7 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 interface AdyenService {
-  fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse
+  fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse
   fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
   fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
   fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
@@ -28,13 +28,14 @@ interface AdyenService {
   fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
   fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
   fun startPayoutTransaction(
+    memberId: String,
     payoutReference: String,
     amount: MonetaryAmount,
     shopperReference: String,
     shopperEmail: String
   ): SubmitResponse
 
-  fun confirmPayout(payoutReference: String): ConfirmThirdPartyResponse
+  fun confirmPayout(payoutReference: String, memberId: String): ConfirmThirdPartyResponse
   fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem)
   fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem)
   fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem)

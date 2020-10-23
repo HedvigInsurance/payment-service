@@ -14,12 +14,145 @@
       crossorigin="anonymous">
 
 <script>
-
-  const paymentMethodsResponse = JSON.parse("{\"paymentMethods\":[{\"brands\":[\"visa\",\"mc\",\"amex\",\"amex_applepay\",\"diners\",\"discover\",\"maestro\",\"mc_applepay\",\"visa_applepay\"],\"details\":[{\"key\":\"encryptedCardNumber\",\"type\":\"cardToken\"},{\"key\":\"encryptedSecurityCode\",\"type\":\"cardToken\"},{\"key\":\"encryptedExpiryMonth\",\"type\":\"cardToken\"},{\"key\":\"encryptedExpiryYear\",\"type\":\"cardToken\"},{\"key\":\"holderName\",\"optional\":true,\"type\":\"text\"}],\"name\":\"Credit Card\",\"type\":\"scheme\"},{\"details\":[{\"key\":\"applepay.token\",\"type\":\"applePayToken\"}],\"name\":\"Apple Pay\",\"supportsRecurring\":true,\"type\":\"applepay\"},{\"details\":[{\"key\":\"paywithgoogle.token\",\"type\":\"payWithGoogleToken\"}],\"name\":\"Google Pay\",\"supportsRecurring\":true,\"type\":\"paywithgoogle\"},{\"name\":\"Trustly\",\"supportsRecurring\":true,\"type\":\"trustly\"},{\"details\":[{\"key\":\"telephoneNumber\",\"optional\":true,\"type\":\"tel\"}],\"name\":\"Vipps\",\"supportsRecurring\":true,\"type\":\"vipps\"}],\"groups\":[{\"name\":\"Credit Card\",\"types\":[\"visa\",\"mc\",\"amex\",\"amex_applepay\",\"diners\",\"discover\",\"maestro\",\"mc_applepay\",\"visa_applepay\"]}]}")
-
   function showFinalResult(data) {
     console.log(data)
     alert(JSON.stringify(data, null, 2))
+  }
+
+  function geAvailalblePaymentMethods() {
+    return fetch("/graphql", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Hedvig.token': '{{memberId}}'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify({
+        query: `
+        query query{
+            availablePaymentMethods{
+                paymentMethodsResponse
+                    }
+                }
+                `
+      })
+    }).then(res => res.json())
+      .then(res => {
+        const configuration = {
+          environment: "test",
+          paymentMethodsResponse: JSON.parse(res.data.availablePaymentMethods.paymentMethodsResponse), // The `/paymentMethods` response from the server.
+          //clientKey: "{{clientKey}}",
+          originKey: "pub.v2.8015543668731488.aHR0cDovL2xvY2FsaG9zdDo4MDgx.NQWE2VFKFlPpbS95G59yTyO3ISMG7Gqwp591MkhFokM",
+          locale: "en-US",
+          environment: "test",
+          onSubmit: (state, dropin) => {
+            // Your function calling your server to make the `/payments` request
+            localStorage.removeItem("paymentData")
+
+            const paymentDirection = '{{paymentDirection}}'
+
+            if (paymentDirection === 'payout') {
+              tokenizePayoutDetails()
+                .then(response => {
+                  if (response.action) {
+                    // Drop-in handles the action object from the /payments response
+                    const action = JSON.parse(response.action)
+
+                    localStorage.setItem("paymentData", action.paymentData)
+
+                    dropin.handleAction(action);
+                  } else {
+                    // Your function to show the final result to the shopper
+                    showFinalResult(response);
+                  }
+                })
+                .catch(error => {
+                  throw Error(error);
+                });
+            } else {
+              tokenizePayInDetails(state)
+                .then(response => {
+                  if (response.action) {
+                    // Drop-in handles the action object from the /payments response
+                    const action = JSON.parse(response.action)
+
+                    localStorage.setItem("paymentData", action.paymentData)
+
+                    dropin.handleAction(action);
+                  } else {
+                    // Your function to show the final result to the shopper
+                    showFinalResult(response);
+                  }
+                })
+                .catch(error => {
+                  throw Error(error);
+                });
+            }
+          },
+          onAdditionalDetails: (state, dropin) => {
+            // Your function calling your server to make a `/payments/details` request
+            // TODO: check if `state.data` matches our expected format
+            console.log("RUNNING")
+            makeDetailsCall(state.data)
+              .then(response => {
+                if (response.action) {
+                  // Drop-in handles the action object from the /payments response
+                  dropin.handleAction(response.action);
+                } else {
+                  // Your function to show the final result to the shopper
+                  showFinalResult(response);
+                }
+              })
+              .catch(error => {
+                throw Error(error);
+              });
+          },
+          paymentMethodsConfiguration: {
+            card: { // Example optional configuration for Cards
+              hasHolderName: true,
+              holderNameRequired: true,
+              enableStoreDetails: true,
+              hideCVC: false, // Change this to true to hide the CVC field for stored cards
+              name: 'Credit or debit card'
+            }
+          }
+        };
+
+        const checkout = new AdyenCheckout(configuration);
+
+        const dropin = checkout.create('dropin').mount('#dropin-container');
+      })
+  }
+
+  function tokenizePayInDetails(state) {
+    let paymentMethodS = JSON.stringify(state.data.paymentMethod)
+
+    let paymentMethod = paymentMethodS.replaceAll('"', '\\"')
+
+    return fetch("/graphql", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Hedvig.token': '{{memberId}}'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify({
+        query: `
+        mutation TokenizePayInDetails{
+          tokenizePaymentDetails(req: {
+            channel: IOS
+            returnUrl: "http://127.0.0.1:8081/debug/adyen"
+            paymentMethodDetails: "${paymentMethod}"
+          }){
+            ... on TokenizationResponseFinished { resultCode }
+            ... on TokenizationResponseAction { action }
+          }
+        }
+        `
+      })
+    }).then(res => res.json())
+      .then(res => res.data.tokenizePaymentDetails
+      )
   }
 
   function tokenizePayoutDetails() {
@@ -27,7 +160,7 @@
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Hedvig.token': "{{memberId}}"
+        'Hedvig.token': '{{memberId}}'
         // 'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: JSON.stringify({
@@ -54,7 +187,7 @@
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Hedvig.token': "{{memberId}}"
+        'Hedvig.token': '{{memberId}}'
         // 'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: JSON.stringify({
@@ -79,65 +212,6 @@
     }).then(res => res.json())
       .then(res => res.data)
   }
-
-  const configuration = {
-    paymentMethodsResponse: paymentMethodsResponse, // The `/paymentMethods` response from the server.
-    clientKey: "{{clientKey}}",
-    locale: "en-US",
-    environment: "test",
-    onSubmit: (state, dropin) => {
-      // Your function calling your server to make the `/payments` request
-      localStorage.removeItem("paymentData")
-
-      tokenizePayoutDetails()
-        .then(response => {
-          if (response.action) {
-            // Drop-in handles the action object from the /payments response
-            const action = JSON.parse(response.action)
-
-            localStorage.setItem("paymentData", action.paymentData)
-
-            dropin.handleAction(action);
-          } else {
-            // Your function to show the final result to the shopper
-            showFinalResult(response);
-          }
-        })
-        .catch(error => {
-          throw Error(error);
-        });
-    },
-    onAdditionalDetails: (state, dropin) => {
-      // Your function calling your server to make a `/payments/details` request
-      // TODO: check if `state.data` matches our expected format
-      makeDetailsCall(state.data)
-        .then(response => {
-          if (response.action) {
-            // Drop-in handles the action object from the /payments response
-            dropin.handleAction(response.action);
-          } else {
-            // Your function to show the final result to the shopper
-            showFinalResult(response);
-          }
-        })
-        .catch(error => {
-          throw Error(error);
-        });
-    },
-    paymentMethodsConfiguration: {
-      card: { // Example optional configuration for Cards
-        hasHolderName: true,
-        holderNameRequired: true,
-        enableStoreDetails: true,
-        hideCVC: false, // Change this to true to hide the CVC field for stored cards
-        name: 'Credit or debit card'
-      }
-    }
-  };
-
-  const checkout = new AdyenCheckout(configuration);
-
-  const dropin = checkout.create('dropin').mount('#dropin-container');
 
   const payload = (new URL(document.location)).searchParams.get("payload")
   const paymentData = localStorage.getItem("paymentData")

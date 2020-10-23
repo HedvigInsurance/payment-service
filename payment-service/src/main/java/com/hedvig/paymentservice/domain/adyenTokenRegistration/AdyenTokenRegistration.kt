@@ -26,6 +26,7 @@ class AdyenTokenRegistration() {
   lateinit var adyenTokenRegistrationId: UUID
   lateinit var memberId: String
   lateinit var adyenTokenRegistrationStatus: AdyenTokenRegistrationStatus
+  lateinit var adyenMerchantAccount: String
   var recurringDetailReference: String? = null
   var paymentDataFromAction: String? = null
   var isForPayout: Boolean = false
@@ -35,11 +36,12 @@ class AdyenTokenRegistration() {
   constructor(cmd: CreateAuthorisedAdyenTokenRegistrationCommand) : this() {
     apply(
       AdyenTokenRegistrationAuthorisedEvent(
-        cmd.adyenTokenRegistrationId,
-        cmd.memberId,
-        cmd.adyenPaymentsResponse,
-        cmd.isPayoutSetup,
-        cmd.shopperReference
+        adyenTokenRegistrationId = cmd.adyenTokenRegistrationId,
+        memberId = cmd.memberId,
+        adyenPaymentsResponse = cmd.adyenPaymentsResponse,
+        adyenMerchantAccount = cmd.adyenMerchantInfo.account,
+        isPayoutSetup = cmd.isPayoutSetup,
+        shopperReference = cmd.shopperReference
       )
     )
   }
@@ -52,6 +54,7 @@ class AdyenTokenRegistration() {
         cmd.memberId,
         cmd.adyenPaymentsResponse,
         cmd.paymentDataFromAction,
+        cmd.adyenMerchantInfo.account,
         cmd.isPayoutSetup,
         cmd.shopperReference
       )
@@ -65,6 +68,7 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
+        adyenMerchantAccount,
         false,
         cmd.shopperReference
       )
@@ -111,6 +115,7 @@ class AdyenTokenRegistration() {
     this.memberId = e.memberId
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
+    this.adyenMerchantAccount = e.adyenMerchantAccount
     this.isForPayout = e.isPayoutSetup
     this.shopperReference = e.shopperReference
   }
@@ -130,6 +135,7 @@ class AdyenTokenRegistration() {
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
     this.paymentDataFromAction = e.paymentDataFromAction
+    this.adyenMerchantAccount = e.adyenMerchantAccount
     this.isForPayout = e.isPayoutSetup
     this.shopperReference = e.shopperReference
   }

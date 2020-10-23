@@ -52,6 +52,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenReques
 import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
+import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.javamoney.moneta.Money
@@ -64,6 +65,7 @@ import javax.money.MonetaryAmount
 import kotlin.collections.set
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
+
 @Service
 class AdyenServiceImpl(
   val adyenCheckout: Checkout,
@@ -75,19 +77,20 @@ class AdyenServiceImpl(
   val adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository,
   val adyenTransactionRepository: AdyenTransactionRepository,
   val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
-  @param:Value("\${hedvig.adyen.merchantAccount}")
-  val merchantAccount: String,
   @param:Value("\${hedvig.adyen.returnUrl}")
   val returnUrl: String,
+  val adyenMerchantPicker: AdyenMerchantPicker,
   @param:Value("\${hedvig.adyen.allow3DS2}")
   val allow3DS2: Boolean,
   @param:Value("\${hedvig.adyen.public.key}")
   val adyenPublicKey: String
 ) : AdyenService {
-  override fun getAvailablePaymentMethods(): AvailablePaymentMethodsResponse {
+  override fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val paymentMethodsRequest = PaymentMethodsRequest()
-      .merchantAccount(merchantAccount)
-      .countryCode("NO") //TODO: Change me by checking the contract
+      .merchantAccount(adyenMerchantInfo.account)
+      .countryCode(adyenMerchantInfo.countryCode.alpha2)
       .channel(PaymentMethodsRequest.ChannelEnum.WEB)
 
     val response: PaymentMethodsResponse
@@ -105,6 +108,7 @@ class AdyenServiceImpl(
     memberId: String,
     endUserIp: String?
   ): AdyenPaymentsResponse {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
       request = req,
       memberId = memberId,
@@ -113,7 +117,7 @@ class AdyenServiceImpl(
       isSubscription = true
     )
 
-    val response = preformCheckout(paymentsRequest, memberId, req)
+    val response = performCheckout(paymentsRequest, memberId, req)
 
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
@@ -122,6 +126,7 @@ class AdyenServiceImpl(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
+            adyenMerchantInfo = adyenMerchantInfo,
             shopperReference = memberId
           )
         )
@@ -132,6 +137,7 @@ class AdyenServiceImpl(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
+            adyenMerchantInfo = adyenMerchantInfo,
             paymentDataFromAction = response.paymentsResponse.action.paymentData,
             shopperReference = memberId
           )
@@ -150,6 +156,8 @@ class AdyenServiceImpl(
     endUserIp: String?
   ): AdyenPaymentsResponse {
     val shopperReference = "payout_${memberId}_${UUID.randomUUID()}"
+
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
     val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
       request = request,
       memberId = memberId,
@@ -160,7 +168,7 @@ class AdyenServiceImpl(
 
     paymentsRequest.enablePayOut(true)
 
-    val response = preformCheckout(paymentsRequest, memberId, request)
+    val response = performCheckout(paymentsRequest, memberId, request)
 
     when (response.getResultCode()) {
       PaymentResponseResultCode.AUTHORISED -> {
@@ -169,6 +177,7 @@ class AdyenServiceImpl(
             memberId = memberId,
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
+            adyenMerchantInfo = adyenMerchantInfo,
             isPayoutSetup = true,
             shopperReference = shopperReference
           )
@@ -181,6 +190,7 @@ class AdyenServiceImpl(
             adyenTokenRegistrationId = adyenTokenId,
             adyenPaymentsResponse = response,
             paymentDataFromAction = response.paymentsResponse.action.paymentData,
+            adyenMerchantInfo = adyenMerchantInfo,
             isPayoutSetup = true,
             shopperReference = shopperReference
           )
@@ -194,7 +204,7 @@ class AdyenServiceImpl(
     return response
   }
 
-  private fun preformCheckout(paymentsRequest: PaymentsRequest, memberId: String, req: TokenizationRequest) = try {
+  private fun performCheckout(paymentsRequest: PaymentsRequest, memberId: String, req: TokenizationRequest) = try {
     val res = adyenCheckout.payments(paymentsRequest)
     AdyenPaymentsResponse(paymentsResponse = res)
   } catch (ex: Exception) {
@@ -213,31 +223,30 @@ class AdyenServiceImpl(
     require(optionalMember.isPresent) { "Member not found" }
 
     createMember(memberId)
-
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
     val adyenTokenId = uuidGenerator.generateRandom()
-
-    val amount = Amount().value(0).currency("NOK") //TODO: change me by checking the contract
 
     val paymentsRequest = PaymentsRequest()
       .channel(TokenizationChannel.toPaymentsRequestChannelEnum(request.channel))
       .shopperIP(endUserIp ?: "1.1.1.1")
       .paymentMethod((request.paymentMethodDetails as HedvigPaymentMethodDetails).toDefaultPaymentMethodDetails())
-      .amount(amount)
-      .merchantAccount(merchantAccount)
+      .amount(Amount().value(0L).currency(adyenMerchantInfo.currencyCode.name))
+      .merchantAccount(adyenMerchantInfo.account)
+      .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
       .reference(adyenTokenId.toString())
       .returnUrl(request.returnUrl)
       .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.ECOMMERCE)
       .shopperReference(shopperReference)
       .storePaymentMethod(true)
 
+    val browserInfo =
+      if (request.browserInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browserInfo) else AdyenBrowserInfo()
+
+    paymentsRequest.browserInfo(browserInfo)
+
     if (isSubscription) {
       paymentsRequest.recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
     }
-
-    val browserInfo =
-      if (request.browerInfo != null) BrowserInfo.toAdyenBrowserInfo(request.browerInfo) else AdyenBrowserInfo()
-
-    paymentsRequest.browserInfo(browserInfo)
 
     val additionalData: MutableMap<String, String> = HashMap()
     additionalData[ALLOW_3DS2] = allow3DS2.toString()
@@ -407,13 +416,15 @@ class AdyenServiceImpl(
         "[RequestRecurringDetailReference: ${req.recurringDetailReference}] ] "
     }
 
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(req.memberId)
+
     val paymentsRequest = PaymentsRequest()
       .amount(
         Amount()
           .value(req.amount.number.longValueExact() * 100)
           .currency(req.amount.currency.currencyCode)
       )
-      .merchantAccount(merchantAccount)
+      .merchantAccount(adyenMerchantInfo.account)
       .paymentMethod(
         DefaultPaymentMethodDetails()
           .type(ApiConstants.PaymentMethodType.TYPE_SCHEME)
@@ -437,8 +448,10 @@ class AdyenServiceImpl(
   }
 
   override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val paymentMethodsRequest = PaymentMethodsRequest()
-      .merchantAccount(merchantAccount)
+      .merchantAccount(adyenMerchantInfo.account)
       .shopperReference(memberId)
 
     val adyenResponse: PaymentMethodsResponse
@@ -459,14 +472,17 @@ class AdyenServiceImpl(
   }
 
   override fun startPayoutTransaction(
+    memberId: String,
     payoutReference: String,
     amount: MonetaryAmount,
     shopperReference: String,
     shopperEmail: String
   ): SubmitResponse {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val payoutRequest = SubmitRequest()
     payoutRequest.amount = Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
-    payoutRequest.merchantAccount = this.merchantAccount
+    payoutRequest.merchantAccount = adyenMerchantInfo.account
     payoutRequest.recurring = Recurring().contract(Recurring.ContractEnum.PAYOUT)
     payoutRequest.reference = payoutReference
     payoutRequest.shopperEmail = shopperEmail
@@ -477,9 +493,11 @@ class AdyenServiceImpl(
     return adyenPayout.submitThirdparty(payoutRequest)
   }
 
-  override fun confirmPayout(payoutReference: String): ConfirmThirdPartyResponse {
+  override fun confirmPayout(payoutReference: String, memberId: String): ConfirmThirdPartyResponse {
+    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
     val request = ConfirmThirdPartyRequest().also {
-      it.merchantAccount = merchantAccount
+      it.merchantAccount = adyenMerchantInfo.account
       it.originalReference = payoutReference
     }
     return adyenPayout.confirmThirdParty(request)

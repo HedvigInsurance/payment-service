@@ -2,12 +2,12 @@ package com.hedvig.paymentservice.query.adyenTokenRegistration
 
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
+import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 class AdyenTokenRegistrationEventListener(
-  val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository
+  val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository,
+  val memberRepository: MemberRepository
 ) {
   @EventHandler
   fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
@@ -31,19 +32,14 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.shopperReference = e.shopperReference
 
     adyenAdyenTokenRepository.save(tokenRegistration)
-  }
 
-  @EventHandler
-  fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
-    val tokenRegistration =
-      adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElse(AdyenTokenRegistration())
+    val memberMaybe = memberRepository.findById(e.memberId)
 
-    tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
-    tokenRegistration.memberId = e.memberId
-    //TODO: To be future proof maybe we should look at the notification item to see if we can add recurring payment details
-    tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
-
-    adyenAdyenTokenRepository.save(tokenRegistration)
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
+    }
   }
 
   @EventHandler
@@ -59,6 +55,14 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.shopperReference = e.shopperReference
 
     adyenAdyenTokenRepository.save(tokenRegistration)
+
+    val memberMaybe = memberRepository.findById(e.memberId)
+
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
+    }
   }
 
   @EventHandler
