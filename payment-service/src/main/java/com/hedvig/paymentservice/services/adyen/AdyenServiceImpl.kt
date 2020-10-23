@@ -11,8 +11,8 @@ import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.model.payout.ConfirmThirdPartyRequest
 import com.adyen.model.payout.ConfirmThirdPartyResponse
-import com.adyen.model.payout.PayoutRequest
-import com.adyen.model.payout.PayoutResponse
+import com.adyen.model.payout.SubmitRequest
+import com.adyen.model.payout.SubmitResponse
 import com.adyen.model.recurring.Recurring
 import com.adyen.service.Checkout
 import com.adyen.service.Payout
@@ -58,9 +58,9 @@ import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Optional
+import java.util.UUID
 import javax.money.MonetaryAmount
-import kotlin.collections.HashMap
 import kotlin.collections.set
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
@@ -463,22 +463,18 @@ class AdyenServiceImpl(
     amount: MonetaryAmount,
     shopperReference: String,
     shopperEmail: String
-  ): PayoutResponse {
-    val payoutRequest = PayoutRequest()
-      .amount(
-        Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
-      )
-      .merchantAccount(merchantAccount)
-      .recurring(
-        Recurring().contract(Recurring.ContractEnum.PAYOUT)
-      )
-      .reference(payoutReference)
-      .shopperEmail(shopperEmail)
-      .shopperReference(shopperReference)
-      .selectedRecurringDetailReference("LATEST")
+  ): SubmitResponse {
+    val payoutRequest = SubmitRequest().apply {
+      this.amount = Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
+      this.merchantAccount = merchantAccount
+      recurring = Recurring().contract(Recurring.ContractEnum.PAYOUT)
+      reference = payoutReference
+      this.shopperEmail = shopperEmail
+      this.shopperReference = shopperReference
+      selectedRecurringDetailReference = "LATEST"
+    }
 
-
-    return adyenPayout.payout(payoutRequest)
+    return adyenPayout.submitThirdparty(payoutRequest)
   }
 
   override fun confirmPayout(payoutReference: String): ConfirmThirdPartyResponse {

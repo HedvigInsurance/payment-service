@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.domain.adyenTransaction
 
-import com.adyen.model.payout.PayoutResponse
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionPayoutCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand
@@ -12,11 +11,11 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTrans
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionConfirmedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionInitiatedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.SuccessfulAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.DeclinedAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.ExpiredAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.FailedAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.ReservedAdyenPayoutTransactionReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.SuccessfulAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
@@ -55,7 +54,7 @@ class AdyenPayoutTransaction() {
     )
 
     when (response.resultCode) {
-      PayoutResponse.ResultCodeEnum.AUTHORISED -> {
+      "AUTHORISED" -> {
         apply(
           AdyenPayoutTransactionAuthorisedEvent(
             cmd.transactionId,
@@ -79,19 +78,14 @@ class AdyenPayoutTransaction() {
           )
         )
       }
-      PayoutResponse.ResultCodeEnum.PARTIALLYAUTHORISED,
-      PayoutResponse.ResultCodeEnum.REFUSED,
-      PayoutResponse.ResultCodeEnum.ERROR,
-      PayoutResponse.ResultCodeEnum.CANCELLED,
-      PayoutResponse.ResultCodeEnum.RECEIVED,
-      PayoutResponse.ResultCodeEnum.REDIRECTSHOPPER ->
+      else ->
         apply(
           AdyenPayoutTransactionCanceledEvent(
             cmd.transactionId,
             cmd.memberId,
             cmd.shopperReference,
             cmd.amount,
-            response.resultCode.value
+            response.resultCode
           )
         )
     }

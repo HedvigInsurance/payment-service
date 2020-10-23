@@ -3,7 +3,7 @@ package com.hedvig.paymentservice.services.adyen
 import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.model.payout.ConfirmThirdPartyResponse
-import com.adyen.model.payout.PayoutResponse
+import com.adyen.model.payout.SubmitResponse
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
@@ -27,7 +27,13 @@ interface AdyenService {
   fun handleSettlementErrorNotification(adyenTransactionId: UUID)
   fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
   fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
-  fun startPayoutTransaction(payoutReference: String, amount: MonetaryAmount, shopperReference: String, shopperEmail: String): PayoutResponse
+  fun startPayoutTransaction(
+    payoutReference: String,
+    amount: MonetaryAmount,
+    shopperReference: String,
+    shopperEmail: String
+  ): SubmitResponse
+
   fun confirmPayout(payoutReference: String): ConfirmThirdPartyResponse
   fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem)
   fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem)
