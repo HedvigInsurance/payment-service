@@ -54,7 +54,7 @@ class AdyenPayoutTransaction() {
     )
 
     when (response.resultCode) {
-      "AUTHORISED" -> {
+      "[payout-submit-received]" -> {
         apply(
           AdyenPayoutTransactionAuthorisedEvent(
             cmd.transactionId,

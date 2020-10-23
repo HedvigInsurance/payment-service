@@ -17,21 +17,21 @@
 
   const paymentMethodsResponse = JSON.parse("{\"paymentMethods\":[{\"brands\":[\"visa\",\"mc\",\"amex\",\"amex_applepay\",\"diners\",\"discover\",\"maestro\",\"mc_applepay\",\"visa_applepay\"],\"details\":[{\"key\":\"encryptedCardNumber\",\"type\":\"cardToken\"},{\"key\":\"encryptedSecurityCode\",\"type\":\"cardToken\"},{\"key\":\"encryptedExpiryMonth\",\"type\":\"cardToken\"},{\"key\":\"encryptedExpiryYear\",\"type\":\"cardToken\"},{\"key\":\"holderName\",\"optional\":true,\"type\":\"text\"}],\"name\":\"Credit Card\",\"type\":\"scheme\"},{\"details\":[{\"key\":\"applepay.token\",\"type\":\"applePayToken\"}],\"name\":\"Apple Pay\",\"supportsRecurring\":true,\"type\":\"applepay\"},{\"details\":[{\"key\":\"paywithgoogle.token\",\"type\":\"payWithGoogleToken\"}],\"name\":\"Google Pay\",\"supportsRecurring\":true,\"type\":\"paywithgoogle\"},{\"name\":\"Trustly\",\"supportsRecurring\":true,\"type\":\"trustly\"},{\"details\":[{\"key\":\"telephoneNumber\",\"optional\":true,\"type\":\"tel\"}],\"name\":\"Vipps\",\"supportsRecurring\":true,\"type\":\"vipps\"}],\"groups\":[{\"name\":\"Credit Card\",\"types\":[\"visa\",\"mc\",\"amex\",\"amex_applepay\",\"diners\",\"discover\",\"maestro\",\"mc_applepay\",\"visa_applepay\"]}]}")
 
-  function showFinalResult(data){
+  function showFinalResult(data) {
     console.log(data)
     alert(JSON.stringify(data, null, 2))
   }
 
-  function tokenizePayoutDetails(){
+  function tokenizePayoutDetails() {
     return fetch("/graphql", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Hedvig.token': '668328938'
+        'Hedvig.token': "{{memberId}}"
         // 'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: JSON.stringify({
-        query:`
+        query: `
         mutation mutation{
           tokenizePayoutDetails(req: {
             channel: WEB
@@ -46,19 +46,19 @@
         `
       })
     }).then(res => res.json())
-    .then(res => res.data.tokenizePayoutDetails)
+      .then(res => res.data.tokenizePayoutDetails)
   }
 
-  function makeDetailsCall(details){
+  function makeDetailsCall(details) {
     return fetch("/graphql", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
-        'Hedvig.token': '668328938'
+        'Hedvig.token': "{{memberId}}"
         // 'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: JSON.stringify({
-        query:`
+        query: `
         mutation SubmitAdditionalPaymentDetails($details: PaymentsDetailsRequest!){
           submitAdditionalPaymentDetails(req: {
             paymentsDetailsRequest: $details
@@ -155,7 +155,6 @@
       })
   }
 </script>
-
 
 
 </body>

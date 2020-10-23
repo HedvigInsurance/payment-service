@@ -464,15 +464,15 @@ class AdyenServiceImpl(
     shopperReference: String,
     shopperEmail: String
   ): SubmitResponse {
-    val payoutRequest = SubmitRequest().apply {
-      this.amount = Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
-      this.merchantAccount = merchantAccount
-      recurring = Recurring().contract(Recurring.ContractEnum.PAYOUT)
-      reference = payoutReference
-      this.shopperEmail = shopperEmail
-      this.shopperReference = shopperReference
-      selectedRecurringDetailReference = "LATEST"
-    }
+    val payoutRequest = SubmitRequest()
+    payoutRequest.amount = Amount().value(amount.toAdyenMinorUnits()).currency(amount.currency.currencyCode)
+    payoutRequest.merchantAccount = this.merchantAccount
+    payoutRequest.recurring = Recurring().contract(Recurring.ContractEnum.PAYOUT)
+    payoutRequest.reference = payoutReference
+    payoutRequest.shopperEmail = shopperEmail
+    payoutRequest.shopperReference = shopperReference
+    payoutRequest.selectedRecurringDetailReference = "LATEST"
+
 
     return adyenPayout.submitThirdparty(payoutRequest)
   }
