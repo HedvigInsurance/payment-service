@@ -1,7 +1,9 @@
 package com.hedvig.paymentservice.configuration;
 
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.AdyenTokenRegistrationAuthorisedEventUpcaster;
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.AdyenTokenRegistrationAuthorisedEventUpcasterV2;
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.PendingAdyenTokenRegistrationCreatedEventUpcaster;
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.PendingAdyenTokenRegistrationCreatedEventUpcasterV2;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.ChargeCreatedEventUpcaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventUpCaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.TrustlyAccountCreatedUpCaster;
@@ -23,7 +25,9 @@ public class Axon {
       new PayoutCreatedEventUpCaster(),
       new ChargeCreatedEventUpcaster(),
       new AdyenTokenRegistrationAuthorisedEventUpcaster(),
-      new PendingAdyenTokenRegistrationCreatedEventUpcaster()
+      new PendingAdyenTokenRegistrationCreatedEventUpcaster(),
+      new AdyenTokenRegistrationAuthorisedEventUpcasterV2(),
+      new PendingAdyenTokenRegistrationCreatedEventUpcasterV2()
     );
   }
 

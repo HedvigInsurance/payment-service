@@ -4,7 +4,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.AdyenPaymentsResponse
 import org.axonframework.serialization.Revision
 import java.util.UUID
 
-@Revision("1.0")
+@Revision("2.0")
 class PendingAdyenTokenRegistrationCreatedEvent(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
