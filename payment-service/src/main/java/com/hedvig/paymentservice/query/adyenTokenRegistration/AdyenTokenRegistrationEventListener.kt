@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdy
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
+import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -15,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 class AdyenTokenRegistrationEventListener(
-  val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository
+  val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository,
+  val memberRepository: MemberRepository
 ) {
   @EventHandler
   fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
@@ -28,6 +30,14 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
 
     adyenAdyenTokenRepository.save(tokenRegistration)
+
+    val memberMaybe = memberRepository.findById(e.memberId)
+
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
+    }
   }
 
   @EventHandler
@@ -39,8 +49,16 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
     tokenRegistration.paymentDataFromAction = e.paymentDataFromAction
-    
+
     adyenAdyenTokenRepository.save(tokenRegistration)
+
+    val memberMaybe = memberRepository.findById(e.memberId)
+
+    if (memberMaybe.isPresent) {
+      val member = memberMaybe.get()
+      member.adyenMerchantAccount = e.adyenMerchantAccount
+      memberRepository.save(member)
+    }
   }
 
   @EventHandler

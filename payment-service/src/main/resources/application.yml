@@ -2,7 +2,8 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
-
+  mustache:
+    suffix: .html
 
   security:
     user:
@@ -27,14 +28,11 @@ graphiql:
   pageTitle: Payment-service GraphiQL
 
 
-
-
 hedvig:
   adyen:
     public:
       key: test
     allow3DS2: true
-    returnUrl: test
     merchantAccount: test
     enviroment: TEST
     apiKey: test

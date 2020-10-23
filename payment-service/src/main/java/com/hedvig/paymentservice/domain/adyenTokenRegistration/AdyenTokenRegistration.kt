@@ -24,6 +24,7 @@ class AdyenTokenRegistration() {
   lateinit var adyenTokenRegistrationId: UUID
   lateinit var memberId: String
   lateinit var adyenTokenRegistrationStatus: AdyenTokenRegistrationStatus
+  lateinit var adyenMerchantAccount: String
   var recurringDetailReference: String? = null
   var paymentDataFromAction: String? = null
 
@@ -33,7 +34,8 @@ class AdyenTokenRegistration() {
       AdyenTokenRegistrationAuthorisedEvent(
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
-        cmd.adyenPaymentsResponse
+        cmd.adyenPaymentsResponse,
+        cmd.adyenMerchantInfo.account
       )
     )
   }
@@ -45,7 +47,8 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
-        cmd.paymentDataFromAction
+        cmd.paymentDataFromAction,
+        cmd.adyenMerchantInfo.account
       )
     )
   }
@@ -56,7 +59,8 @@ class AdyenTokenRegistration() {
       AdyenTokenRegistrationAuthorisedEvent(
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
-        cmd.adyenPaymentsResponse
+        cmd.adyenPaymentsResponse,
+        adyenMerchantAccount
       )
     )
   }
@@ -89,6 +93,7 @@ class AdyenTokenRegistration() {
     this.memberId = e.memberId
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
+    this.adyenMerchantAccount = e.adyenMerchantAccount
   }
 
   @EventSourcingHandler
@@ -98,6 +103,7 @@ class AdyenTokenRegistration() {
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
     this.paymentDataFromAction = e.paymentDataFromAction
+    this.adyenMerchantAccount = e.adyenMerchantAccount
   }
 
   @EventSourcingHandler

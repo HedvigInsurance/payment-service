@@ -51,7 +51,8 @@ class Query(
   fun availablePaymentMethods(
     env: DataFetchingEnvironment
   ): AvailablePaymentMethodsResponse {
-    return adyenService.getAvailablePaymentMethods()
+    val memberId: String = env.getToken()
+    return adyenService.getAvailablePaymentMethods(memberId)
   }
 
   fun activePaymentMethods(
