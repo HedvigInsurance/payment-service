@@ -14,8 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -45,20 +47,31 @@ public class BankAccountServiceImpl implements BankAccountService {
     return optionalMember.filter(x -> x.getDirectDebitStatus() == DirectDebitStatus.CONNECTED).map(BankAccount::fromMember).orElse(null);
   }
 
-  //TODO: Catch Red days - Weekends
   public LocalDate getNextChargeDate(String memberId) {
     if (memberId == null) {
       log.error("GetNextChargeDate - hedvig.token is missing");
       throw new NullPointerException("GetNextChargeDate - hedvig.token is missing");
     }
 
-    Optional<InsuranceStatus> status = productPricingService.getInsuranceStatus(memberId);
-
-    if (!status.isPresent() || status.get() != InsuranceStatus.ACTIVE) {
-      return null;
+    LocalDate today = LocalDate.now(ZoneId.of("Europe/Stockholm"));
+    YearMonth currentPeriod = YearMonth.of(today.getYear(), today.getMonth());
+    LocalDate chargeDateCurrentPeriod = getChargeDateOfPeriod(currentPeriod);
+    if (!today.isAfter(chargeDateCurrentPeriod)) {
+      return chargeDateCurrentPeriod;
     }
+    return getChargeDateOfPeriod(currentPeriod.plusMonths(1));
+  }
 
-    return LocalDate.of(YearMonth.now().getYear(), YearMonth.now().getMonth(), 27);
+  //TODO: Handle red days
+  static LocalDate getChargeDateOfPeriod(YearMonth period) {
+    LocalDate chargeDateThisMonth = period.atDay(27);
+    if (chargeDateThisMonth.getDayOfWeek() == DayOfWeek.SATURDAY) {
+      chargeDateThisMonth = chargeDateThisMonth.plusDays(2);
+    }
+    if (chargeDateThisMonth.getDayOfWeek() == DayOfWeek.SUNDAY) {
+      chargeDateThisMonth = chargeDateThisMonth.plusDays(1);
+    }
+    return chargeDateThisMonth;
   }
 
   public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getDirectDebitStatus(String memberId) {

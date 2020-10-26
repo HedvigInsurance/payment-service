@@ -18,21 +18,6 @@ class ProductPricingServiceImpl(
   private val client: ProductPricingClient
 ) : ProductPricingService {
 
-  override fun getInsuranceStatus(memberId: String?): Optional<InsuranceStatus> {
-    try {
-      val response =
-        client.getInsuranceStatus(memberId)
-      return if (response.statusCode.is2xxSuccessful) Optional.ofNullable(response.body) else Optional.empty()
-    } catch (ex: FeignException) {
-      when (ex.status()) {
-        500 -> {
-          logger.error("Product-pricing returned 500 response")
-        }
-      }
-    }
-    return Optional.empty()
-  }
-
   override fun guessPolicyTypes(
     transactions: Collection<Transaction>,
     period: YearMonth

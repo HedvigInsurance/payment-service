@@ -24,11 +24,6 @@ import java.util.UUID
   configuration = [FeignConfiguration::class]
 )
 interface ProductPricingClient {
-  @RequestMapping(
-    value = ["/i/insurance/{memberId}/status"],
-    method = [RequestMethod.GET]
-  )
-  fun getInsuranceStatus(@PathVariable("memberId") memberId: String?): ResponseEntity<InsuranceStatus?>
 
   @PostMapping(path = ["/report/policies/guess-types/{period}"])
   fun guessPolicyTypes(
