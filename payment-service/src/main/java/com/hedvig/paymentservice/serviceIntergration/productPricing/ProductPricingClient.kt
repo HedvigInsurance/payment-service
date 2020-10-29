@@ -31,7 +31,7 @@ interface ProductPricingClient {
     @GetMapping("/_/contracts/members/{memberId}/contract/market/info")
     fun getContractMarketInfo(@PathVariable memberId: String): ResponseEntity<ContractMarketInfo>
 
-    @GetMapping("/_/contracts/member/{memberId}/hasContract")
+    @GetMapping("/_/contracts/members/{memberId}/hasContract")
     fun hasContract(
         @PathVariable memberId: String,
         @RequestParam stateFilter: ContractStateFilter
