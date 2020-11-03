@@ -51,7 +51,8 @@ class Member() {
   lateinit var id: String
 
   var transactions: MutableList<Transaction> = ArrayList()
-  var trustlyAccount: TrustlyAccount? = null
+  var latestTrustlyAccount: TrustlyAccount? = null
+  var mapOfAllTrustlyAccountIds: MutableMap<String, DirectDebitStatus?> = mutableMapOf()
   var adyenAccount: AdyenAccount? = null
 
   @CommandHandler
@@ -80,7 +81,7 @@ class Member() {
       return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
     }
 
-    if (trustlyAccount == null && adyenAccount == null) {
+    if (latestTrustlyAccount == null && adyenAccount == null) {
       log.info("Cannot charge account - no account set up ${cmd.memberId}")
       failChargeCreation(
         memberId = id,
@@ -92,7 +93,7 @@ class Member() {
       return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
     }
 
-    if (trustlyAccount != null && trustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED) {
+    if (latestTrustlyAccount != null && latestTrustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED) {
       log.info("Cannot charge account - direct debit mandate not received in Trustly ${cmd.memberId}")
       failChargeCreation(
         memberId = id,
@@ -122,8 +123,8 @@ class Member() {
         transactionId = cmd.transactionId,
         amount = cmd.amount,
         timestamp = cmd.timestamp,
-        providerId = trustlyAccount?.accountId ?: adyenAccount!!.recurringDetailReference,
-        provider = if (trustlyAccount != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
+        providerId = latestTrustlyAccount?.accountId ?: adyenAccount!!.recurringDetailReference,
+        provider = if (latestTrustlyAccount != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
         email = cmd.email,
         createdBy = cmd.createdBy
       )
@@ -133,7 +134,7 @@ class Member() {
 
   @CommandHandler
   fun cmd(cmd: CreatePayoutCommand): Boolean {
-    if (trustlyAccount == null) {
+    if (latestTrustlyAccount == null) {
       log.info("Cannot payout account - no account set up in Trustly")
       apply(
         PayoutCreationFailedEvent(id, cmd.transactionId, cmd.amount, cmd.timestamp)
@@ -151,7 +152,7 @@ class Member() {
         cmd.firstName,
         cmd.lastName,
         cmd.timestamp,
-        trustlyAccount!!.accountId,
+        latestTrustlyAccount!!.accountId,
         cmd.category,
         cmd.referenceId,
         cmd.note,
@@ -163,7 +164,9 @@ class Member() {
 
   @CommandHandler
   fun cmd(cmd: UpdateTrustlyAccountCommand) {
-    if (trustlyAccount == null || trustlyAccount!!.accountId != cmd.accountId) {
+    if (latestTrustlyAccount == null ||
+      (latestTrustlyAccount!!.accountId != cmd.accountId && !mapOfAllTrustlyAccountIds.containsKey(cmd.accountId))
+    ) {
       apply(
         TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(
           id,
@@ -372,22 +375,26 @@ class Member() {
 
   @EventSourcingHandler
   fun on(e: TrustlyAccountCreatedEvent) {
-    trustlyAccount = TrustlyAccount(e.trustlyAccountId, null)
+    latestTrustlyAccount = TrustlyAccount(e.trustlyAccountId, null)
+    mapOfAllTrustlyAccountIds[e.trustlyAccountId] = null
   }
 
   @EventSourcingHandler
   fun on(e: DirectDebitConnectedEvent) {
-    trustlyAccount!!.directDebitStatus = DirectDebitStatus.CONNECTED
+    latestTrustlyAccount!!.directDebitStatus = DirectDebitStatus.CONNECTED
+    mapOfAllTrustlyAccountIds[e.trustlyAccountId] = DirectDebitStatus.CONNECTED
   }
 
   @EventSourcingHandler
   fun on(e: DirectDebitDisconnectedEvent) {
-    trustlyAccount!!.directDebitStatus = DirectDebitStatus.DISCONNECTED
+    latestTrustlyAccount!!.directDebitStatus = DirectDebitStatus.DISCONNECTED
+    mapOfAllTrustlyAccountIds[e.trustlyAccountId] = DirectDebitStatus.DISCONNECTED
   }
 
   @EventSourcingHandler
   fun on(e: DirectDebitPendingConnectionEvent) {
-    trustlyAccount!!.directDebitStatus = DirectDebitStatus.PENDING
+    latestTrustlyAccount!!.directDebitStatus = DirectDebitStatus.PENDING
+    mapOfAllTrustlyAccountIds[e.trustlyAccountId] = DirectDebitStatus.PENDING
   }
 
   @EventSourcingHandler
@@ -424,8 +431,8 @@ class Member() {
         )
       )
     } else {
-      if (trustlyAccount!!.directDebitStatus == null || (trustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED
-          || trustlyAccount!!.directDebitStatus != DirectDebitStatus.DISCONNECTED)
+      if (latestTrustlyAccount!!.directDebitStatus == null || (latestTrustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED
+          || latestTrustlyAccount!!.directDebitStatus != DirectDebitStatus.DISCONNECTED)
       ) {
         apply(
           DirectDebitPendingConnectionEvent(
