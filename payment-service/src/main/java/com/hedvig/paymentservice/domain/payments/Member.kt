@@ -432,11 +432,7 @@ class Member() {
       )
     } else {
       val latestDirectDebitStatus = trustlyAccounts[latestTrustlyAccountId]
-      if (latestDirectDebitStatus == null || (
-          latestDirectDebitStatus != DirectDebitStatus.CONNECTED
-            || latestDirectDebitStatus != DirectDebitStatus.DISCONNECTED
-          )
-      ) {
+      if (latestDirectDebitStatus == null || latestDirectDebitStatus == DirectDebitStatus.PENDING) {
         apply(
           DirectDebitPendingConnectionEvent(
             id,
