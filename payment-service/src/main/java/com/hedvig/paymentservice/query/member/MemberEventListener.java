@@ -170,8 +170,11 @@ public class MemberEventListener {
       log.error("Could not find member");
       return;
     }
-
     Member m = member.get();
+
+    if (!isUpdateForTheLatestTrustlyAccount(m, e.getTrustlyAccountId())) {
+      return;
+    }
 
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
@@ -216,46 +219,43 @@ public class MemberEventListener {
 
   @EventHandler
   public void on(DirectDebitConnectedEvent e) {
-    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
-
-    if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
-      return;
-    }
-
-    Member m = optionalMember.get();
-    m.setDirectDebitStatus(DirectDebitStatus.CONNECTED);
+    updateDirectDebitStatus(DirectDebitStatus.CONNECTED, e.getMemberId(), e.getTrustlyAccountId());
   }
 
   @EventHandler
   public void on(DirectDebitPendingConnectionEvent e) {
-    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
-
-    if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
-      return;
-    }
-
-    Member m = optionalMember.get();
-    m.setDirectDebitStatus(DirectDebitStatus.PENDING);
+    updateDirectDebitStatus(DirectDebitStatus.PENDING, e.getMemberId(), e.getTrustlyAccountId());
   }
 
   @EventHandler
   public void on(DirectDebitDisconnectedEvent e) {
-    Optional<Member> optionalMember = memberRepository.findById(e.getMemberId());
-
-    if (!optionalMember.isPresent()) {
-      log.error("Could not find member");
-      return;
-    }
-
-    Member m = optionalMember.get();
-    m.setDirectDebitStatus(DirectDebitStatus.DISCONNECTED);
+    updateDirectDebitStatus(DirectDebitStatus.DISCONNECTED, e.getMemberId(), e.getTrustlyAccountId());
   }
-
 
   @ResetHandler
   public void onReset() {
     memberRepository.deleteAll();
+  }
+
+  private void updateDirectDebitStatus(DirectDebitStatus status, String memberId, String trustlyAccountId) {
+    Optional<Member> optionalMember = memberRepository.findById(memberId);
+
+    if (!optionalMember.isPresent()) {
+      log.error("Cannot update direct debit stauts! Member {} cannot be found. TrustlyAccountId: {}", memberId, trustlyAccountId);
+      return;
+    }
+
+    Member m = optionalMember.get();
+
+    if (!isUpdateForTheLatestTrustlyAccount(m, trustlyAccountId)) {
+      return;
+    }
+
+    m.setDirectDebitStatus(status);
+    memberRepository.save(m);
+  }
+
+  private boolean isUpdateForTheLatestTrustlyAccount(Member member, String trustlyAccountInQuestion) {
+    return member.getTrustlyAccountNumber() == null || member.getTrustlyAccountNumber().equals(trustlyAccountInQuestion);
   }
 }
