@@ -241,7 +241,7 @@ public class MemberEventListener {
     Optional<Member> optionalMember = memberRepository.findById(memberId);
 
     if (!optionalMember.isPresent()) {
-      log.error("Cannot update direct debit stauts! Member {} cannot be found. TrustlyAccountId: {}", memberId, trustlyAccountId);
+      log.error("Cannot update direct debit status! Member {} cannot be found. TrustlyAccountId: {}", memberId, trustlyAccountId);
       return;
     }
 
