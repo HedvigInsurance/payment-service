@@ -168,11 +168,7 @@ class Member() {
 
   @CommandHandler
   fun cmd(cmd: UpdateTrustlyAccountCommand) {
-    if (trustlyAccounts.isEmpty() ||
-      (trustlyAccounts.isNotEmpty()
-        && latestTrustlyAccountId!! != cmd.accountId
-        && !trustlyAccounts.containsKey(latestTrustlyAccountId!!))
-    ) {
+    if (shouldCreateNewTrustlyAccount(newAccountId = cmd.accountId)) {
       apply(
         TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(
           id,
@@ -465,6 +461,17 @@ class Member() {
       )
     )
   }
+
+  fun shouldCreateNewTrustlyAccount(newAccountId: String): Boolean {
+    if (trustlyAccounts.isEmpty()) {
+      return true
+    }
+    if (latestTrustlyAccountId!! != newAccountId && !trustlyAccounts.containsKey(latestTrustlyAccountId!!)) {
+      return true
+    }
+    return false
+  }
+
 
   companion object {
     private fun getSingleTransaction(
