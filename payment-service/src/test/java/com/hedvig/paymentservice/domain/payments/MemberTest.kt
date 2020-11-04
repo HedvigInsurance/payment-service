@@ -217,9 +217,9 @@ class MemberTest {
         )
       )
       .expectState { member ->
-        assertThat(member.mapOfAllTrustlyAccountIds.size).isEqualTo(2)
-        assertThat(member.mapOfAllTrustlyAccountIds[TRUSTLY_ACCOUNT_ID]).isEqualTo(DirectDebitStatus.DISCONNECTED)
-        assertThat(member.mapOfAllTrustlyAccountIds[secondTrustlyAccountId]).isEqualTo(DirectDebitStatus.CONNECTED)
+        assertThat(member.trustlyAccounts.size).isEqualTo(2)
+        assertThat(member.trustlyAccounts[TRUSTLY_ACCOUNT_ID]).isEqualTo(DirectDebitStatus.DISCONNECTED)
+        assertThat(member.trustlyAccounts[secondTrustlyAccountId]).isEqualTo(DirectDebitStatus.CONNECTED)
       }
   }
 
@@ -278,12 +278,12 @@ class MemberTest {
         )
       )
       .expectState { member ->
-        assertThat(member.mapOfAllTrustlyAccountIds.size).isEqualTo(3)
-        assertThat(member.mapOfAllTrustlyAccountIds[TRUSTLY_ACCOUNT_ID]).isEqualTo(DirectDebitStatus.CONNECTED)
-        assertThat(member.mapOfAllTrustlyAccountIds[secondTrustlyAccountId]).isEqualTo(DirectDebitStatus.CONNECTED)
-        assertThat(member.mapOfAllTrustlyAccountIds[latestTrusltyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
-        assertThat(member.latestTrustlyAccount!!.accountId).isEqualTo(latestTrusltyAccountId)
-        assertThat(member.latestTrustlyAccount!!.directDebitStatus).isEqualTo(DirectDebitStatus.DISCONNECTED)
+        assertThat(member.trustlyAccounts.size).isEqualTo(3)
+        assertThat(member.trustlyAccounts[TRUSTLY_ACCOUNT_ID]).isEqualTo(DirectDebitStatus.CONNECTED)
+        assertThat(member.trustlyAccounts[secondTrustlyAccountId]).isEqualTo(DirectDebitStatus.CONNECTED)
+        assertThat(member.trustlyAccounts[latestTrusltyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
+        assertThat(member.latestTrustlyAccountId).isEqualTo(latestTrusltyAccountId)
+        assertThat(member.trustlyAccounts[latestTrusltyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
       }
   }
 
