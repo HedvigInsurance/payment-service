@@ -123,8 +123,12 @@ class Member() {
         transactionId = cmd.transactionId,
         amount = cmd.amount,
         timestamp = cmd.timestamp,
-        providerId = latestTrustlyAccountId ?: adyenAccount!!.recurringDetailReference,
-        provider = if (trustlyAccounts.isNotEmpty()) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
+        providerId = when {
+          latestTrustlyAccountId != null -> latestTrustlyAccountId!!
+          adyenAccount?.recurringDetailReference != null -> adyenAccount!!.recurringDetailReference
+          else -> throw IllegalStateException("ChargeCreatedEvent failed. Cannot find providerId. [MemberId: $id] [TransactionId: ${cmd.transactionId}]")
+        },
+        provider = if (latestTrustlyAccountId != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
         email = cmd.email,
         createdBy = cmd.createdBy
       )
