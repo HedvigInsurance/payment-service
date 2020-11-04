@@ -6,6 +6,7 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.serviceIntergration.underwriterClient.UnderwriterService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenMerchantInfo
+import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.neovisionaries.i18n.CountryCode
 import com.neovisionaries.i18n.CurrencyCode
 import org.slf4j.LoggerFactory
@@ -20,7 +21,8 @@ class AdyenMerchantPicker(
   val memberRepository: MemberRepository,
   val merchantAccounts: MerchantAccounts
 ) {
-  fun getAdyenMerchantInfo(memberId: String): AdyenMerchantInfo {
+  @Throws(NoMerchantAccountForMarket::class)
+  fun getAdyenMerchantInfo(memberId: String): AdyenMerchantInfo  {
     val marketInfo = getMerchantFromMember(memberId)
       ?: getMarketFromContract(memberId)
       ?: getMarketFromQuote(memberId)
@@ -28,7 +30,7 @@ class AdyenMerchantPicker(
       ?: throw NullPointerException("Could not determine market for member: $memberId")
 
     return AdyenMerchantInfo(
-      account = merchantAccounts.merchantAccounts!![marketInfo.name] ?: error("Cannot fetch merchant account"),
+      account = merchantAccounts.merchantAccounts!![marketInfo.name] ?: throw NoMerchantAccountForMarket(marketInfo),
       countryCode = marketInfo.countryCode,
       currencyCode = marketInfo.currencyCode
     )
@@ -97,3 +99,4 @@ class AdyenMerchantPicker(
     val logger = LoggerFactory.getLogger(this::class.java)
   }
 }
+
