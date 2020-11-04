@@ -38,6 +38,7 @@ import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenReques
 import com.hedvig.paymentservice.services.adyen.dtos.HedvigPaymentMethodDetails
 import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
+import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
@@ -320,7 +321,11 @@ class AdyenServiceImpl(
   }
 
   override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
-    val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+    val adyenMerchantInfo = try {
+      adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+    } catch (e: NoMerchantAccountForMarket) {
+      return null
+    }
 
     val paymentMethodsRequest = PaymentMethodsRequest()
       .merchantAccount(adyenMerchantInfo.account)
