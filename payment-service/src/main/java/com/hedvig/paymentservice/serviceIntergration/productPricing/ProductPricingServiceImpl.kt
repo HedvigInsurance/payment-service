@@ -2,10 +2,9 @@ package com.hedvig.paymentservice.serviceIntergration.productPricing
 
 import com.hedvig.paymentservice.query.member.entities.Transaction
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.InsuranceStatus
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractStateFilter
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto
-import feign.FeignException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.YearMonth
@@ -15,41 +14,34 @@ import java.util.stream.Collectors
 
 @Component
 class ProductPricingServiceImpl(
-  private val client: ProductPricingClient
+    private val client: ProductPricingClient
 ) : ProductPricingService {
 
-  override fun getInsuranceStatus(memberId: String?): Optional<InsuranceStatus> {
-    try {
-      val response =
-        client.getInsuranceStatus(memberId)
-      return if (response.statusCode.is2xxSuccessful) Optional.ofNullable(response.body) else Optional.empty()
-    } catch (ex: FeignException) {
-      when (ex.status()) {
-        500 -> {
-          logger.error("Product-pricing returned 500 response")
-        }
-      }
+    override fun guessPolicyTypes(
+        transactions: Collection<Transaction>,
+        period: YearMonth
+    ): Map<UUID, Optional<PolicyGuessResponseDto>> {
+        val policyGuessDtos: Collection<PolicyGuessRequestDto> = transactions.stream()
+            .map { transaction: Transaction ->
+                PolicyGuessRequestDto.from(transaction)
+            }
+            .collect(Collectors.toList())
+        return client.guessPolicyTypes(policyGuessDtos, period).body!!
     }
-    return Optional.empty()
-  }
 
-  override fun guessPolicyTypes(
-    transactions: Collection<Transaction>,
-    period: YearMonth
-  ): Map<UUID, Optional<PolicyGuessResponseDto>> {
-    val policyGuessDtos: Collection<PolicyGuessRequestDto> = transactions.stream()
-      .map { transaction: Transaction ->
-        PolicyGuessRequestDto.from(transaction)
-      }
-      .collect(Collectors.toList())
-    return client.guessPolicyTypes(policyGuessDtos, period).body!!
-  }
+    override fun getContractMarketInfo(memberId: String): ContractMarketInfo {
+        return client.getContractMarketInfo(memberId).body!!
+    }
 
-  override fun getContractMarketInfo(memberId: String): ContractMarketInfo {
-    return client.getContractMarketInfo(memberId).body!!
-  }
+    override fun hasContractActiveCurrentMonth(memberId: String): Boolean {
+        val response = client.hasContract(memberId, ContractStateFilter.ACTIVE_CURRENT_MONTH)
+        if (response.statusCode.is2xxSuccessful) {
+            return response.body!!
+        }
+        return true
+    }
 
-  companion object {
-    val logger = LoggerFactory.getLogger(this::class.java)!!
-  }
+    companion object {
+        val logger = LoggerFactory.getLogger(this::class.java)!!
+    }
 }
