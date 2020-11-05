@@ -15,23 +15,40 @@ class AdyenCheckoutConfig(
   @Value("\${hedvig.adyen.enviroment}")
   val environment: Environment,
   @Value("\${hedvig.adyen.urlPrefix}")
-  val prefix: String
-){
+  val prefix: String,
+  @Value("\${hedvig.adyen.apiKey.payout")
+  val apiPayoutKey: String,
+  @Value("\${hedvig.adyen.apiKey.payout.confirmation")
+  val apiPayoutConfirmationKey: String
+) {
 
-  val client: Client = if (environment == Environment.LIVE) {
-    Client(apiKey, environment, prefix)
-  } else {
-    Client(apiKey, environment)
-  }
+  val client: Client = getClient(apiKey)
+
+  val payoutClient: Client = getClient(apiPayoutKey)
+
+  val payoutConfirmationClient: Client = getClient(apiPayoutConfirmationKey)
 
   @Bean
   fun createAdyenCheckout(): Checkout {
-
     return Checkout(client)
   }
 
-  @Bean
+  @Bean(name = ["AdyenPayout"])
   fun createAdyenPayout(): Payout {
-    return Payout(client)
+    return Payout(payoutClient)
+  }
+
+  @Bean(name = ["AdyenPayoutConfirmation"])
+  fun createAdyenPayoutConfirmation(): Payout {
+    return Payout(payoutConfirmationClient)
+  }
+
+  private fun getClient(key: String) = if (environment == Environment.LIVE) {
+    Client(key, environment, prefix)
+  } else {
+    Client(
+      key,
+      environment
+    )
   }
 }
