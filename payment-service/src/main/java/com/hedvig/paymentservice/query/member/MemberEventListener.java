@@ -32,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static com.hedvig.paymentservice.util.TrustlyUtilKt.isUpdateForTheLatestTrustlyAccount;
+
 @Component
 @Slf4j
 @Transactional
@@ -255,9 +257,5 @@ public class MemberEventListener {
 
     m.setDirectDebitStatus(status);
     memberRepository.save(m);
-  }
-
-  private boolean isUpdateForTheLatestTrustlyAccount(Member member, String trustlyAccountInQuestion) {
-    return member.getTrustlyAccountNumber() == null || member.getTrustlyAccountNumber().equals(trustlyAccountInQuestion);
   }
 }

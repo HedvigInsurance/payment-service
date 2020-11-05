@@ -7,9 +7,9 @@ import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
-import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
+import com.hedvig.paymentservice.util.isUpdateForTheLatestTrustlyAccount
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
@@ -64,10 +64,6 @@ class EventListener(
             DirectDebitStatus.CONNECTED -> mapOf(IS_DIRECT_DEBIT_ACTIVATED to true)
         }
         notificationService.updateCustomer(memberId, traits)
-    }
-
-    private fun isUpdateForTheLatestTrustlyAccount(member: Member, trustlyAccountInQuestion: String): Boolean {
-        return member.trustlyAccountNumber == null || member.trustlyAccountNumber == trustlyAccountInQuestion
     }
 
     private fun updateTraitsBasedOnAdyenAccountStatus(memberId: String, adyenAccountStatus: AdyenAccountStatus) {
