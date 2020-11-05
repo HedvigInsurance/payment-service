@@ -57,6 +57,7 @@ import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.util.Optional
@@ -69,7 +70,10 @@ import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 @Service
 class AdyenServiceImpl(
   val adyenCheckout: Checkout,
+  @Qualifier("AdyenPayout")
   val adyenPayout: Payout,
+  @Qualifier("AdyenPayoutConfirmation")
+  val adyenPayoutConfirmation: Payout,
   val memberRepository: MemberRepository,
   val uuidGenerator: UUIDGenerator,
   val memberService: MemberService,
@@ -489,7 +493,6 @@ class AdyenServiceImpl(
     payoutRequest.shopperReference = shopperReference
     payoutRequest.selectedRecurringDetailReference = "LATEST"
 
-
     return adyenPayout.submitThirdparty(payoutRequest)
   }
 
@@ -500,7 +503,7 @@ class AdyenServiceImpl(
       it.merchantAccount = adyenMerchantInfo.account
       it.originalReference = payoutReference
     }
-    return adyenPayout.confirmThirdParty(request)
+    return adyenPayoutConfirmation.confirmThirdParty(request)
   }
 
   override fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem) =
