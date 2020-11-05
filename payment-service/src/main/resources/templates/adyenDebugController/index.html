@@ -19,7 +19,7 @@
     alert(JSON.stringify(data, null, 2))
   }
 
-  function geAvailalblePaymentMethods() {
+  function getAvailalblePaymentMethods() {
     return fetch("/graphql", {
       method: "POST",
       headers: {
@@ -169,7 +169,7 @@
           tokenizePayoutDetails(req: {
             channel: WEB
             browserInfo: null
-            returnUrl: "http://127.0.0.1:8081/debug/adyen"
+            returnUrl: "http://127.0.0.1:8081/debug/adyen/payout"
             paymentMethodDetails: "{\\"type\\": \\"trustly\\"}"
           }){
             ... on TokenizationResponseFinished {resultCode}
@@ -213,6 +213,7 @@
       .then(res => res.data)
   }
 
+  getAvailalblePaymentMethods()
   const payload = (new URL(document.location)).searchParams.get("payload")
   const paymentData = localStorage.getItem("paymentData")
   if (payload !== null && paymentData !== null) {

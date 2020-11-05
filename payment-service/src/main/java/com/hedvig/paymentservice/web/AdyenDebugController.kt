@@ -36,6 +36,16 @@ class AdyenDebugController(
     return ResponseEntity.ok(response)
   }
 
+  @PostMapping("/confirmPayout")
+  fun confirmPayout(
+    @RequestParam("payoutReference") payoutReference: String,
+    @RequestParam("memberId") memberId: String
+  ): ResponseEntity<Any> {
+    val response = adyenService.confirmPayout(payoutReference, memberId)
+    return ResponseEntity.ok(response)
+  }
+
+
   @GetMapping("payin")
   fun payin(
     @RequestParam("memberId")
