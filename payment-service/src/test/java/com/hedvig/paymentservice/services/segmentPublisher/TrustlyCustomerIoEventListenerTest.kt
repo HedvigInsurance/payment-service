@@ -20,7 +20,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import java.util.Optional
 
 @RunWith(MockitoJUnitRunner::class)
-class TrustlyEventListenerTest {
+class TrustlyCustomerIoEventListenerTest {
 
     @Mock
     internal lateinit var notificationService: NotificationService
@@ -28,14 +28,14 @@ class TrustlyEventListenerTest {
     @Mock
     lateinit var memberRepository: MemberRepository
 
-    lateinit var sut: TrustlyEventListener
+    lateinit var sut: TrustlyCustomerIoEventListener
 
     lateinit var dataCaptor: KArgumentCaptor<Map<String, Any>>
 
     @Before
     fun setup() {
         dataCaptor = argumentCaptor()
-        sut = TrustlyEventListener(memberRepository, notificationService)
+        sut = TrustlyCustomerIoEventListener(memberRepository, notificationService)
         `when`(memberRepository.findById(any())).thenReturn(Optional.of(Member()))
     }
 

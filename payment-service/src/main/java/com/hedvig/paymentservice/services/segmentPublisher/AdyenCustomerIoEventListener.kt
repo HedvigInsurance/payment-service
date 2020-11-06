@@ -8,13 +8,12 @@ import com.hedvig.paymentservice.serviceIntergration.notificationService.Notific
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.springframework.context.annotation.Profile
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
 @Profile("customer.io")
 @ProcessingGroup("AdyenSegmentProcessorGroup")
-class AdyenEventListener(
+class AdyenCustomerIoEventListener(
     val notificationService: NotificationService
 ) {
 
