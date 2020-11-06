@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 @Profile("customer.io")
 @ProcessingGroup("SegmentProcessorGroup")
 @Order(1)
-class EventListener(
+class SwedishEventListener(
     val memberRepository: MemberRepository,
     val notificationService: NotificationService
 ) {
