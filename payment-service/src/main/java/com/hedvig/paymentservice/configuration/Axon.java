@@ -29,10 +29,7 @@ public class Axon {
 
   @Autowired
   public void configure(EventProcessingConfiguration config) {
-
     config.usingTrackingProcessors();
-
-    config.registerSubscribingEventProcessor("SegmentProcessorGroupLive");
 
     config.registerTrackingEventProcessor("Account", x ->
       TrackingEventProcessorConfiguration
@@ -44,5 +41,16 @@ public class Axon {
         .forSingleThreadedProcessing()
         .andBatchSize(100)
         .andInitialTrackingToken(StreamableMessageSource::createTailToken));
+
+      config.registerTrackingEventProcessor("SegmentProcessorGroup", x ->
+          TrackingEventProcessorConfiguration
+              .forSingleThreadedProcessing()
+              .andInitialTrackingToken(StreamableMessageSource::createHeadToken));
+
+      config.registerTrackingEventProcessor("AdyenSegmentProcessorGroup", x ->
+          TrackingEventProcessorConfiguration
+              .forSingleThreadedProcessing()
+              .andInitialTrackingToken(StreamableMessageSource::createTailToken));
   }
+
 }
