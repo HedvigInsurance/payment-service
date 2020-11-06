@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("customer.io")
 @ProcessingGroup("AdyenSegmentProcessorGroup")
-@Order(2)
 class AdyenEventListener(
     val notificationService: NotificationService
 ) {

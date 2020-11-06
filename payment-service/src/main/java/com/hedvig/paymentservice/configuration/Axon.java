@@ -42,7 +42,7 @@ public class Axon {
         .andBatchSize(100)
         .andInitialTrackingToken(StreamableMessageSource::createTailToken));
 
-      config.registerTrackingEventProcessor("SegmentProcessorGroup", x ->
+      config.registerTrackingEventProcessor("TrustlySegmentProcessorGroup", x ->
           TrackingEventProcessorConfiguration
               .forSingleThreadedProcessing()
               .andInitialTrackingToken(StreamableMessageSource::createHeadToken));
