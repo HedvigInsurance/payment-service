@@ -4,7 +4,7 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.*
 import javax.money.MonetaryAmount
 
-data class PayoutResponseReceivedCommand(
+data class TrustlyPayoutResponseReceivedCommand(
   @TargetAggregateIdentifier
   val hedvigOrderId: UUID,
   val trustlyOrderId: String,

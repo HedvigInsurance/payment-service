@@ -95,7 +95,8 @@ public class PayoutIntegrationTest {
       TOLVANSSON_CITY,
       TOLVANSSON_ZIP,
       TOLVANSSON_COUNTRY,
-      TOLVANSSON_SSN
+      TOLVANSSON_SSN,
+      TOLVANSSON_EMAIL
     )));
 
     given(meerkat.getMemberSanctionStatus(TOLVAN_FIRST_NAME + ' ' + TOLVANSSON_LAST_NAME))

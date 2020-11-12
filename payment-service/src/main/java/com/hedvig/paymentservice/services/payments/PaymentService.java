@@ -63,6 +63,7 @@ public class PaymentService {
             TransactionCategory.CLAIM,
             null,
             null,
+            null,
             null
         )
     );
@@ -85,7 +86,8 @@ public class PaymentService {
             request.getCategory(),
             request.getReferenceId(),
             request.getNote(),
-            request.getHandler()
+            request.getHandler(),
+            member.getEmail()
         )
     );
 

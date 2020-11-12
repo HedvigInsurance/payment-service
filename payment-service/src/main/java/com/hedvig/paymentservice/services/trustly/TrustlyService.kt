@@ -29,7 +29,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotification
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutResponseReceivedCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.TrustlyPayoutResponseReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
@@ -225,7 +225,7 @@ class TrustlyService(
         )
 
         gateway.sendAndWait<Any>(
-          PayoutResponseReceivedCommand(hedvigOrderId, orderId, request.amount)
+          TrustlyPayoutResponseReceivedCommand(hedvigOrderId, orderId, request.amount)
         )
       } else {
         val error = response.error

@@ -18,9 +18,11 @@ data class PayoutCreatedEvent(
   val firstName: String?,
   val lastName: String?,
   val timestamp: Instant,
-  val trustlyAccountId: String,
+  val trustlyAccountId: String?,
   val category: TransactionCategory,
   val referenceId: String?,
   val note: String?,
-  val handler: String?
+  val handler: String?,
+  val adyenShopperReference: String?,
+  val email: String?
 )

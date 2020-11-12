@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.adyenTokenRegistration
 
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
@@ -7,6 +8,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePe
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
@@ -27,15 +29,19 @@ class AdyenTokenRegistration() {
   lateinit var adyenMerchantAccount: String
   var recurringDetailReference: String? = null
   var paymentDataFromAction: String? = null
+  var isForPayout: Boolean = false
+  var shopperReference: String? = null
 
   @CommandHandler
   constructor(cmd: CreateAuthorisedAdyenTokenRegistrationCommand) : this() {
     apply(
       AdyenTokenRegistrationAuthorisedEvent(
-        cmd.adyenTokenRegistrationId,
-        cmd.memberId,
-        cmd.adyenPaymentsResponse,
-        cmd.adyenMerchantInfo.account
+        adyenTokenRegistrationId = cmd.adyenTokenRegistrationId,
+        memberId = cmd.memberId,
+        adyenPaymentsResponse = cmd.adyenPaymentsResponse,
+        adyenMerchantAccount = cmd.adyenMerchantInfo.account,
+        isPayoutSetup = cmd.isPayoutSetup,
+        shopperReference = cmd.shopperReference
       )
     )
   }
@@ -48,7 +54,9 @@ class AdyenTokenRegistration() {
         cmd.memberId,
         cmd.adyenPaymentsResponse,
         cmd.paymentDataFromAction,
-        cmd.adyenMerchantInfo.account
+        cmd.adyenMerchantInfo.account,
+        cmd.isPayoutSetup,
+        cmd.shopperReference
       )
     )
   }
@@ -60,7 +68,21 @@ class AdyenTokenRegistration() {
         cmd.adyenTokenRegistrationId,
         cmd.memberId,
         cmd.adyenPaymentsResponse,
-        adyenMerchantAccount
+        adyenMerchantAccount,
+        false,
+        cmd.shopperReference
+      )
+    )
+  }
+
+  @CommandHandler
+  fun handle(cmd: AuthoriseAdyenTokenRegistrationFromNotificationCommand) {
+    apply(
+      AdyenTokenRegistrationAuthorisedFromNotificationEvent(
+        cmd.adyenTokenRegistrationId,
+        cmd.memberId,
+        cmd.adyenNotification,
+        cmd.shopperReference
       )
     )
   }
@@ -94,6 +116,16 @@ class AdyenTokenRegistration() {
     this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
     this.adyenMerchantAccount = e.adyenMerchantAccount
+    this.isForPayout = e.isPayoutSetup
+    this.shopperReference = e.shopperReference
+  }
+
+  @EventSourcingHandler
+  fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
+    this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
+    this.memberId = e.memberId
+    //TODO: To be future proof maybe we should look at the notification item to see if we can add recurring payment details
+    this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
   }
 
   @EventSourcingHandler
@@ -104,6 +136,8 @@ class AdyenTokenRegistration() {
     this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
     this.paymentDataFromAction = e.paymentDataFromAction
     this.adyenMerchantAccount = e.adyenMerchantAccount
+    this.isForPayout = e.isPayoutSetup
+    this.shopperReference = e.shopperReference
   }
 
   @EventSourcingHandler

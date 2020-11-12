@@ -21,5 +21,6 @@ data class CreatePayoutCommand(
   val category: TransactionCategory,
   val referenceId: String?,
   val note: String?,
-  val handler: String?
+  val handler: String?,
+  val email: String?
 )

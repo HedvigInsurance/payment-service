@@ -2,6 +2,7 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
+
   mustache:
     suffix: .html
 
@@ -11,7 +12,6 @@ spring:
       password: test
 spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
-
 
 graphql:
   servlet:
@@ -27,12 +27,12 @@ graphiql:
   enabled: true
   pageTitle: Payment-service GraphiQL
 
-
 hedvig:
   adyen:
     public:
       key: test
     allow3DS2: true
+    returnUrl: test
     merchantAccount: test
     enviroment: TEST
     apiKey: test

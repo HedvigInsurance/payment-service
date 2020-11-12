@@ -28,6 +28,8 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.memberId = e.memberId
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
+    tokenRegistration.isForPayout = e.isPayoutSetup
+    tokenRegistration.shopperReference = e.shopperReference
 
     adyenAdyenTokenRepository.save(tokenRegistration)
 
@@ -49,6 +51,8 @@ class AdyenTokenRegistrationEventListener(
     tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
     tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
     tokenRegistration.paymentDataFromAction = e.paymentDataFromAction
+    tokenRegistration.isForPayout = e.isPayoutSetup
+    tokenRegistration.shopperReference = e.shopperReference
 
     adyenAdyenTokenRepository.save(tokenRegistration)
 

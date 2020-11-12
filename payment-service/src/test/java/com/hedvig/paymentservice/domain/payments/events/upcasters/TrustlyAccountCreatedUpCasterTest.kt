@@ -1,6 +1,8 @@
 package com.hedvig.paymentservice.domain.payments.events.upcasters
 
+import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import org.axonframework.eventsourcing.GenericDomainEventMessage
 import org.axonframework.eventsourcing.eventstore.jpa.DomainEventEntry
@@ -8,10 +10,13 @@ import org.axonframework.messaging.MetaData
 import org.axonframework.serialization.SerializedObject
 import org.axonframework.serialization.upcasting.event.InitialEventRepresentation
 import org.axonframework.serialization.xml.XStreamSerializer
+import org.javamoney.moneta.Money
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Ignore
 import org.junit.Test
+import java.time.Instant
+import java.time.LocalDate
 import java.util.*
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
@@ -58,6 +63,4 @@ class TrustlyAccountCreatedUpCasterTest {
     assertEquals(eventData.getTimestamp(), firstEvent.getTimestamp())
     assertEquals(metaData, firstEvent.getMetaData().getObject())
   }
-
-
 }

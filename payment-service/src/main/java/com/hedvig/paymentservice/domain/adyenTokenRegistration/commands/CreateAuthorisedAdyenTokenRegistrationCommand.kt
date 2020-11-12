@@ -10,5 +10,7 @@ data class CreateAuthorisedAdyenTokenRegistrationCommand(
   val adyenTokenRegistrationId: UUID,
   val memberId: String,
   val adyenMerchantInfo: AdyenMerchantInfo,
-  val adyenPaymentsResponse: AdyenPaymentsResponse
+  val adyenPaymentsResponse: AdyenPaymentsResponse,
+  val isPayoutSetup: Boolean = false,
+  val shopperReference: String
 )

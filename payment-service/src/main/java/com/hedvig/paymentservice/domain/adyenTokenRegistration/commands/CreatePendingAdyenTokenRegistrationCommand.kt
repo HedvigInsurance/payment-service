@@ -11,5 +11,7 @@ data class CreatePendingAdyenTokenRegistrationCommand(
   val memberId: String,
   val adyenMerchantInfo: AdyenMerchantInfo,
   val adyenPaymentsResponse: AdyenPaymentsResponse,
-  val paymentDataFromAction: String
+  val paymentDataFromAction: String,
+  val isPayoutSetup: Boolean = false,
+  val shopperReference: String
 )

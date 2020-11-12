@@ -30,6 +30,21 @@ class AdyenNotificationController(
         if (item.notificationItem?.eventCode?.toUpperCase() == AUTHORISATION) {
           adyenService.handleAuthorisationNotification(item.notificationItem!!)
         }
+        if (item.notificationItem?.eventCode?.toUpperCase() == RECURRING_CONTRACT) {
+          adyenService.handleRecurringContractNotification(item.notificationItem!!)
+        }
+        if (item.notificationItem?.eventCode?.toUpperCase() == PAYOUT_THIRDPARTY) {
+          adyenService.handlePayoutThirdPartyNotification(item.notificationItem!!)
+        }
+        if (item.notificationItem?.eventCode?.toUpperCase() == PAYOUT_DECLINE) {
+          adyenService.handlePayoutDeclinedNotification(item.notificationItem!!)
+        }
+        if (item.notificationItem?.eventCode?.toUpperCase() == PAYOUT_EXPIRE) {
+          adyenService.handlePayoutExpireNotification(item.notificationItem!!)
+        }
+        if (item.notificationItem?.eventCode?.toUpperCase() == PAIDOUT_REVERSED) {
+          adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
+        }
       } catch (e: Exception) {
         logger.error("Cannot process notification [Type: $CAPTURE_FAILED] [Exception: $e]")
       }
@@ -44,5 +59,10 @@ class AdyenNotificationController(
     val logger = LoggerFactory.getLogger(this.javaClass)!!
     const val CAPTURE_FAILED = "CAPTURE_FAILED"
     const val AUTHORISATION = "AUTHORISATION"
+    const val RECURRING_CONTRACT = "RECURRING_CONTRACT"
+    const val PAYOUT_THIRDPARTY = "PAYOUT_THIRDPARTY"
+    const val PAYOUT_DECLINE = "PAYOUT_DECLINE"
+    const val PAYOUT_EXPIRE = "PAYOUT_EXPIRE"
+    const val PAIDOUT_REVERSED = "PAIDOUT_REVERSED"
   }
 }
