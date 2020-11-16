@@ -53,10 +53,10 @@ public class PaymentService {
                     request.getCreatedBy()
                 ));
         } catch (AggregateNotFoundException exception) {
-            logger.info("No aggregate found for member" + request.getMemberId() +  "assume direct debit is not connected");
+            logger.error("No aggregate found for member" + request.getMemberId() +  "assume member has not connected their direct debit or card");
             return new ChargeMemberResult(
                 transactionId,
-                ChargeMemberResultType.NO_DIRECT_DEBIT
+                ChargeMemberResultType.NO_PAYIN_METHOD_FOUND
             );
         }
     }
