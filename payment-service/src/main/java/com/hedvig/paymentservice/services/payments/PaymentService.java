@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.payments;
 
+import com.adyen.service.Payment;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
@@ -17,6 +18,8 @@ import java.util.UUID;
 import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.model.AggregateNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +27,8 @@ public class PaymentService {
 
     private final CommandGateway commandGateway;
     private final UUIDGenerator uuidGenerator;
+
+    private static Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
     public PaymentService(CommandGateway commandGateway, UUIDGenerator uuidGenerator) {
         this.commandGateway = commandGateway;
@@ -48,6 +53,7 @@ public class PaymentService {
                     request.getCreatedBy()
                 ));
         } catch (AggregateNotFoundException exception) {
+            logger.info("No aggregate found for member" + request.getMemberId() +  "assume direct debit is not connected");
             return new ChargeMemberResult(
                 transactionId,
                 ChargeMemberResultType.NO_DIRECT_DEBIT
