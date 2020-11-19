@@ -32,7 +32,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEven
 import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent.Companion.fromUpdateTrustlyAccountCmd
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
@@ -54,8 +54,8 @@ class Member() {
     lateinit var id: String
 
     var transactions: MutableList<Transaction> = ArrayList()
-    var latestTrustlyAccountId: String? = null
-    var trustlyAccounts: MutableMap<String, DirectDebitStatus?> = mutableMapOf()
+    var latestHedvigOrderId: UUID? = null
+    var trustlyAccountsBasedOnHedvigOrderId: MutableMap<UUID, TrustlyAccount?> = mutableMapOf()
     var adyenAccount: AdyenAccount? = null
     var adyenPayoutAccount: AdyenPayoutAccount? = null
 
@@ -85,7 +85,7 @@ class Member() {
             return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
         }
 
-        if (trustlyAccounts.isEmpty() && adyenAccount == null) {
+        if (trustlyAccountsBasedOnHedvigOrderId.isEmpty() && adyenAccount == null) {
             log.info("Cannot charge account - no account set up ${cmd.memberId}")
             failChargeCreation(
                 memberId = id,
@@ -97,7 +97,7 @@ class Member() {
             return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
         }
 
-        if (trustlyAccounts.isNotEmpty() && trustlyAccounts[latestTrustlyAccountId] != DirectDebitStatus.CONNECTED) {
+        if (trustlyAccountsBasedOnHedvigOrderId.isNotEmpty() && trustlyAccountsBasedOnHedvigOrderId[latestHedvigOrderId]!!.directDebitStatus != DirectDebitStatus.CONNECTED) {
             log.info("Cannot charge account - direct debit mandate not received in Trustly ${cmd.memberId}")
             failChargeCreation(
                 memberId = id,
@@ -128,11 +128,11 @@ class Member() {
                 amount = cmd.amount,
                 timestamp = cmd.timestamp,
                 providerId = when {
-                    latestTrustlyAccountId != null -> latestTrustlyAccountId!!
+                    trustlyAccountsBasedOnHedvigOrderId[latestHedvigOrderId] != null -> trustlyAccountsBasedOnHedvigOrderId[latestHedvigOrderId]!!.accountId
                     adyenAccount?.recurringDetailReference != null -> adyenAccount!!.recurringDetailReference
                     else -> throw IllegalStateException("ChargeCreatedEvent failed. Cannot find providerId. [MemberId: $id] [TransactionId: ${cmd.transactionId}]")
                 },
-                provider = if (latestTrustlyAccountId != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
+                provider = if (latestHedvigOrderId != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
                 email = cmd.email,
                 createdBy = cmd.createdBy
             )
@@ -142,7 +142,7 @@ class Member() {
 
     @CommandHandler
     fun cmd(cmd: CreatePayoutCommand): Boolean {
-        if (trustlyAccounts.isNotEmpty()) {
+        if (trustlyAccountsBasedOnHedvigOrderId.isNotEmpty()) {
             apply(
                 PayoutCreatedEvent(
                     memberId = id,
@@ -154,7 +154,7 @@ class Member() {
                     firstName = cmd.firstName,
                     lastName = cmd.lastName,
                     timestamp = cmd.timestamp,
-                    trustlyAccountId = latestTrustlyAccountId,
+                    trustlyAccountId = trustlyAccountsBasedOnHedvigOrderId[latestHedvigOrderId]!!.accountId,
                     category = cmd.category,
                     referenceId = cmd.referenceId,
                     note = cmd.note,
@@ -197,7 +197,7 @@ class Member() {
 
     @CommandHandler
     fun cmd(cmd: UpdateTrustlyAccountCommand) {
-        if (shouldCreateNewTrustlyAccount(newAccountId = cmd.accountId)) {
+        if (shouldCreateNewTrustlyAccount(cmd.hedvigOrderId)) {
             apply(
                 TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(
                     id,
@@ -206,7 +206,7 @@ class Member() {
             )
         } else {
             apply(
-                fromUpdateTrustlyAccountCmd(
+                TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCmd(
                     id,
                     cmd
                 )
@@ -427,24 +427,28 @@ class Member() {
 
     @EventSourcingHandler
     fun on(e: TrustlyAccountCreatedEvent) {
-        latestTrustlyAccountId = e.trustlyAccountId
-        trustlyAccounts[e.trustlyAccountId] = null
+        latestHedvigOrderId = e.hedvigOrderId
+        trustlyAccountsBasedOnHedvigOrderId[e.hedvigOrderId] =
+            TrustlyAccount(accountId = e.trustlyAccountId, directDebitStatus = null)
     }
 
     @EventSourcingHandler
     fun on(e: DirectDebitConnectedEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.CONNECTED
+        trustlyAccountsBasedOnHedvigOrderId[UUID.fromString(e.hedvigOrderId)]!!.directDebitStatus =
+            DirectDebitStatus.CONNECTED
     }
 
     @EventSourcingHandler
     fun on(e: DirectDebitDisconnectedEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.DISCONNECTED
+        trustlyAccountsBasedOnHedvigOrderId[UUID.fromString(e.hedvigOrderId)]!!.directDebitStatus =
+            DirectDebitStatus.DISCONNECTED
     }
 
 
     @EventSourcingHandler
     fun on(e: DirectDebitPendingConnectionEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.PENDING
+        trustlyAccountsBasedOnHedvigOrderId[UUID.fromString(e.hedvigOrderId)]!!.directDebitStatus =
+            DirectDebitStatus.PENDING
     }
 
     @EventSourcingHandler
@@ -497,7 +501,7 @@ class Member() {
                 )
             )
         } else {
-            val latestDirectDebitStatus = trustlyAccounts[latestTrustlyAccountId]
+            val latestDirectDebitStatus = trustlyAccountsBasedOnHedvigOrderId[latestHedvigOrderId]?.directDebitStatus
             if (latestDirectDebitStatus == null || latestDirectDebitStatus == DirectDebitStatus.PENDING) {
                 apply(
                     DirectDebitPendingConnectionEvent(
@@ -528,11 +532,14 @@ class Member() {
         )
     }
 
-    fun shouldCreateNewTrustlyAccount(newAccountId: String): Boolean {
-        if (trustlyAccounts.isEmpty()) {
+    fun shouldCreateNewTrustlyAccount(hedvigOrderIdInQuestion: UUID): Boolean {
+        if (trustlyAccountsBasedOnHedvigOrderId.isEmpty()) {
             return true
         }
-        if (latestTrustlyAccountId!! != newAccountId && !trustlyAccounts.containsKey(latestTrustlyAccountId!!)) {
+        if (latestHedvigOrderId!! != hedvigOrderIdInQuestion && !trustlyAccountsBasedOnHedvigOrderId.containsKey(
+                hedvigOrderIdInQuestion
+            )
+        ) {
             return true
         }
         return false
