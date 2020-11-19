@@ -197,7 +197,15 @@ class Member() {
 
     @CommandHandler
     fun cmd(cmd: UpdateTrustlyAccountCommand) {
+        log.info(
+            "Start to create or update Trustly Account " +
+                "[memberId: ${cmd.memberId}] [accountId: ${cmd.accountId}] [orderId: ${cmd.hedvigOrderId}]"
+        )
         if (shouldCreateNewTrustlyAccount(cmd.hedvigOrderId)) {
+            log.info(
+                "Sending TrustlyAccountCreatedEvent" +
+                    "[memberId: ${cmd.memberId}] [accountId: ${cmd.accountId}] [orderId: ${cmd.hedvigOrderId}]"
+            )
             apply(
                 TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(
                     id,
@@ -205,6 +213,10 @@ class Member() {
                 )
             )
         } else {
+            log.info(
+                "Sending TrustlyAccountUpdatedEvent" +
+                    "[memberId: ${cmd.memberId}] [accountId: ${cmd.accountId}] [orderId: ${cmd.hedvigOrderId}]"
+            )
             apply(
                 TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCmd(
                     id,
@@ -534,14 +546,21 @@ class Member() {
 
     fun shouldCreateNewTrustlyAccount(hedvigOrderIdInQuestion: UUID): Boolean {
         if (trustlyAccountsBasedOnHedvigOrderId.isEmpty()) {
-            return true
-        }
-        if (latestHedvigOrderId!! != hedvigOrderIdInQuestion && !trustlyAccountsBasedOnHedvigOrderId.containsKey(
-                hedvigOrderIdInQuestion
+            log.info(
+                "[shouldCreateNewTrustlyAccountMap] Map is empty, returning true [orderId: ${hedvigOrderIdInQuestion}]"
             )
-        ) {
             return true
         }
+        if (latestHedvigOrderId!! != hedvigOrderIdInQuestion && !trustlyAccountsBasedOnHedvigOrderId.containsKey(hedvigOrderIdInQuestion)
+        ) {
+            log.info(
+                "[shouldCreateNewTrustlyAccountMap] Not the latest hedvigOrderId and is not in the map, returning true [orderId: ${hedvigOrderIdInQuestion}]"
+            )
+            return true
+        }
+        log.info(
+            "[shouldCreateNewTrustlyAccountMap] Returning false [orderId: ${hedvigOrderIdInQuestion}]"
+        )
         return false
     }
 
