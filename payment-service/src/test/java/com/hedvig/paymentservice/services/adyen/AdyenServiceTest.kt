@@ -1,0 +1,146 @@
+package com.hedvig.paymentservice.services.adyen
+
+import com.adyen.model.checkout.PaymentMethod
+import com.adyen.model.checkout.PaymentMethodsResponse
+import com.adyen.service.Checkout
+import com.adyen.service.Payout
+import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
+import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
+import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
+import com.hedvig.paymentservice.query.member.entities.MemberRepository
+import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
+import com.hedvig.paymentservice.services.adyen.dtos.AdyenMerchantInfo
+import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
+import com.neovisionaries.i18n.CountryCode
+import com.neovisionaries.i18n.CurrencyCode
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
+import org.assertj.core.api.Assertions.assertThat
+import org.axonframework.commandhandling.gateway.CommandGateway
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.springframework.test.context.junit4.SpringRunner
+
+@RunWith(SpringRunner::class)
+class AdyenServiceTest {
+
+    @MockkBean
+    lateinit var adyenCheckout: Checkout
+
+    @MockkBean
+    lateinit var adyenPayout: Payout
+
+    @MockkBean
+    lateinit var memberRepository: MemberRepository
+
+    @MockkBean
+    lateinit var uuidGenerator: UUIDGenerator
+
+    @MockkBean
+    lateinit var memberService: MemberService
+
+    @MockkBean
+    lateinit var commandGateway: CommandGateway
+
+    @MockkBean
+    lateinit var adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository
+
+    @MockkBean
+    lateinit var adyenTransactionRepository: AdyenTransactionRepository
+
+    @MockkBean
+    lateinit var adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository
+
+    @MockkBean
+    lateinit var adyenMerchantPicker: AdyenMerchantPicker
+
+
+    lateinit var adyenService: AdyenService
+
+    @Before
+    fun setup() {
+        adyenService = AdyenServiceImpl(
+            adyenCheckout,
+            adyenPayout,
+            adyenPayout,
+            memberRepository,
+            uuidGenerator,
+            memberService,
+            commandGateway,
+            adyenTokenRegistrationRepository,
+            adyenTransactionRepository,
+            adyenPayoutTransactionRepository,
+            returnUrl = "",
+            adyenMerchantPicker = adyenMerchantPicker,
+            allow3DS2 = true,
+            adyenPublicKey = ""
+        )
+    }
+
+    @Test
+    fun `expect that trustly will be excluded from payment methods if the merchant account includes them`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makePaymentMethodResponse()
+
+        val test = adyenService.getAvailablePaymentMethods("1234")
+
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .none { paymentMethod -> paymentMethod.type == "trustly" }
+            }
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .any { paymentMethod -> paymentMethod.type == "scheme" }
+            }
+    }
+
+    @Test
+    fun `expect that trustly will be excluded from payment methods if the merchant account does not include them`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makePaymentMethodResponse(isTrustlyIncluded = false)
+
+        val test = adyenService.getAvailablePaymentMethods("1234")
+
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .none { paymentMethod -> paymentMethod.type == "trustly" }
+            }
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .any { paymentMethod -> paymentMethod.type == "scheme" }
+            }
+    }
+
+    private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
+        val response = PaymentMethodsResponse()
+
+        val cardMethod = PaymentMethod().apply { type = "scheme" }
+        val trustlyyMethod = PaymentMethod().apply { type = "trustly" }
+        val applePayMethod = PaymentMethod().apply { type = "applepay" }
+
+        response.paymentMethods = listOf(cardMethod, applePayMethod)
+
+        if (isTrustlyIncluded)
+            response.paymentMethods = response.paymentMethods.plus(trustlyyMethod)
+
+        return response
+    }
+}

@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.services.adyen
 import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
+import com.adyen.model.checkout.PaymentMethod
 import com.adyen.model.checkout.PaymentMethodsRequest
 import com.adyen.model.checkout.PaymentMethodsResponse
 import com.adyen.model.checkout.PaymentsDetailsRequest
@@ -105,6 +106,8 @@ class AdyenServiceImpl(
             logger.error("Tokenization with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
             throw ex
         }
+        response.paymentMethods = excludeTrustlyFromAvailablePaymentMethods(response.paymentMethods)
+
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
@@ -609,10 +612,14 @@ class AdyenServiceImpl(
         commandGateway.sendAndWait<Void>(CreateMemberCommand(memberId))
     }
 
+    private fun excludeTrustlyFromAvailablePaymentMethods(listOfAvailablePaymentMethods: List<PaymentMethod>): List<PaymentMethod> =
+        listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }
+
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)
         const val ALLOW_3DS2: String = "allow3DS2"
         const val MD: String = "MD"
         const val PARES: String = "PaRes"
+        const val TRUSTLY: String = "trustly"
     }
 }
