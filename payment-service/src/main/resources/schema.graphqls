@@ -1,151 +1,153 @@
 schema {
-  query: Query
-  mutation: Mutation
+    query: Query
+    mutation: Mutation
 }
 
 type Query {
-  bankAccount: BankAccount
-  chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
-  nextChargeDate: LocalDate
-  registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
-  directDebitStatus: DirectDebitStatus!  @deprecated(reason: "Use `payinMethodStatus`")
-  """Returns the status for the payin method (Trustly's direct debit for Sweden) (Adyen for Norway)"""
-  payinMethodStatus: PayinMethodStatus!
-  """Returns all the available payments methods before the client requests a tokenization"""
-  availablePaymentMethods: AvailablePaymentMethodsResponse!
-  """Returns the active payment method which the member chose to tokenize"""
-  activePaymentMethods: ActivePaymentMethodsResponse
-  adyenPublicKey: String!
+    bankAccount: BankAccount
+    chargeDate: LocalDate! @deprecated(reason: "Use `nextChargeDate`")
+    nextChargeDate: LocalDate
+    registerAccountProcessingStatus : RegisterAccountProcessingStatus! @deprecated(reason: "Use `directDebitStatus`")
+    directDebitStatus: DirectDebitStatus!  @deprecated(reason: "Use `payinMethodStatus`")
+    """Returns the status for the payin method (Trustly's direct debit for Sweden) (Adyen for Norway)"""
+    payinMethodStatus: PayinMethodStatus!
+    """Returns all the available payments methods before the client requests a tokenization"""
+    availablePaymentMethods: AvailablePaymentMethodsResponse!
+    """Returns the active payment method which the member chose to tokenize"""
+    activePaymentMethods: ActivePaymentMethodsResponse
+    adyenPublicKey: String!
+    """Returns all the available payouts methods before the client requests a payout tokenization"""
+    availablePayoutMethods: AvailablePaymentMethodsResponse!
 }
 
 type Mutation {
-  registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
-  cancelDirectDebitRequest : CancelDirectDebitStatus!
-  """Tokenize payment details per member in order to be used in future and returns the status"""
-  tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
-  """Tokenize payout details per member in order to be used in future and returns the status"""
-  tokenizePayoutDetails (req: TokenizationRequest) : TokenizationResponse
-  """Submite additional payment details"""
-  submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
-  submitAdyenRedirection(req: SubmitAdyenRedirectionRequest): SubmitAdyenRedirectionResponse!
+    registerDirectDebit(clientContext: RegisterDirectDebitClientContext): DirectDebitResponse!
+    cancelDirectDebitRequest : CancelDirectDebitStatus!
+    """Tokenize payment details per member in order to be used in future and returns the status"""
+    tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
+    """Tokenize payout details per member in order to be used in future and returns the status"""
+    tokenizePayoutDetails (req: TokenizationRequest) : TokenizationResponse
+    """Submite additional payment details"""
+    submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
+    submitAdyenRedirection(req: SubmitAdyenRedirectionRequest): SubmitAdyenRedirectionResponse!
 }
 
 type AvailablePaymentMethodsResponse {
-  paymentMethodsResponse: PaymentMethodsResponse!
+    paymentMethodsResponse: PaymentMethodsResponse!
 }
 
 type ActivePaymentMethodsResponse {
-  storedPaymentMethodsDetails: StoredPaymentMethodsDetails!
+    storedPaymentMethodsDetails: StoredPaymentMethodsDetails!
 }
 
 input TokenizationRequest{
-  paymentMethodDetails: PaymentMethodDetails!
-  channel: TokenizationChannel!
-  browserInfo: BrowserInfo,
-  returnUrl: String!
+    paymentMethodDetails: PaymentMethodDetails!
+    channel: TokenizationChannel!
+    browserInfo: BrowserInfo,
+    returnUrl: String!
 }
 
 enum TokenizationChannel{
-  ANDROID
-  IOS
-  WEB
+    ANDROID
+    IOS
+    WEB
 }
 
 input BrowserInfo{
-  userAgent: String!
-  acceptHeader: String!
-  language: String!
-  colorDepth: Int!
-  screenHeight: Int!
-  screenWidth: Int!
-  timeZoneOffset: Int!
-  javaEnabled: Boolean!
+    userAgent: String!
+    acceptHeader: String!
+    language: String!
+    colorDepth: Int!
+    screenHeight: Int!
+    screenWidth: Int!
+    timeZoneOffset: Int!
+    javaEnabled: Boolean!
 }
 
 input AdditionalPaymentsDetailsRequest{
-  paymentsDetailsRequest: PaymentsDetailsRequest!
+    paymentsDetailsRequest: PaymentsDetailsRequest!
 }
 
 input SubmitAdyenRedirectionRequest{
-  md: String!,
-  pares: String!
+    md: String!,
+    pares: String!
 }
 
 
 union TokenizationResponse = TokenizationResponseFinished | TokenizationResponseAction
 
 type TokenizationResponseFinished {
-  resultCode: String!
+    resultCode: String!
 }
 
 type TokenizationResponseAction {
-  action: CheckoutPaymentsAction!
+    action: CheckoutPaymentsAction!
 }
 
 union AdditionalPaymentsDetailsResponse = AdditionalPaymentsDetailsResponseFinished | AdditionalPaymentsDetailsResponseAction
 
 type AdditionalPaymentsDetailsResponseFinished {
-  resultCode: String!
+    resultCode: String!
 }
 
 type AdditionalPaymentsDetailsResponseAction {
-  action: CheckoutPaymentsAction!
+    action: CheckoutPaymentsAction!
 }
 
 type SubmitAdyenRedirectionResponse{
-  resultCode: String!
+    resultCode: String!
 }
 
 type StoredPaymentMethodsDetails{
-  id: String!
-  cardName: String
-  brand: String
-  lastFourDigits: String!
-  expiryMonth: String!
-  expiryYear: String!
-  holderName: String
+    id: String!
+    cardName: String
+    brand: String
+    lastFourDigits: String!
+    expiryMonth: String!
+    expiryYear: String!
+    holderName: String
 }
 
 type BankAccount {
-  bankName: String!
-  descriptor: String!
-  directDebitStatus: DirectDebitStatus
+    bankName: String!
+    descriptor: String!
+    directDebitStatus: DirectDebitStatus
 }
 
 input RegisterDirectDebitClientContext {
-  successUrl: String!
-  failureUrl: String!
+    successUrl: String!
+    failureUrl: String!
 }
 
 type DirectDebitResponse {
-  url: String!,
-  orderId: String!
+    url: String!,
+    orderId: String!
 }
 
 enum PayinMethodStatus{
-  ACTIVE
-  PENDING
-  NEEDS_SETUP
+    ACTIVE
+    PENDING
+    NEEDS_SETUP
 }
 enum DirectDebitStatus {
-  ACTIVE
-  PENDING
-  NEEDS_SETUP
+    ACTIVE
+    PENDING
+    NEEDS_SETUP
 }
 
 enum RegisterAccountProcessingStatus {
-  NOT_INITIATED
-  INITIATED
-  REQUESTED
-  IN_PROGRESS
-  CONFIRMED
-  CANCELLED
+    NOT_INITIATED
+    INITIATED
+    REQUESTED
+    IN_PROGRESS
+    CONFIRMED
+    CANCELLED
 }
 
 enum CancelDirectDebitStatus {
-  ACCEPTED
-  DECLINED_MISSING_TOKEN
-  DECLINED_MISSING_REQUEST
+    ACCEPTED
+    DECLINED_MISSING_TOKEN
+    DECLINED_MISSING_REQUEST
 }
 
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`

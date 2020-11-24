@@ -36,7 +36,7 @@ class GraphQlQueryTest {
 
   @Test
   fun availablePaymentMethods() {
-    Mockito.`when`(adyenService.getAvailablePaymentMethods(Mockito.anyString()))
+    Mockito.`when`(adyenService.getAvailablePayinMethods(Mockito.anyString()))
       .thenReturn(
         AvailablePaymentMethodsResponse(
           PaymentMethodsResponse()
