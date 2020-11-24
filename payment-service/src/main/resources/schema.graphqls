@@ -17,7 +17,7 @@ type Query {
     activePaymentMethods: ActivePaymentMethodsResponse
     adyenPublicKey: String!
     """Returns all the available payouts methods before the client requests a payout tokenization"""
-    availablePayoutsMethods: AvailablePaymentMethodsResponse!
+    availablePayoutMethods: AvailablePaymentMethodsResponse!
 }
 
 type Mutation {

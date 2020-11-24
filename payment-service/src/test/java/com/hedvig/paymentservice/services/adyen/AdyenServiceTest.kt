@@ -90,7 +90,7 @@ class AdyenServiceTest {
         every { adyenCheckout.paymentMethods(any()) } returns
             makePaymentMethodResponse()
 
-        val test = adyenService.getAvailablePaymentMethods("1234")
+        val test = adyenService.getAvailablePayinMethods("1234")
 
         assertThat(test.paymentMethodsResponse)
             .matches { paymentMethodsResponse ->
@@ -115,7 +115,7 @@ class AdyenServiceTest {
         every { adyenCheckout.paymentMethods(any()) } returns
             makePaymentMethodResponse(isTrustlyIncluded = false)
 
-        val test = adyenService.getAvailablePaymentMethods("1234")
+        val test = adyenService.getAvailablePayinMethods("1234")
 
         assertThat(test.paymentMethodsResponse)
             .matches { paymentMethodsResponse ->

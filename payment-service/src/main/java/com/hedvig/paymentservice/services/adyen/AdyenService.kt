@@ -16,7 +16,7 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 interface AdyenService {
-    fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse
+    fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse
     fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse
     fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
     fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse

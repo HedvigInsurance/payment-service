@@ -91,43 +91,15 @@ class AdyenServiceImpl(
     @param:Value("\${hedvig.adyen.public.key}")
     val adyenPublicKey: String
 ) : AdyenService {
-    override fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse {
-        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
-
-        val paymentMethodsRequest = PaymentMethodsRequest()
-            .merchantAccount(adyenMerchantInfo.account)
-            .countryCode(adyenMerchantInfo.countryCode.alpha2)
-            .channel(PaymentMethodsRequest.ChannelEnum.WEB)
-
-        val response: PaymentMethodsResponse
-        try {
-            response = adyenCheckout.paymentMethods(paymentMethodsRequest)
-        } catch (ex: Exception) {
-            logger.error("Tokenization with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
-            throw ex
-        }
+    override fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse {
+        val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
         response.paymentMethods = excludeTrustlyFromAvailablePaymentMethods(response.paymentMethods)
-
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
     override fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse {
-        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
-
-        val paymentMethodsRequest = PaymentMethodsRequest()
-            .merchantAccount(adyenMerchantInfo.account)
-            .countryCode(adyenMerchantInfo.countryCode.alpha2)
-            .channel(PaymentMethodsRequest.ChannelEnum.WEB)
-
-        val response: PaymentMethodsResponse
-        try {
-            response = adyenCheckout.paymentMethods(paymentMethodsRequest)
-        } catch (ex: Exception) {
-            logger.error("Tokenization with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
-            throw ex
-        }
+        val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
         response.paymentMethods = includeOnlyTrustlyFromAvailablePayoutMethods(response.paymentMethods)
-
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
@@ -630,6 +602,22 @@ class AdyenServiceImpl(
             return
         }
         commandGateway.sendAndWait<Void>(CreateMemberCommand(memberId))
+    }
+
+    private fun getAvailablePaymentMethods(memberId: String): PaymentMethodsResponse {
+        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
+        val paymentMethodsRequest = PaymentMethodsRequest()
+            .merchantAccount(adyenMerchantInfo.account)
+            .countryCode(adyenMerchantInfo.countryCode.alpha2)
+            .channel(PaymentMethodsRequest.ChannelEnum.WEB)
+
+        return try {
+            adyenCheckout.paymentMethods(paymentMethodsRequest)
+        } catch (ex: Exception) {
+            logger.error("Fetching available payment methods with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
+            throw ex
+        }
     }
 
     private fun includeOnlyTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
