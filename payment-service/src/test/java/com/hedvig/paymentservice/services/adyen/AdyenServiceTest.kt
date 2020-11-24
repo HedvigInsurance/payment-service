@@ -129,6 +129,48 @@ class AdyenServiceTest {
             }
     }
 
+    @Test
+    fun `expect only trustly will be included in the payout methods if the merchant account includes them`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makePaymentMethodResponse(isTrustlyIncluded = true)
+
+        val test = adyenService.getAvailablePayoutMethods("1234")
+
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .any { paymentMethod -> paymentMethod.type == "trustly" }
+            }
+        assertThat(test.paymentMethodsResponse.paymentMethods.size).isEqualTo(1)
+        assertThat(test.paymentMethodsResponse)
+            .matches { paymentMethodsResponse ->
+                paymentMethodsResponse.paymentMethods
+                    .none { paymentMethod -> paymentMethod.type == "scheme" }
+            }
+    }
+
+    @Test
+    fun `expect empty list of payout methods if the merchant account doesnt include trustly`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makePaymentMethodResponse(isTrustlyIncluded = false)
+
+        val test = adyenService.getAvailablePayoutMethods("1234")
+
+        assertThat(test.paymentMethodsResponse.paymentMethods.size).isEqualTo(0)
+    }
+
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
         val response = PaymentMethodsResponse()
 

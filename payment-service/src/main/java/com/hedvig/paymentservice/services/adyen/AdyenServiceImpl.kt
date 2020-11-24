@@ -111,6 +111,26 @@ class AdyenServiceImpl(
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
+    override fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse {
+        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+
+        val paymentMethodsRequest = PaymentMethodsRequest()
+            .merchantAccount(adyenMerchantInfo.account)
+            .countryCode(adyenMerchantInfo.countryCode.alpha2)
+            .channel(PaymentMethodsRequest.ChannelEnum.WEB)
+
+        val response: PaymentMethodsResponse
+        try {
+            response = adyenCheckout.paymentMethods(paymentMethodsRequest)
+        } catch (ex: Exception) {
+            logger.error("Tokenization with Adyen exploded 💥 [Request: $paymentMethodsRequest] [Exception: $ex]")
+            throw ex
+        }
+        response.paymentMethods = includeOnlyTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+
+        return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
+    }
+
     override fun tokenizePaymentDetails(
         req: TokenizationRequest,
         memberId: String,
@@ -611,6 +631,9 @@ class AdyenServiceImpl(
         }
         commandGateway.sendAndWait<Void>(CreateMemberCommand(memberId))
     }
+
+    private fun includeOnlyTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
+        listOfAvailablePayoutMethods.filter { it.type.toLowerCase() == TRUSTLY }
 
     private fun excludeTrustlyFromAvailablePaymentMethods(listOfAvailablePaymentMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }
