@@ -9,6 +9,8 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration;
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market;
+import com.hedvig.paymentservice.util.ChargeUtilKt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,25 +59,8 @@ public class BankAccountServiceImpl implements BankAccountService {
             return null;
         }
 
-        LocalDate today = LocalDate.now(ZoneId.of("Europe/Stockholm"));
-        YearMonth currentPeriod = YearMonth.of(today.getYear(), today.getMonth());
-        LocalDate chargeDateCurrentPeriod = getChargeDateOfPeriod(currentPeriod);
-        if (!today.isAfter(chargeDateCurrentPeriod)) {
-            return chargeDateCurrentPeriod;
-        }
-        return getChargeDateOfPeriod(currentPeriod.plusMonths(1));
-    }
-
-    //TODO: Handle red days
-    static LocalDate getChargeDateOfPeriod(YearMonth period) {
-        LocalDate chargeDateThisMonth = period.atDay(27);
-        if (chargeDateThisMonth.getDayOfWeek() == DayOfWeek.SATURDAY) {
-            chargeDateThisMonth = chargeDateThisMonth.plusDays(2);
-        }
-        if (chargeDateThisMonth.getDayOfWeek() == DayOfWeek.SUNDAY) {
-            chargeDateThisMonth = chargeDateThisMonth.plusDays(1);
-        }
-        return chargeDateThisMonth;
+        Market market = productPricingService.getContractMarketInfo(memberId).getMarket();
+        return ChargeUtilKt.getNextChargeChargeDate(market);
     }
 
     public com.hedvig.paymentservice.graphQl.types.DirectDebitStatus getDirectDebitStatus(String memberId) {
