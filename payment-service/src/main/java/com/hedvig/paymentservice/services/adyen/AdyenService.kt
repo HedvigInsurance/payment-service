@@ -16,28 +16,29 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 interface AdyenService {
-  fun getAvailablePaymentMethods(memberId: String): AvailablePaymentMethodsResponse
-  fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
-  fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
-  fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
-  fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
-  fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
-  fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
-  fun fetchAdyenPublicKey(): String
-  fun handleSettlementErrorNotification(adyenTransactionId: UUID)
-  fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
-  fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
-  fun startPayoutTransaction(
-    memberId: String,
-    payoutReference: String,
-    amount: MonetaryAmount,
-    shopperReference: String,
-    shopperEmail: String
-  ): SubmitResponse
+    fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse
+    fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse
+    fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+    fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+    fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
+    fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
+    fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
+    fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
+    fun fetchAdyenPublicKey(): String
+    fun handleSettlementErrorNotification(adyenTransactionId: UUID)
+    fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
+    fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem)
+    fun startPayoutTransaction(
+        memberId: String,
+        payoutReference: String,
+        amount: MonetaryAmount,
+        shopperReference: String,
+        shopperEmail: String
+    ): SubmitResponse
 
-  fun confirmPayout(payoutReference: String, memberId: String): ConfirmThirdPartyResponse
-  fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem)
-  fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem)
-  fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem)
-  fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem)
+    fun confirmPayout(payoutReference: String, memberId: String): ConfirmThirdPartyResponse
+    fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem)
+    fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem)
+    fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem)
+    fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem)
 }
