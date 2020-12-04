@@ -3,7 +3,7 @@
 # Push only if it's not a pull request
 if [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   # Push only if we're testing the master branch
-  if [ "$TRAVIS_BRANCH" == "master" ]  || [ "$TRAVIS_BRANCH" == "feature/member-has-payment-method-connected" ]; then
+  if [ "$TRAVIS_BRANCH" == "master" ]  || [ "$TRAVIS_BRANCH" == "feature/add-active-payout-methods-query" ]; then
     aws s3 cp s3://dev-com-hedvig-cluster-ett-data/kube ~/.kube --recursive
 
     curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
