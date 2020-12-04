@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
@@ -112,9 +113,15 @@ class MemberControllerV2(
     ): ResponseEntity<List<String>> =
         ResponseEntity.ok(memberService.getMembersByPayinProvider(payinProvider))
 
+    @GetMapping("{memberId}/connected/payment/{market}")
+    fun memberHasPaymentConnected(
+        @PathVariable memberId: String,
+        @PathVariable market: Market
+    ): ResponseEntity<Boolean> =
+        ResponseEntity.ok(memberService.hasMemberConnectedPaymentForMarket(memberId, market))
+
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
     }
-
 }
 

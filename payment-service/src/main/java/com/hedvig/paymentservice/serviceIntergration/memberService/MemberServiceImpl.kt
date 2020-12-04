@@ -4,6 +4,7 @@ import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientResponseException
@@ -47,6 +48,34 @@ class MemberServiceImpl(
       }
     }.map { it.id }
   }
+
+    override fun hasMemberConnectedPaymentForMarket(memberId: String, market: Market): Boolean {
+        val memberMaybe = memberRepository.findById(memberId)
+
+        if (memberMaybe.isEmpty) {
+            log.error("Error requesting if member has connected payment option for member $memberId as no member was found")
+            return false
+        }
+
+        val member = memberMaybe.get()
+
+        when(market) {
+//            Market.NORWAY -> {
+//                if (member.adyenRecurringDetailReference != null) {
+//                    return true
+//                }
+//            }
+            Market.SWEDEN -> {
+            if (member.directDebitStatus != DirectDebitStatus.CONNECTED
+                || member.trustlyAccountNumber == null) {
+                    return false
+                }
+            }
+            else -> return true
+        }
+
+        return true
+    }
 
   companion object {
     private val log = LoggerFactory.getLogger(MemberServiceImpl::class.java)
