@@ -10,6 +10,7 @@ import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsRequest.RecurringProcessingModelEnum
 import com.adyen.model.checkout.PaymentsResponse
+import com.adyen.model.checkout.StoredPaymentMethod
 import com.adyen.model.payout.ConfirmThirdPartyRequest
 import com.adyen.model.payout.ConfirmThirdPartyResponse
 import com.adyen.model.payout.SubmitRequest
@@ -447,31 +448,27 @@ class AdyenServiceImpl(
         return paymentsResponse
     }
 
-    override fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse? {
-        val adyenMerchantInfo = try {
-            adyenMerchantPicker.getAdyenMerchantInfo(memberId)
-        } catch (e: NoMerchantAccountForMarket) {
-            return null
-        }
+    override fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse? {
+        val activePaymentMethods = getActivePaymentMethodsResponse(memberId) ?: return null
 
-        val paymentMethodsRequest = PaymentMethodsRequest()
-            .merchantAccount(adyenMerchantInfo.account)
-            .shopperReference(memberId)
-
-        val adyenResponse: PaymentMethodsResponse
-        try {
-            adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
-        } catch (ex: Exception) {
-            logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest] [Exception: $ex]")
-            throw ex
-        }
-
-        if (adyenResponse.storedPaymentMethods == null || adyenResponse.storedPaymentMethods.isEmpty()) {
-            return null
-        }
+        val activePaymentMethodWithoutTrustly = excludeTrustlyFromActivePaymentMethods(activePaymentMethods).first()
 
         return ActivePaymentMethodsResponse(
-            storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(adyenResponse.storedPaymentMethods.first())
+            storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(
+                activePaymentMethodWithoutTrustly
+            )
+        )
+    }
+
+    override fun getActivePayoutMethods(memberId: String): ActivePaymentMethodsResponse? {
+        val activePaymentMethods = getActivePaymentMethodsResponse(memberId) ?: return null
+
+        val activePaymentMethodWithoutTrustly = includeOnlyTrustlyFromActivePayoutMethods(activePaymentMethods).first()
+
+        return ActivePaymentMethodsResponse(
+            storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(
+                activePaymentMethodWithoutTrustly
+            )
         )
     }
 
@@ -620,10 +617,41 @@ class AdyenServiceImpl(
         }
     }
 
+    private fun getActivePaymentMethodsResponse(memberId: String): List<StoredPaymentMethod>? {
+        val adyenMerchantInfo = try {
+            adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+        } catch (e: NoMerchantAccountForMarket) {
+            return null
+        }
+
+        val paymentMethodsRequest = PaymentMethodsRequest()
+            .merchantAccount(adyenMerchantInfo.account)
+            .shopperReference(memberId)
+
+        val adyenResponse = try {
+            adyenCheckout.paymentMethods(paymentMethodsRequest)
+        } catch (ex: Exception) {
+            logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest] [Exception: $ex]")
+            throw ex
+        }
+
+        if (adyenResponse.storedPaymentMethods == null || adyenResponse.storedPaymentMethods.isEmpty()) {
+            return null
+        }
+
+        return adyenResponse.storedPaymentMethods
+    }
+
     private fun includeOnlyTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePayoutMethods.filter { it.type.toLowerCase() == TRUSTLY }
 
     private fun excludeTrustlyFromAvailablePaymentMethods(listOfAvailablePaymentMethods: List<PaymentMethod>): List<PaymentMethod> =
+        listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }
+
+    private fun includeOnlyTrustlyFromActivePayoutMethods(listOfAvailablePayoutMethods: List<StoredPaymentMethod>): List<StoredPaymentMethod> =
+        listOfAvailablePayoutMethods.filter { it.type.toLowerCase() == TRUSTLY }
+
+    private fun excludeTrustlyFromActivePaymentMethods(listOfAvailablePaymentMethods: List<StoredPaymentMethod>): List<StoredPaymentMethod> =
         listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }
 
     companion object {

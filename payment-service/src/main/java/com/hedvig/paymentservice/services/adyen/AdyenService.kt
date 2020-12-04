@@ -21,7 +21,8 @@ interface AdyenService {
     fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
     fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
     fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
-    fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
+    fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse?
+    fun getActivePayoutMethods(memberId: String): ActivePaymentMethodsResponse?
     fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
     fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
     fun fetchAdyenPublicKey(): String

@@ -70,7 +70,18 @@ class Query(
             logger.error("activePaymentMethods - hedvig.token is missing")
             return null
         }
-        return adyenService.getActivePaymentMethods(memberId)
+        return adyenService.getActivePayinMethods(memberId)
+    }
+
+    fun activePayoutMethods(
+        env: DataFetchingEnvironment
+    ): ActivePaymentMethodsResponse? {
+        val memberId: String? = env.getTokenOrNull()
+        if (memberId == null) {
+            logger.error("activePayoutMethods - hedvig.token is missing")
+            return null
+        }
+        return adyenService.getActivePayoutMethods(memberId)
     }
 
     fun adyenPublicKey(
