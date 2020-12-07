@@ -165,6 +165,33 @@ class MemberServiceImplTest {
         assertThat(result).isFalse()
     }
 
+    @Test
+    fun `if market is Norway return false if direct debit status is not connected`() {
+        val member = buildMemberEntity(
+            directDebitStatus = DirectDebitStatus.PENDING
+        )
+
+        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
+
+        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
+
+        assertThat(result).isFalse()
+    }
+
+    @Test
+    fun `if market is Norway return true if direct debit status is connected`() {
+        val member = buildMemberEntity(
+            adyenRecurringDetailReference = "5463",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
+
+        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
+
+        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
+
+        assertThat(result).isTrue()
+    }
+
     private fun buildMemberEntity(
         id: String = "321",
         trustlyAccountNumber: String? = null,
