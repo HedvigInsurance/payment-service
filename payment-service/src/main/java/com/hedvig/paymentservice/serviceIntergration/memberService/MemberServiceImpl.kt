@@ -60,7 +60,8 @@ class MemberServiceImpl(
         val member = memberMaybe.get()
 
         when(market) {
-            Market.NORWAY -> {
+            Market.NORWAY,
+            Market.DENMARK -> {
                 if (member.adyenRecurringDetailReference == null) {
                     return false
                 }
@@ -71,7 +72,6 @@ class MemberServiceImpl(
                     return false
                 }
             }
-            else -> return true
         }
         return true
     }
