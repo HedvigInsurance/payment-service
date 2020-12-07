@@ -192,6 +192,15 @@ class MemberServiceImplTest {
         assertThat(result).isTrue()
     }
 
+    @Test
+    fun `if member is null return false`() {
+
+        whenever(memberRepository.findById("222")).thenReturn(Optional.empty())
+
+        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
+
+        assertThat(result).isFalse()
+    }
     private fun buildMemberEntity(
         id: String = "321",
         trustlyAccountNumber: String? = null,
