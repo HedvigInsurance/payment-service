@@ -60,11 +60,11 @@ class MemberServiceImpl(
         val member = memberMaybe.get()
 
         when(market) {
-//            Market.NORWAY -> {
-//                if (member.adyenRecurringDetailReference != null) {
-//                    return true
-//                }
-//            }
+            Market.NORWAY -> {
+                if (member.adyenRecurringDetailReference == null) {
+                    return false
+                }
+            }
             Market.SWEDEN -> {
             if (member.directDebitStatus != DirectDebitStatus.CONNECTED
                 || member.trustlyAccountNumber == null) {
@@ -73,7 +73,6 @@ class MemberServiceImpl(
             }
             else -> return true
         }
-
         return true
     }
 
