@@ -451,7 +451,7 @@ class AdyenServiceImpl(
     override fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse? {
         val activePaymentMethods = getActivePaymentMethodsResponse(memberId) ?: return null
 
-        val activePaymentMethodWithoutTrustly = excludeTrustlyFromActivePaymentMethods(activePaymentMethods).first()
+        val activePaymentMethodWithoutTrustly = excludeTrustlyFromActivePaymentMethods(activePaymentMethods).last()
 
         return ActivePaymentMethodsResponse(
             storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(

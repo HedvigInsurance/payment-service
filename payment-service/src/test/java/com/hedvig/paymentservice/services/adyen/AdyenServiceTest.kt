@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.adyen
 
 import com.adyen.model.checkout.PaymentMethod
 import com.adyen.model.checkout.PaymentMethodsResponse
+import com.adyen.model.checkout.StoredPaymentMethod
 import com.adyen.service.Checkout
 import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
@@ -171,6 +172,39 @@ class AdyenServiceTest {
         assertThat(test.paymentMethodsResponse.paymentMethods.size).isEqualTo(0)
     }
 
+    @Test
+    fun `expect null active payout methods if the merchant account doesnt include trustly`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makeStoredPaymentMethods(isTrustlyIncluded = false)
+
+        val test = adyenService.getActivePayoutMethods("1234")
+
+        assertThat(test?.storedPaymentMethodsDetails).isNull()
+    }
+
+    @Test
+    fun `expect valid active payout methods if the merchant account includes trustly`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+
+        every { adyenCheckout.paymentMethods(any()) } returns
+            makeStoredPaymentMethods()
+
+        val test = adyenService.getActivePayoutMethods("1234")
+
+        assertThat(test?.storedPaymentMethodsDetails).isNotNull
+        assertThat(test?.storedPaymentMethodsDetails?.brand).isEqualTo( "trustly")
+    }
+
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
         val response = PaymentMethodsResponse()
 
@@ -182,6 +216,23 @@ class AdyenServiceTest {
 
         if (isTrustlyIncluded)
             response.paymentMethods = response.paymentMethods.plus(trustlyyMethod)
+
+        return response
+    }
+
+    private fun makeStoredPaymentMethods(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
+        val response = PaymentMethodsResponse()
+
+        val cardMethod = StoredPaymentMethod().apply { type = "scheme" }
+        val trustlyyMethod = StoredPaymentMethod().apply { type = "trustly" }
+        val applePayMethod = StoredPaymentMethod().apply { type = "applepay" }
+
+        val storedPaymentMethods : MutableList<StoredPaymentMethod>  = mutableListOf(cardMethod, applePayMethod)
+
+        if (isTrustlyIncluded)
+            storedPaymentMethods.add(trustlyyMethod)
+
+        response.storedPaymentMethods = storedPaymentMethods
 
         return response
     }
