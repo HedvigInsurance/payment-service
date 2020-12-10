@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.domain.adyenTokenRegistration.sagas
 
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_RECURRING_CONTRACT
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
@@ -37,7 +38,7 @@ class AdyenTokenRegistrationSaga {
   @SagaEventHandler(associationProperty = ADYEN_TOKEN_REGISTRATION_ID)
   @EndSaga
   fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
-    if (e.notificationRequestItem.eventCode?.toUpperCase() == AdyenNotificationController.RECURRING_CONTRACT){
+    if (e.notificationRequestItem.eventCode?.toUpperCase() == EVENT_CODE_RECURRING_CONTRACT){
       commandGateway.sendAndWait<Void>(
         UpdateAdyenPayoutAccountCommand(
           e.memberId,

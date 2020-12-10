@@ -1,5 +1,13 @@
 package com.hedvig.paymentservice.web
 
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_AUTHORISATION
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_AUTORESCUE
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_CAPTURE_FAILED
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAIDOUT_REVERSED
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_DECLINE
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_EXPIRE
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_THIRDPARTY
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_RECURRING_CONTRACT
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotification
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotificationRepository
 import com.hedvig.paymentservice.services.adyen.AdyenService
@@ -25,14 +33,14 @@ class AdyenNotificationController(
         requestBody.notificationItems!!.forEach { item ->
             try {
                 when (item.notificationItem!!.eventCode?.toUpperCase()) {
-                    CAPTURE_FAILED -> adyenService.handleSettlementErrorNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
-                    AUTHORISATION -> adyenService.handleAuthorisationNotification(item.notificationItem!!)
-                    RECURRING_CONTRACT -> adyenService.handleRecurringContractNotification(item.notificationItem!!)
-                    PAYOUT_THIRDPARTY -> adyenService.handlePayoutThirdPartyNotification(item.notificationItem!!)
-                    PAYOUT_DECLINE -> adyenService.handlePayoutDeclinedNotification(item.notificationItem!!)
-                    PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
-                    PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
-                    AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
+                    EVENT_CODE_CAPTURE_FAILED -> adyenService.handleSettlementErrorNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
+                    EVENT_CODE_AUTHORISATION -> adyenService.handleAuthorisationNotification(item.notificationItem!!)
+                    EVENT_CODE_RECURRING_CONTRACT -> adyenService.handleRecurringContractNotification(item.notificationItem!!)
+                    EVENT_CODE_PAYOUT_THIRDPARTY -> adyenService.handlePayoutThirdPartyNotification(item.notificationItem!!)
+                    EVENT_CODE_PAYOUT_DECLINE -> adyenService.handlePayoutDeclinedNotification(item.notificationItem!!)
+                    EVENT_CODE_PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
+                    EVENT_CODE_PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
+                    EVENT_CODE_AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
                     else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem!!.eventCode} is not supported")
                 }
             } catch (exception: Exception) {
@@ -47,13 +55,5 @@ class AdyenNotificationController(
 
     companion object {
         private val logger = LoggerFactory.getLogger(this::class.java)!!
-        const val CAPTURE_FAILED = "CAPTURE_FAILED"
-        const val AUTHORISATION = "AUTHORISATION"
-        const val RECURRING_CONTRACT = "RECURRING_CONTRACT"
-        const val PAYOUT_THIRDPARTY = "PAYOUT_THIRDPARTY"
-        const val PAYOUT_DECLINE = "PAYOUT_DECLINE"
-        const val PAYOUT_EXPIRE = "PAYOUT_EXPIRE"
-        const val PAIDOUT_REVERSED = "PAIDOUT_REVERSED"
-        const val AUTORESCUE = "AUTORESCUE"
     }
 }
