@@ -25,10 +25,10 @@ fun getNextChargeDateRelativeToDate(market: Market, date: LocalDate): LocalDate 
 }
 
 private fun getChargeDateOfMonth(market: Market, month: YearMonth): LocalDate {
-    val chargeDayThisMonth = month.atDay(chargeDays.getValue(market))
-    return when (chargeDayThisMonth.dayOfWeek) {
-        DayOfWeek.SATURDAY -> chargeDayThisMonth.plusDays(2)
-        DayOfWeek.SUNDAY -> chargeDayThisMonth.plusDays(1)
-        else -> chargeDayThisMonth
+    val chargeDayForMonth = month.atDay(chargeDays.getValue(market))
+    return when (chargeDayForMonth.dayOfWeek) {
+        DayOfWeek.SATURDAY -> chargeDayForMonth.plusDays(2)
+        DayOfWeek.SUNDAY -> chargeDayForMonth.plusDays(1)
+        else -> chargeDayForMonth
     }
 }
