@@ -36,7 +36,7 @@ class AdyenNotificationController(
                     else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem!!.eventCode} is not supported")
                 }
             } catch (exception: Exception) {
-                logger.error("Cannot process notification [Type: ${item.notificationItem!!.eventCode}]", exception)
+                logger.error("Cannot process notification [Type: ${item.notificationItem?.eventCode}]", exception)
             }
             adyenNotificationRepository.save(
                 AdyenNotification.fromNotificationRequestItem(item.notificationItem)
