@@ -32,6 +32,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEven
 import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
@@ -202,7 +203,7 @@ class Member() {
             )
         } else {
             apply(
-                TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
+                TrustlyAccountUpdatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
         }
         updateDirectDebitStatus(command)

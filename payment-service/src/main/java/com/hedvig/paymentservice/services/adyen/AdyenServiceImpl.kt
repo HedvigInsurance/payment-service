@@ -101,20 +101,20 @@ class AdyenServiceImpl(
     }
 
     override fun tokenizePaymentDetails(
-        req: TokenizationRequest,
+        request: TokenizationRequest,
         memberId: String,
         endUserIp: String?
     ): AdyenPaymentsResponse {
         val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
         val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
-            request = req,
+            request = request,
             memberId = memberId,
             endUserIp = endUserIp,
             shopperReference = memberId,
             isSubscription = true
         )
 
-        val response = performCheckout(paymentsRequest, memberId, req)
+        val response = performCheckout(paymentsRequest, memberId, request)
 
         when (response.getResultCode()) {
             PaymentResponseResultCode.AUTHORISED -> {
@@ -141,14 +141,14 @@ class AdyenServiceImpl(
                 )
             }
             PaymentResponseResultCode.FAILED -> {
-                logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $req] [Response: $response]")
+                logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $request] [Response: $response]")
             }
         }
         return response
     }
 
     override fun tokenizePayoutDetails(
-        req: TokenizationRequest,
+        request: TokenizationRequest,
         memberId: String,
         endUserIp: String?
     ): AdyenPaymentsResponse {
@@ -156,7 +156,7 @@ class AdyenServiceImpl(
 
         val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(memberId)
         val (adyenTokenId, paymentsRequest) = createTokenizePaymentsRequest(
-            request = req,
+            request = request,
             memberId = memberId,
             endUserIp = endUserIp,
             shopperReference = shopperReference,
@@ -165,7 +165,7 @@ class AdyenServiceImpl(
 
         paymentsRequest.enablePayOut(true)
 
-        val response = performCheckout(paymentsRequest, memberId, req)
+        val response = performCheckout(paymentsRequest, memberId, request)
 
         when (response.getResultCode()) {
             PaymentResponseResultCode.AUTHORISED -> {
@@ -194,7 +194,7 @@ class AdyenServiceImpl(
                 )
             }
             PaymentResponseResultCode.FAILED -> {
-                logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $req] [Response: $response]")
+                logger.error("Tokenizing payment method failed [MemberId: $memberId] [Request: $request] [Response: $response]")
             }
         }
 
@@ -252,12 +252,12 @@ class AdyenServiceImpl(
         return Pair(adyenTokenId, paymentsRequest)
     }
 
-    override fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse {
+    override fun submitAdditionalPaymentDetails(request: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse {
         val response = try {
-            AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
+            AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(request))
         } catch (exception: Exception) {
             logger.error(
-                "Submitting additional payment details with Adyen exploded 💥 [MemberId: $memberId] [Request: $req]",
+                "Submitting additional payment details with Adyen exploded 💥 [MemberId: $memberId] [Request: $request]",
                 exception
             )
             throw exception
@@ -306,7 +306,7 @@ class AdyenServiceImpl(
     }
 
     override fun submitAdyenRedirection(
-        req: SubmitAdyenRedirectionRequest,
+        request: SubmitAdyenRedirectionRequest,
         memberId: String
     ): SubmitAdyenRedirectionResponse {
         val listOfTokenRegistrations = adyenTokenRegistrationRepository.findByMemberId(memberId)
@@ -316,14 +316,14 @@ class AdyenServiceImpl(
         }
         val adyenTokenRegistration = listOfTokenRegistrations.maxBy(AdyenTokenRegistration::getCreatedAt)!!
 
-        require(adyenTokenRegistration.paymentDataFromAction != null) { "No payment data found! [MemberId: $memberId] [Req: $req] " }
+        require(adyenTokenRegistration.paymentDataFromAction != null) { "No payment data found! [MemberId: $memberId] [Req: $request] " }
 
         val paymentsDetailsRequest = PaymentsDetailsRequest()
         paymentsDetailsRequest.paymentData = adyenTokenRegistration.paymentDataFromAction
 
         val details: MutableMap<String, String> = HashMap()
-        details[MD] = req.md
-        details[PARES] = req.pares
+        details[MD] = request.md
+        details[PARES] = request.pares
         paymentsDetailsRequest.details = details
 
         val response = this.submitAdditionalPaymentDetails(paymentsDetailsRequest, memberId)
@@ -402,42 +402,42 @@ class AdyenServiceImpl(
         }
     }
 
-    override fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse {
-        val member = memberRepository.findById(req.memberId).orElse(null)
-            ?: throw RuntimeException("ChargeMemberWithToken - Member ${req.memberId} doesn't exist")
+    override fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse {
+        val member = memberRepository.findById(request.memberId).orElse(null)
+            ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(member.adyenRecurringDetailReference == req.recurringDetailReference)
+        require(member.adyenRecurringDetailReference == request.recurringDetailReference)
         {
             "RecurringDetailReference mismatch [MemberId : ${member.id}] " +
                 "[MemberRecurringDetailReference: ${member.adyenRecurringDetailReference} " +
-                "[RequestRecurringDetailReference: ${req.recurringDetailReference}] ] "
+                "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
         }
 
-        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(req.memberId)
+        val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(request.memberId)
 
         val paymentsRequest = PaymentsRequest()
             .amount(
                 Amount()
-                    .value(req.amount.number.longValueExact() * 100)
-                    .currency(req.amount.currency.currencyCode)
+                    .value(request.amount.number.longValueExact() * 100)
+                    .currency(request.amount.currency.currencyCode)
             )
             .merchantAccount(adyenMerchantInfo.account)
             .paymentMethod(
                 DefaultPaymentMethodDetails()
                     .type(ApiConstants.PaymentMethodType.TYPE_SCHEME)
-                    .recurringDetailReference(req.recurringDetailReference)
+                    .recurringDetailReference(request.recurringDetailReference)
             )
             .recurringProcessingModel(RecurringProcessingModelEnum.SUBSCRIPTION)
-            .reference(req.transactionId.toString())
+            .reference(request.transactionId.toString())
             .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
-            .shopperReference(req.memberId)
+            .shopperReference(request.memberId)
 
         val paymentsResponse: PaymentsResponse
 
         try {
             paymentsResponse = adyenCheckout.payments(paymentsRequest)
         } catch (exception: Exception) {
-            logger.error("Tokenization with Adyen exploded 💥 [MemberId: ${req.memberId}] [Request: $req]", exception)
+            logger.error("Tokenization with Adyen exploded 💥 [MemberId: ${request.memberId}] [Request: $request]", exception)
             throw exception
         }
 

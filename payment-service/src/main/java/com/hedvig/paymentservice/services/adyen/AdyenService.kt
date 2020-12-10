@@ -18,12 +18,12 @@ import javax.money.MonetaryAmount
 interface AdyenService {
     fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse
     fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse
-    fun tokenizePaymentDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
-    fun tokenizePayoutDetails(req: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
-    fun chargeMemberWithToken(req: ChargeMemberWithTokenRequest): PaymentsResponse
+    fun tokenizePaymentDetails(request: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+    fun tokenizePayoutDetails(request: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+    fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse
     fun getActivePaymentMethods(memberId: String): ActivePaymentMethodsResponse?
-    fun submitAdditionalPaymentDetails(req: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
-    fun submitAdyenRedirection(req: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
+    fun submitAdditionalPaymentDetails(request: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
+    fun submitAdyenRedirection(request: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
     fun fetchAdyenPublicKey(): String
     fun handleSettlementErrorNotification(adyenTransactionId: UUID)
     fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem)
