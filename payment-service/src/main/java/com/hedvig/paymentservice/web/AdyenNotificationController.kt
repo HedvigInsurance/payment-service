@@ -32,6 +32,7 @@ class AdyenNotificationController(
                     PAYOUT_DECLINE -> adyenService.handlePayoutDeclinedNotification(item.notificationItem!!)
                     PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
                     PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
+                    AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
                     else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem!!.eventCode} is not supported")
                 }
             } catch (exception: Exception) {
@@ -53,5 +54,6 @@ class AdyenNotificationController(
         const val PAYOUT_DECLINE = "PAYOUT_DECLINE"
         const val PAYOUT_EXPIRE = "PAYOUT_EXPIRE"
         const val PAIDOUT_REVERSED = "PAIDOUT_REVERSED"
+        const val AUTORESCUE = "AUTORESCUE"
     }
 }

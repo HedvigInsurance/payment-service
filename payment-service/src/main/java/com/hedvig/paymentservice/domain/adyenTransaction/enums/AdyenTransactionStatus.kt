@@ -1,10 +1,10 @@
 package com.hedvig.paymentservice.domain.adyenTransaction.enums
 
 enum class AdyenTransactionStatus {
-    AUTHORISED,
-    PENDING,
-    CANCELLED,
     INITIATED,
+    PENDING,
+    AUTHORISED,
+    CANCELLED,
     CAPTURE_FAILED
 }
 
