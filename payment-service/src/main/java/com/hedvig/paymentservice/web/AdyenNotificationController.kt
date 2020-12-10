@@ -32,7 +32,7 @@ class AdyenNotificationController(
     fun notifications(@RequestBody requestBody: NotificationRequest): ResponseEntity<String> {
         requestBody.notificationItems!!.forEach { item ->
             try {
-                when (item.notificationItem!!.eventCode?.toUpperCase()) {
+                when (item.notificationItem?.eventCode) {
                     EVENT_CODE_CAPTURE_FAILED -> adyenService.handleSettlementErrorNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
                     EVENT_CODE_AUTHORISATION -> adyenService.handleAuthorisationNotification(item.notificationItem!!)
                     EVENT_CODE_RECURRING_CONTRACT -> adyenService.handleRecurringContractNotification(item.notificationItem!!)
@@ -41,7 +41,7 @@ class AdyenNotificationController(
                     EVENT_CODE_PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
                     EVENT_CODE_PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
                     EVENT_CODE_AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
-                    else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem!!.eventCode} is not supported")
+                    else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem?.eventCode} is not supported")
                 }
             } catch (exception: Exception) {
                 logger.error("Cannot process notification [Type: ${item.notificationItem?.eventCode}]", exception)
