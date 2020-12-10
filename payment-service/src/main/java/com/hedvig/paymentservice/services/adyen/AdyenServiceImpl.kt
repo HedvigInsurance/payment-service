@@ -24,14 +24,14 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedFailedAdyenPayoutTransactionFromNotificationCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedReservedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
@@ -363,18 +363,12 @@ class AdyenServiceImpl(
 
         val transaction = transactionMaybe.get()
 
-        if (adyenNotification.success) {
-            commandGateway.sendAndWait<Void>(
-                ReceiveAuthorisationAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId
-                )
+        val commandToSend: Any = when {
+            adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId
             )
-            return
-        }
-
-        if (adyenNotification.additionalData != null && adyenNotification.additionalData["retry.rescueScheduled"] == "true") {
-            commandGateway.sendAndWait<Void>(
+            adyenNotification.additionalData?.get("retry.rescueScheduled") == "true" ->
                 ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
                     transactionId = transaction.transactionId,
                     memberId = transaction.memberId,
@@ -382,16 +376,14 @@ class AdyenServiceImpl(
                     rescueReference = adyenNotification.additionalData["retry.rescueReference"]!!,
                     orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
                 )
-            )
-        } else {
-            commandGateway.sendAndWait<Void>(
-                ReceiveCancellationResponseAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    reason = adyenNotification.reason ?: "No reason provided"
-                )
+            else -> ReceiveCancellationResponseAdyenTransactionCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId,
+                reason = adyenNotification.reason ?: "No reason provided"
             )
         }
+
+        commandGateway.sendAndWait<Void>(commandToSend)
     }
 
     override fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem) {
@@ -449,6 +441,10 @@ class AdyenServiceImpl(
             .reference(request.transactionId.toString())
             .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
             .shopperReference(request.memberId)
+            .additionalData(mapOf(
+                "autoRescue" to "true",
+                "maxDaysToRescue" to "10" // TODO: Set correct amount of maxDaysToRescue
+            ))
 
         val paymentsResponse: PaymentsResponse
 

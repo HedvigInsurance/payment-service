@@ -10,6 +10,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenT
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessEndedReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
@@ -52,6 +53,19 @@ class AdyenTransaction() {
             val request =
                 ChargeMemberWithTokenRequest(command.transactionId, command.memberId, command.recurringDetailReference, command.amount)
             val response = adyenService.chargeMemberWithToken(request)
+
+            if (response.resultCode!! == PaymentsResponse.ResultCodeEnum.REFUSED && response.additionalData?.get("retry.rescueScheduled") == "true") {
+                apply(
+                    AdyenTransactionAutoRescueProcessStartedReceivedEvent(
+                        transactionId = command.transactionId,
+                        memberId = command.memberId,
+                        amount = command.amount,
+                        refusalReason = response.refusalReason,
+                        rescueReference = response.additionalData["retry.rescueReference"]!!
+                    )
+                )
+                return
+            }
 
             when (response.resultCode!!) {
                 PaymentsResponse.ResultCodeEnum.AUTHORISED -> {
