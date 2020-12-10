@@ -433,9 +433,9 @@ class AdyenServiceImpl(
 
         try {
             paymentsResponse = adyenCheckout.payments(paymentsRequest)
-        } catch (ex: Exception) {
-            logger.error("Tokenization with Adyen exploded 💥 [MemberId: ${req.memberId}] [Request: $req]", ex)
-            throw ex
+        } catch (exception: Exception) {
+            logger.error("Tokenization with Adyen exploded 💥 [MemberId: ${req.memberId}] [Request: $req]", exception)
+            throw exception
         }
 
         return paymentsResponse
@@ -455,9 +455,9 @@ class AdyenServiceImpl(
         val adyenResponse: PaymentMethodsResponse
         try {
             adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
-        } catch (ex: Exception) {
-            logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest]", ex)
-            throw ex
+        } catch (exception: Exception) {
+            logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest]", exception)
+            throw exception
         }
 
         if (adyenResponse.storedPaymentMethods == null || adyenResponse.storedPaymentMethods.isEmpty()) {
@@ -489,9 +489,9 @@ class AdyenServiceImpl(
 
         return try {
             adyenPayout.submitThirdparty(payoutRequest)
-        } catch (ex: Exception) {
-            logger.error("StartPayoutTransaction Method exploded 💥 [MemberId: $memberId] [Request: $payoutRequest]", ex)
-            throw ex
+        } catch (exception: Exception) {
+            logger.error("StartPayoutTransaction Method exploded 💥 [MemberId: $memberId] [Request: $payoutRequest]", exception)
+            throw exception
         }
     }
 
@@ -504,9 +504,9 @@ class AdyenServiceImpl(
         }
         return try {
             adyenPayoutConfirmation.confirmThirdParty(request)
-        } catch (ex: Exception) {
-            logger.error("ConfirmPayout Method exploded 💥 [MemberId: $memberId] [Request: $request]", ex)
-            throw ex
+        } catch (exception: Exception) {
+            logger.error("ConfirmPayout Method exploded 💥 [MemberId: $memberId] [Request: $request]", exception)
+            throw exception
         }
     }
 
@@ -515,18 +515,18 @@ class AdyenServiceImpl(
             if (adyenNotification.success) {
                 commandGateway.sendAndWait<Void>(
                     ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand(
-                        transaction.transactionId,
-                        transaction.memberId,
-                        Money.of(transaction.amount, transaction.currency)
+                        transactionId = transaction.transactionId,
+                        memberId = transaction.memberId,
+                        amount = Money.of(transaction.amount, transaction.currency)
                     )
                 )
             } else {
                 commandGateway.sendAndWait<Void>(
                     ReceivedFailedAdyenPayoutTransactionFromNotificationCommand(
-                        transaction.transactionId,
-                        transaction.memberId,
-                        Money.of(transaction.amount, transaction.currency),
-                        adyenNotification.reason
+                        transactionId = transaction.transactionId,
+                        memberId = transaction.memberId,
+                        amount = Money.of(transaction.amount, transaction.currency),
+                        reason = adyenNotification.reason
                     )
                 )
             }
@@ -604,9 +604,9 @@ class AdyenServiceImpl(
 
         return try {
             adyenCheckout.paymentMethods(paymentMethodsRequest)
-        } catch (ex: Exception) {
-            logger.error("Fetching available payment methods with Adyen exploded 💥 [Request: $paymentMethodsRequest]", ex)
-            throw ex
+        } catch (exception: Exception) {
+            logger.error("Fetching available payment methods with Adyen exploded 💥 [Request: $paymentMethodsRequest]", exception)
+            throw exception
         }
     }
 
