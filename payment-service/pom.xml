@@ -253,7 +253,7 @@
     <dependency>
       <groupId>com.adyen</groupId>
       <artifactId>adyen-java-api-library</artifactId>
-      <version>4.1.0</version>
+      <version>11.0.0</version>
     </dependency>
     <!-- Adyen -->
 
