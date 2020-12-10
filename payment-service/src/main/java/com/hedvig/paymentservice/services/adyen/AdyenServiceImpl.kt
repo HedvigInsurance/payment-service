@@ -256,7 +256,10 @@ class AdyenServiceImpl(
         val response = try {
             AdyenPaymentsResponse(paymentsResponse = adyenCheckout.paymentsDetails(req))
         } catch (exception: Exception) {
-            logger.error("Submitting additional payment details with Adyen exploded 💥 [MemberId: $memberId] [Request: $req]", exception)
+            logger.error(
+                "Submitting additional payment details with Adyen exploded 💥 [MemberId: $memberId] [Request: $req]",
+                exception
+            )
             throw exception
         }
 
@@ -456,7 +459,10 @@ class AdyenServiceImpl(
         try {
             adyenResponse = adyenCheckout.paymentMethods(paymentMethodsRequest)
         } catch (exception: Exception) {
-            logger.error("Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest]", exception)
+            logger.error(
+                "Active Payment Methods exploded 💥 [MemberId: $memberId] [Request: $paymentMethodsRequest]",
+                exception
+            )
             throw exception
         }
 
@@ -490,7 +496,10 @@ class AdyenServiceImpl(
         return try {
             adyenPayout.submitThirdparty(payoutRequest)
         } catch (exception: Exception) {
-            logger.error("StartPayoutTransaction Method exploded 💥 [MemberId: $memberId] [Request: $payoutRequest]", exception)
+            logger.error(
+                "StartPayoutTransaction Method exploded 💥 [MemberId: $memberId] [Request: $payoutRequest]",
+                exception
+            )
             throw exception
         }
     }
@@ -513,64 +522,54 @@ class AdyenServiceImpl(
     override fun handlePayoutThirdPartyNotification(adyenNotification: NotificationRequestItem) =
         getPayoutTransactionAndApplyCommand(adyenNotification) { transaction ->
             if (adyenNotification.success) {
-                commandGateway.sendAndWait<Void>(
-                    ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand(
-                        transactionId = transaction.transactionId,
-                        memberId = transaction.memberId,
-                        amount = Money.of(transaction.amount, transaction.currency)
-                    )
+                ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency)
                 )
             } else {
-                commandGateway.sendAndWait<Void>(
-                    ReceivedFailedAdyenPayoutTransactionFromNotificationCommand(
-                        transactionId = transaction.transactionId,
-                        memberId = transaction.memberId,
-                        amount = Money.of(transaction.amount, transaction.currency),
-                        reason = adyenNotification.reason
-                    )
+                ReceivedFailedAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency),
+                    reason = adyenNotification.reason
                 )
             }
         }
 
     override fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem) =
         getPayoutTransactionAndApplyCommand(adyenNotification) { transaction ->
-            commandGateway.sendAndWait<Void>(
-                ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    amount = Money.of(transaction.amount, transaction.currency),
-                    reason = adyenNotification.reason
-                )
+            ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId,
+                amount = Money.of(transaction.amount, transaction.currency),
+                reason = adyenNotification.reason
             )
         }
 
     override fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem) =
         getPayoutTransactionAndApplyCommand(adyenNotification) { transaction ->
-            commandGateway.sendAndWait<Void>(
-                ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    amount = Money.of(transaction.amount, transaction.currency),
-                    reason = adyenNotification.reason
-                )
+             ReceivedExpiredAdyenPayoutTransactionFromNotificationCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId,
+                amount = Money.of(transaction.amount, transaction.currency),
+                reason = adyenNotification.reason
             )
         }
 
     override fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem) =
         getPayoutTransactionAndApplyCommand(adyenNotification) { transaction ->
-            commandGateway.sendAndWait<Void>(
-                ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    amount = Money.of(transaction.amount, transaction.currency),
-                    reason = adyenNotification.reason
-                )
+            ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId,
+                amount = Money.of(transaction.amount, transaction.currency),
+                reason = adyenNotification.reason
             )
         }
 
     private fun getPayoutTransactionAndApplyCommand(
         adyenNotification: NotificationRequestItem,
-        command: (AdyenPayoutTransaction) -> Unit
+        getCommandFromTransaction: (AdyenPayoutTransaction) -> Any
     ) {
         val adyenTransactionId = UUID.fromString(adyenNotification.originalReference)
 
@@ -582,7 +581,7 @@ class AdyenServiceImpl(
         }
 
         val adyenTransaction = adyenTransactionMaybe.get()
-        command(adyenTransaction)
+        commandGateway.sendAndWait<Void>(getCommandFromTransaction(adyenTransaction))
     }
 
     private fun createMember(memberId: String) {
@@ -605,7 +604,10 @@ class AdyenServiceImpl(
         return try {
             adyenCheckout.paymentMethods(paymentMethodsRequest)
         } catch (exception: Exception) {
-            logger.error("Fetching available payment methods with Adyen exploded 💥 [Request: $paymentMethodsRequest]", exception)
+            logger.error(
+                "Fetching available payment methods with Adyen exploded 💥 [Request: $paymentMethodsRequest]",
+                exception
+            )
             throw exception
         }
     }
