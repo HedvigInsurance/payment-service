@@ -32,7 +32,6 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEven
 import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent.Companion.fromUpdateTrustlyAccountCmd
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
@@ -45,13 +44,12 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.ArrayList
 import java.util.UUID
-import java.util.stream.Collectors
 import javax.money.MonetaryAmount
 
 @Aggregate
 class Member() {
     @AggregateIdentifier
-    lateinit var id: String
+    lateinit var memberId: String
 
     var transactions: MutableList<Transaction> = ArrayList()
     var latestTrustlyAccountId: String? = null
@@ -61,106 +59,107 @@ class Member() {
 
     @CommandHandler
     constructor(
-        cmd: CreateMemberCommand
+        command: CreateMemberCommand
     ) : this() {
-        apply(
-            MemberCreatedEvent(
-                cmd.memberId
-            )
-        )
+        apply(MemberCreatedEvent(command.memberId))
     }
 
     @CommandHandler
-    fun cmd(cmd: CreateChargeCommand, productPricingService: ProductPricingService): ChargeMemberResult {
-        val contractMarketInfo = productPricingService.getContractMarketInfo(cmd.memberId)
-        if (contractMarketInfo.preferredCurrency != cmd.amount.currency) {
-            log.error("Currency mismatch while charging [MemberId: $cmd.memberId] [PreferredCurrency: ${contractMarketInfo.preferredCurrency}] [RequestCurrency: ${cmd.amount.currency}]")
+    fun handle(command: CreateChargeCommand, productPricingService: ProductPricingService): ChargeMemberResult {
+        val contractMarketInfo = productPricingService.getContractMarketInfo(command.memberId)
+        if (contractMarketInfo.preferredCurrency != command.amount.currency) {
+            log.error("Currency mismatch while charging [MemberId: $command.memberId] [PreferredCurrency: ${contractMarketInfo.preferredCurrency}] [RequestCurrency: ${command.amount.currency}]")
             failChargeCreation(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                timestamp = cmd.timestamp,
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp,
                 reason = "currency mismatch"
             )
-            return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
+            return ChargeMemberResult(command.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
         }
 
         if (trustlyAccounts.isEmpty() && adyenAccount == null) {
-            log.info("Cannot charge account - no account set up ${cmd.memberId}")
+            log.info("Cannot charge account - no account set up ${command.memberId}")
             failChargeCreation(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                timestamp = cmd.timestamp,
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp,
                 reason = "no payin method found"
             )
-            return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
+            return ChargeMemberResult(command.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
         }
 
         if (trustlyAccounts.isNotEmpty() && trustlyAccounts[latestTrustlyAccountId] != DirectDebitStatus.CONNECTED) {
-            log.info("Cannot charge account - direct debit mandate not received in Trustly ${cmd.memberId}")
+            log.info("Cannot charge account - direct debit mandate not received in Trustly ${command.memberId}")
             failChargeCreation(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                timestamp = cmd.timestamp,
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp,
                 reason = "direct debit mandate not received in Trustly"
             )
-            return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.NO_DIRECT_DEBIT)
+            return ChargeMemberResult(command.transactionId, ChargeMemberResultType.NO_DIRECT_DEBIT)
         }
 
         if (adyenAccount != null && adyenAccount!!.status != AdyenAccountStatus.AUTHORISED) {
-            log.info("Cannot charge account - adyen recurring status is not authorised ${cmd.memberId}")
+            log.info("Cannot charge account - adyen recurring status is not authorised ${command.memberId}")
             failChargeCreation(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                timestamp = cmd.timestamp,
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp,
                 reason = "adyen recurring is not authorised"
             )
-            return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.ADYEN_NOT_AUTHORISED)
+            return ChargeMemberResult(command.transactionId, ChargeMemberResultType.ADYEN_NOT_AUTHORISED)
+        }
+
+        val provider = when {
+            latestTrustlyAccountId != null -> PayinProvider.TRUSTLY
+            adyenAccount?.recurringDetailReference != null -> PayinProvider.ADYEN
+            else -> throw IllegalStateException("CreateChargeCommand failed. Cannot find provider. [MemberId: $memberId] [TransactionId: ${command.transactionId}]")
         }
 
         apply(
             ChargeCreatedEvent(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                timestamp = cmd.timestamp,
-                providerId = when {
-                    latestTrustlyAccountId != null -> latestTrustlyAccountId!!
-                    adyenAccount?.recurringDetailReference != null -> adyenAccount!!.recurringDetailReference
-                    else -> throw IllegalStateException("ChargeCreatedEvent failed. Cannot find providerId. [MemberId: $id] [TransactionId: ${cmd.transactionId}]")
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp,
+                providerId = when (provider) {
+                    PayinProvider.TRUSTLY -> latestTrustlyAccountId!!
+                    PayinProvider.ADYEN -> adyenAccount!!.recurringDetailReference
                 },
-                provider = if (latestTrustlyAccountId != null) PayinProvider.TRUSTLY else PayinProvider.ADYEN,
-                email = cmd.email,
-                createdBy = cmd.createdBy
+                provider = provider,
+                email = command.email,
+                createdBy = command.createdBy
             )
         )
-        return ChargeMemberResult(cmd.transactionId, ChargeMemberResultType.SUCCESS)
+        return ChargeMemberResult(command.transactionId, ChargeMemberResultType.SUCCESS)
     }
 
     @CommandHandler
-    fun cmd(cmd: CreatePayoutCommand): Boolean {
+    fun handle(command: CreatePayoutCommand): Boolean {
         if (trustlyAccounts.isNotEmpty()) {
             apply(
                 PayoutCreatedEvent(
-                    memberId = id,
-                    transactionId = cmd.transactionId,
-                    amount = cmd.amount,
-                    address = cmd.address,
-                    countryCode = cmd.countryCode,
-                    dateOfBirth = cmd.dateOfBirth,
-                    firstName = cmd.firstName,
-                    lastName = cmd.lastName,
-                    timestamp = cmd.timestamp,
+                    memberId = memberId,
+                    transactionId = command.transactionId,
+                    amount = command.amount,
+                    address = command.address,
+                    countryCode = command.countryCode,
+                    dateOfBirth = command.dateOfBirth,
+                    firstName = command.firstName,
+                    lastName = command.lastName,
+                    timestamp = command.timestamp,
                     trustlyAccountId = latestTrustlyAccountId,
-                    category = cmd.category,
-                    referenceId = cmd.referenceId,
-                    note = cmd.note,
-                    handler = cmd.handler,
+                    category = command.category,
+                    referenceId = command.referenceId,
+                    note = command.note,
+                    handler = command.handler,
                     adyenShopperReference = null,
-                    email = cmd.email
+                    email = command.email
                 )
             )
             return true
@@ -168,332 +167,281 @@ class Member() {
 
         adyenPayoutAccount?.let { account ->
             PayoutCreatedEvent(
-                memberId = id,
-                transactionId = cmd.transactionId,
-                amount = cmd.amount,
-                address = cmd.address,
-                countryCode = cmd.countryCode,
-                dateOfBirth = cmd.dateOfBirth,
-                firstName = cmd.firstName,
-                lastName = cmd.lastName,
-                timestamp = cmd.timestamp,
-                category = cmd.category,
-                referenceId = cmd.referenceId,
-                note = cmd.note,
-                handler = cmd.handler,
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                address = command.address,
+                countryCode = command.countryCode,
+                dateOfBirth = command.dateOfBirth,
+                firstName = command.firstName,
+                lastName = command.lastName,
+                timestamp = command.timestamp,
+                category = command.category,
+                referenceId = command.referenceId,
+                note = command.note,
+                handler = command.handler,
                 adyenShopperReference = account.shopperReference,
                 trustlyAccountId = null,
-                email = cmd.email
+                email = command.email
             )
             return true
         }
 
         log.info("Cannot payout account - no payout account is set up")
         apply(
-            PayoutCreationFailedEvent(id, cmd.transactionId, cmd.amount, cmd.timestamp)
+            PayoutCreationFailedEvent(memberId, command.transactionId, command.amount, command.timestamp)
         )
         return false
     }
 
     @CommandHandler
-    fun cmd(cmd: UpdateTrustlyAccountCommand) {
-        if (shouldCreateNewTrustlyAccount(newAccountId = cmd.accountId)) {
+    fun handle(command: UpdateTrustlyAccountCommand) {
+        if (shouldCreateNewTrustlyAccount(newAccountId = command.accountId)) {
             apply(
-                TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCmd(
-                    id,
-                    cmd
-                )
+                TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
         } else {
             apply(
-                fromUpdateTrustlyAccountCmd(
-                    id,
-                    cmd
-                )
+                TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
         }
-        updateDirectDebitStatus(cmd)
+        updateDirectDebitStatus(command)
     }
 
     @CommandHandler
-    fun cmd(cmd: UpdateAdyenAccountCommand) {
-        if (adyenAccount == null || adyenAccount!!.recurringDetailReference != cmd.recurringDetailReference) {
+    fun handle(command: UpdateAdyenAccountCommand) {
+        if (adyenAccount == null || adyenAccount!!.recurringDetailReference != command.recurringDetailReference) {
             apply(
                 AdyenAccountCreatedEvent(
-                    cmd.memberId,
-                    cmd.recurringDetailReference,
-                    fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+                    command.memberId,
+                    command.recurringDetailReference,
+                    fromTokenRegistrationStatus(command.adyenTokenStatus)
                 )
             )
         } else {
             apply(
                 AdyenAccountUpdatedEvent(
-                    cmd.memberId,
-                    cmd.recurringDetailReference,
-                    fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+                    command.memberId,
+                    command.recurringDetailReference,
+                    fromTokenRegistrationStatus(command.adyenTokenStatus)
                 )
             )
         }
     }
 
     @CommandHandler
-    fun cmd(cmd: UpdateAdyenPayoutAccountCommand) {
+    fun handle(command: UpdateAdyenPayoutAccountCommand) {
         if (adyenPayoutAccount == null) {
             apply(
                 AdyenPayoutAccountCreatedEvent(
-                    cmd.memberId,
-                    cmd.shopperReference,
-                    fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+                    command.memberId,
+                    command.shopperReference,
+                    fromTokenRegistrationStatus(command.adyenTokenStatus)
                 )
             )
         } else {
             apply(
                 AdyenPayoutAccountUpdatedEvent(
-                    cmd.memberId,
-                    cmd.shopperReference,
-                    fromTokenRegistrationStatus(cmd.adyenTokenStatus)
+                    command.memberId,
+                    command.shopperReference,
+                    fromTokenRegistrationStatus(command.adyenTokenStatus)
                 )
             )
         }
     }
 
     @CommandHandler
-    fun cmd(cmd: ChargeCompletedCommand) {
-        val transaction =
-            getSingleTransaction(
-                transactions,
-                cmd.transactionId,
-                id
-            )
-        if (transaction.amount != cmd.amount) {
+    fun handle(command: ChargeCompletedCommand) {
+        val transaction = getSingleTransaction(command.transactionId)
+        if (transaction.amount != command.amount) {
             log.error(
                 "CRITICAL: Transaction amounts differ for transactionId: ${transaction.transactionId} " +
                     "- our amount: ${transaction.amount}, " +
-                    "amount from payment provider: ${cmd.amount}"
+                    "amount from payment provider: ${command.amount}"
             )
             apply(
                 ChargeErroredEvent(
-                    cmd.memberId,
-                    cmd.transactionId,
-                    cmd.amount,
-                    "Transaction amounts differ (expected ${transaction.amount} but was ${cmd.amount})",
-                    cmd.timestamp
+                    command.memberId,
+                    command.transactionId,
+                    command.amount,
+                    "Transaction amounts differ (expected ${transaction.amount} but was ${command.amount})",
+                    command.timestamp
                 )
             )
             throw RuntimeException("Transaction amount mismatch")
         }
         apply(
             ChargeCompletedEvent(
-                id, cmd.transactionId, cmd.amount, cmd.timestamp
+                memberId, command.transactionId, command.amount, command.timestamp
             )
         )
     }
 
     @CommandHandler
-    fun cmd(cmd: ChargeFailedCommand) {
-        getSingleTransaction(
-            transactions,
-            cmd.transactionId,
-            id
-        )
+    fun handle(command: ChargeFailedCommand) {
+        getSingleTransaction(command.transactionId)
         apply(
             ChargeFailedEvent(
-                id,
-                cmd.transactionId
+                memberId,
+                command.transactionId
             )
         )
     }
 
     @CommandHandler
-    fun cmd(cmd: PayoutCompletedCommand) {
-        val transaction =
-            getSingleTransaction(
-                transactions,
-                cmd.transactionId,
-                id
-            )
-        if (transaction.amount != cmd.amount) {
+    fun handle(command: PayoutCompletedCommand) {
+        val transaction = getSingleTransaction(command.transactionId)
+        if (transaction.amount != command.amount) {
             log.error(
                 "CRITICAL: Transaction amounts differ for transactionId: ${transaction.transactionId} " +
                     "- our amount: ${transaction.amount}, " +
-                    "amount from payment provider: ${cmd.amount}"
+                    "amount from payment provider: ${command.amount}"
             )
             apply(
                 PayoutErroredEvent(
-                    cmd.memberId,
-                    cmd.transactionId,
-                    cmd.amount,
-                    "Transaction amounts differ (expected ${transaction.amount} but was ${cmd.amount})",
-                    cmd.timestamp
+                    memberId = command.memberId,
+                    transactionId = command.transactionId,
+                    amount = command.amount,
+                    reason = "Transaction amounts differ (expected ${transaction.amount} but was ${command.amount})",
+                    timestamp = command.timestamp
                 )
             )
             throw RuntimeException("Transaction amount mismatch")
         }
         apply(
             PayoutCompletedEvent(
-                id,
-                cmd.transactionId,
-                cmd.timestamp
+                memberId = memberId,
+                transactionId = command.transactionId,
+                timestamp = command.timestamp
             )
         )
     }
 
     @CommandHandler
-    fun cmd(cmd: PayoutFailedCommand) {
+    fun handle(command: PayoutFailedCommand) {
         apply(
             PayoutFailedEvent(
-                id,
-                cmd.transactionId,
-                cmd.amount,
-                cmd.timestamp
+                memberId = memberId,
+                transactionId = command.transactionId,
+                amount = command.amount,
+                timestamp = command.timestamp
             )
         )
     }
 
     @EventSourcingHandler
-    fun on(e: MemberCreatedEvent) {
-        id = e.memberId
+    fun on(event: MemberCreatedEvent) {
+        memberId = event.memberId
     }
 
     @EventSourcingHandler
-    fun on(e: ChargeCreatedEvent) {
-        val tx =
-            Transaction(
-                e.transactionId,
-                e.amount,
-                e.timestamp
-            )
+    fun on(event: ChargeCreatedEvent) {
+        val tx = Transaction(event.transactionId, event.amount, event.timestamp)
         tx.transactionType = TransactionType.CHARGE
         tx.transactionStatus = TransactionStatus.INITIATED
         transactions.add(tx)
     }
 
     @EventSourcingHandler
-    fun on(e: PayoutCreatedEvent) {
-        val tx =
-            Transaction(
-                e.transactionId,
-                e.amount,
-                e.timestamp
-            )
+    fun on(event: PayoutCreatedEvent) {
+        val tx = Transaction(event.transactionId, event.amount, event.timestamp)
         tx.transactionType = TransactionType.PAYOUT
         tx.transactionStatus = TransactionStatus.INITIATED
         transactions.add(tx)
     }
 
     @EventSourcingHandler
-    fun on(e: ChargeCompletedEvent) {
-        val tx =
-            getSingleTransaction(
-                transactions,
-                e.transactionId,
-                id
-            )
+    fun on(event: ChargeCompletedEvent) {
+        val tx = getSingleTransaction(event.transactionId)
         tx.transactionStatus = TransactionStatus.COMPLETED
     }
 
     @EventSourcingHandler
-    fun on(e: ChargeFailedEvent) {
-        val tx =
-            getSingleTransaction(
-                transactions,
-                e.transactionId,
-                id
-            )
+    fun on(event: ChargeFailedEvent) {
+        val tx = getSingleTransaction(event.transactionId)
         tx.transactionStatus = TransactionStatus.FAILED
     }
 
     @EventSourcingHandler
-    fun on(e: PayoutCompletedEvent) {
-        val tx =
-            getSingleTransaction(
-                transactions,
-                e.transactionId,
-                id
-            )
+    fun on(event: PayoutCompletedEvent) {
+        val tx = getSingleTransaction(event.transactionId)
         tx.transactionStatus = TransactionStatus.COMPLETED
     }
 
     @EventSourcingHandler
-    fun on(e: PayoutFailedEvent) {
-        val transaction =
-            getSingleTransaction(
-                transactions,
-                e.transactionId,
-                id
-            )
+    fun on(event: PayoutFailedEvent) {
+        val transaction = getSingleTransaction(event.transactionId)
         transaction.transactionStatus = TransactionStatus.FAILED
     }
 
     @EventSourcingHandler
-    fun on(e: TrustlyAccountCreatedEvent) {
-        latestTrustlyAccountId = e.trustlyAccountId
-        trustlyAccounts[e.trustlyAccountId] = null
+    fun on(event: TrustlyAccountCreatedEvent) {
+        latestTrustlyAccountId = event.trustlyAccountId
+        trustlyAccounts[event.trustlyAccountId] = null
     }
 
     @EventSourcingHandler
-    fun on(e: DirectDebitConnectedEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.CONNECTED
+    fun on(event: DirectDebitConnectedEvent) {
+        trustlyAccounts[event.trustlyAccountId] = DirectDebitStatus.CONNECTED
     }
 
     @EventSourcingHandler
-    fun on(e: DirectDebitDisconnectedEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.DISCONNECTED
-    }
-
-
-    @EventSourcingHandler
-    fun on(e: DirectDebitPendingConnectionEvent) {
-        trustlyAccounts[e.trustlyAccountId] = DirectDebitStatus.PENDING
+    fun on(event: DirectDebitDisconnectedEvent) {
+        trustlyAccounts[event.trustlyAccountId] = DirectDebitStatus.DISCONNECTED
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenAccountCreatedEvent) {
+    fun on(event: DirectDebitPendingConnectionEvent) {
+        trustlyAccounts[event.trustlyAccountId] = DirectDebitStatus.PENDING
+    }
+
+    @EventSourcingHandler
+    fun on(event: AdyenAccountCreatedEvent) {
         adyenAccount = AdyenAccount(
-            e.recurringDetailReference,
-            e.accountStatus
+            event.recurringDetailReference,
+            event.accountStatus
         )
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenPayoutAccountCreatedEvent) {
+    fun on(event: AdyenPayoutAccountCreatedEvent) {
         adyenPayoutAccount = AdyenPayoutAccount(
-            e.shopperReference,
-            e.accountStatus
+            event.shopperReference,
+            event.accountStatus
         )
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenAccountUpdatedEvent) {
+    fun on(event: AdyenAccountUpdatedEvent) {
         adyenAccount = AdyenAccount(
-            e.recurringDetailReference,
-            e.accountStatus
+            event.recurringDetailReference,
+            event.accountStatus
         )
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenPayoutAccountUpdatedEvent) {
+    fun on(event: AdyenPayoutAccountUpdatedEvent) {
         adyenPayoutAccount = AdyenPayoutAccount(
-            e.shopperReference,
-            e.accountStatus
+            event.shopperReference,
+            event.accountStatus
         )
     }
 
-    private fun updateDirectDebitStatus(cmd: UpdateTrustlyAccountCommand) {
-        if (cmd.directDebitMandateActive != null && cmd.directDebitMandateActive) {
+    private fun updateDirectDebitStatus(command: UpdateTrustlyAccountCommand) {
+        if (command.directDebitMandateActive != null && command.directDebitMandateActive) {
             apply(
                 DirectDebitConnectedEvent(
-                    id,
-                    cmd.hedvigOrderId.toString(),
-                    cmd.accountId
+                    memberId = memberId,
+                    hedvigOrderId = command.hedvigOrderId.toString(),
+                    trustlyAccountId = command.accountId
                 )
             )
-        } else if (cmd.directDebitMandateActive != null && !cmd.directDebitMandateActive) {
+        } else if (command.directDebitMandateActive != null && !command.directDebitMandateActive) {
             apply(
                 DirectDebitDisconnectedEvent(
-                    id,
-                    cmd.hedvigOrderId.toString(),
-                    cmd.accountId
+                    memberId = memberId,
+                    hedvigOrderId = command.hedvigOrderId.toString(),
+                    trustlyAccountId = command.accountId
                 )
             )
         } else {
@@ -501,9 +449,9 @@ class Member() {
             if (latestDirectDebitStatus == null || latestDirectDebitStatus == DirectDebitStatus.PENDING) {
                 apply(
                     DirectDebitPendingConnectionEvent(
-                        id,
-                        cmd.hedvigOrderId.toString(),
-                        cmd.accountId
+                        memberId = memberId,
+                        hedvigOrderId = command.hedvigOrderId.toString(),
+                        trustlyAccountId = command.accountId
                     )
                 )
             }
@@ -537,31 +485,19 @@ class Member() {
         }
         return false
     }
-
+    private fun getSingleTransaction(
+        transactionId: UUID
+    ): Transaction {
+        val matchingTransactions = transactions.filter { transaction -> transaction.transactionId == transactionId }
+        if (matchingTransactions.size != 1) {
+            throw RuntimeException(
+                "Unexpected number of matching transactions: ${matchingTransactions.size}, with transactionId: $transactionId for memberId: $memberId"
+            )
+        }
+        return matchingTransactions[0]
+    }
 
     companion object {
-        private fun getSingleTransaction(
-            transactions: List<Transaction>,
-            transactionId: UUID,
-            memberId: String
-        ): Transaction {
-            val matchingTransactions = transactions
-                .stream()
-                .filter { t: Transaction -> t.transactionId == transactionId }
-                .collect(Collectors.toList())
-            if (matchingTransactions.size != 1) {
-                throw RuntimeException(
-                    String.format(
-                        "Unexpected number of matching transactions: %n, with transactionId: %s for memberId: %s",
-                        matchingTransactions.size,
-                        transactionId.toString(),
-                        memberId
-                    )
-                )
-            }
-            return matchingTransactions[0]
-        }
-
         val log = LoggerFactory.getLogger(this::class.java)!!
     }
 }
