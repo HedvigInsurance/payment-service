@@ -8,6 +8,6 @@ import java.util.Optional
 interface MemberService {
     fun getMember(memberId: String): Optional<Member>
     fun getMembersByPayinProvider(payinProvider: PayinProvider): List<String>
-    fun hasMemberConnectedPaymentForMarket(memberId: String, market: Market): Boolean
+    fun membersWithConnectedPayinMethodForMarket(market: Market): List<String>
     fun getPickedLocale(memberId: String): String
 }

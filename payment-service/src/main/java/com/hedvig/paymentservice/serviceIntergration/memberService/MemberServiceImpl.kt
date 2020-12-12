@@ -49,31 +49,19 @@ class MemberServiceImpl(
     }.map { it.id }
   }
 
-    override fun hasMemberConnectedPaymentForMarket(memberId: String, market: Market): Boolean {
-        val memberMaybe = memberRepository.findById(memberId)
+    override fun membersWithConnectedPayinMethodForMarket(market: Market): List<String> {
+        val members = memberRepository.findAll()
 
-        if (memberMaybe.isEmpty) {
-            log.error("Error requesting if member has connected payment option for member $memberId as no member was found")
-            return false
-        }
-
-        val member = memberMaybe.get()
-
-        when(market) {
-            Market.NORWAY,
-            Market.DENMARK -> {
-                if (member.adyenRecurringDetailReference == null) {
-                    return false
-                }
-            }
-            Market.SWEDEN -> {
-            if (member.directDebitStatus != DirectDebitStatus.CONNECTED
-                || member.trustlyAccountNumber == null) {
-                    return false
-                }
+        val membersWithConnectedPayinMethod = members.filter { member ->
+            when (market) {
+                Market.NORWAY,
+                Market.DENMARK -> member.adyenRecurringDetailReference != null
+                Market.SWEDEN -> member.directDebitStatus == DirectDebitStatus.CONNECTED
+                    && member.trustlyAccountNumber != null
             }
         }
-        return true
+
+        return membersWithConnectedPayinMethod.map { member -> member.id }
     }
 
   companion object {

@@ -14,7 +14,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import java.util.Optional
 
 @RunWith(MockitoJUnitRunner::class)
 class MemberServiceImplTest {
@@ -136,71 +135,91 @@ class MemberServiceImplTest {
         assertThat(result.size).isEqualTo(1)
     }
 
+//    @Test
+//    fun `if market is sweden return true if direct debit status is connected`() {
+//        val member = buildMemberEntity(
+//            trustlyAccountNumber = "322",
+//            directDebitStatus = DirectDebitStatus.CONNECTED
+//        )
+//
+//        whenever(memberRepository.findById("322")).thenReturn(Optional.of(member))
+//
+//        val result = classUnderTest.membersWithConnectedPayinMethodfForMarket("322", Market.SWEDEN)
+//
+//        assertThat(result).isTrue()
+//    }
+//
+//
+//    @Test
+//    fun `if market is sweden return false if direct debit status is not connected`() {
+//        val member = buildMemberEntity(
+//            trustlyAccountNumber = "5463",
+//            directDebitStatus = DirectDebitStatus.PENDING
+//        )
+//
+//        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
+//
+//        val result = classUnderTest.membersWithConnectedPayinMethodfForMarket("222", Market.SWEDEN)
+//
+//        assertThat(result).isFalse()
+//    }
+//
+//    @Test
+//    fun `if market is Norway return false if direct debit status is not connected`() {
+//        val member = buildMemberEntity(
+//            directDebitStatus = DirectDebitStatus.PENDING
+//        )
+//
+//        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
+//
+//        val result = classUnderTest.membersWithConnectedPayinMethodfForMarket("222", Market.NORWAY)
+//
+//        assertThat(result).isFalse()
+//    }
+
     @Test
-    fun `if market is sweden return true if direct debit status is connected`() {
-        val member = buildMemberEntity(
-            trustlyAccountNumber = "322",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-
-        whenever(memberRepository.findById("322")).thenReturn(Optional.of(member))
-
-        val result = classUnderTest.hasMemberConnectedPaymentForMarket("322", Market.SWEDEN)
-
-        assertThat(result).isTrue()
-    }
-
-
-    @Test
-    fun `if market is sweden return false if direct debit status is not connected`() {
-        val member = buildMemberEntity(
-            trustlyAccountNumber = "5463",
-            directDebitStatus = DirectDebitStatus.PENDING
-        )
-
-        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
-
-        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.SWEDEN)
-
-        assertThat(result).isFalse()
-    }
-
-    @Test
-    fun `if market is Norway return false if direct debit status is not connected`() {
-        val member = buildMemberEntity(
-            directDebitStatus = DirectDebitStatus.PENDING
-        )
-
-        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
-
-        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
-
-        assertThat(result).isFalse()
-    }
-
-    @Test
-    fun `if market is Norway return true if direct debit status is connected`() {
-        val member = buildMemberEntity(
+    fun `if market is Norway only return          true if direct debit status is connected`() {
+        val memberWithConnectedPayinMethod = buildMemberEntity(
+            id = "123",
             adyenRecurringDetailReference = "5463",
             directDebitStatus = DirectDebitStatus.CONNECTED
         )
 
-        whenever(memberRepository.findById("222")).thenReturn(Optional.of(member))
+        val memberWithoutConnectedPayinMethod = buildMemberEntity(
+            id = "222",
+            directDebitStatus = DirectDebitStatus.PENDING
+        )
 
-        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
+        val memberWithTrustlyConnected = buildMemberEntity(
+            id = "222",
+            trustlyAccountNumber = "222",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
 
-        assertThat(result).isTrue()
+        whenever(memberRepository.findAll()).thenReturn(
+            listOf(
+                memberWithConnectedPayinMethod,
+                memberWithoutConnectedPayinMethod,
+                memberWithTrustlyConnected
+            )
+        )
+
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.NORWAY)
+
+        assertThat(result).hasSize(1)
+        assertThat(result.first()).isEqualTo("123")
     }
 
     @Test
-    fun `if member is null return false`() {
+    fun `if members are null return false`() {
 
-        whenever(memberRepository.findById("222")).thenReturn(Optional.empty())
+        whenever(memberRepository.findAll()).thenReturn(emptyList())
 
-        val result = classUnderTest.hasMemberConnectedPaymentForMarket("222", Market.NORWAY)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.NORWAY)
 
-        assertThat(result).isFalse()
+        assertThat(result).hasSize(0)
     }
+
     private fun buildMemberEntity(
         id: String = "321",
         trustlyAccountNumber: String? = null,

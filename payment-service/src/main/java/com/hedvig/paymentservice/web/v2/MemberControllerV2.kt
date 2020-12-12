@@ -113,12 +113,11 @@ class MemberControllerV2(
     ): ResponseEntity<List<String>> =
         ResponseEntity.ok(memberService.getMembersByPayinProvider(payinProvider))
 
-    @GetMapping("{memberId}/connected/payment/{market}")
-    fun memberHasPaymentConnected(
-        @PathVariable memberId: String,
+    @GetMapping("markets/{market}")
+    fun getMembersWithConnectedPayinMethodForMarket(
         @PathVariable market: Market
-    ): ResponseEntity<Boolean> =
-        ResponseEntity.ok(memberService.hasMemberConnectedPaymentForMarket(memberId, market))
+    ): ResponseEntity<List<String>> =
+        ResponseEntity.ok(memberService.membersWithConnectedPayinMethodForMarket(market))
 
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
