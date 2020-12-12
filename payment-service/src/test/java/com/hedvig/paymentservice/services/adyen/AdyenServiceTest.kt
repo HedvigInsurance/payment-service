@@ -72,7 +72,6 @@ class AdyenServiceTest {
             adyenTokenRegistrationRepository,
             adyenTransactionRepository,
             adyenPayoutTransactionRepository,
-            returnUrl = "",
             adyenMerchantPicker = adyenMerchantPicker,
             allow3DS2 = true,
             adyenPublicKey = ""

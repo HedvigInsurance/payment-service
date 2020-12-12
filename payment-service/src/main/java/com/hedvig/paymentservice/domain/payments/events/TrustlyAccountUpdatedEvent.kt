@@ -22,7 +22,7 @@ data class TrustlyAccountUpdatedEvent(
 ) {
   companion object {
     @JvmStatic
-    fun fromUpdateTrustlyAccountCmd(id: String, cmd: UpdateTrustlyAccountCommand): Any {
+    fun fromUpdateTrustlyAccountCommand(id: String, cmd: UpdateTrustlyAccountCommand): Any {
       return TrustlyAccountUpdatedEvent(
         id,
         cmd.hedvigOrderId,

@@ -226,7 +226,7 @@ class MemberTest {
   @Test
   fun `given three trustly accounts when a "disconnected" notification from the latest account arrives, expect that the only the latest account will be updated`() {
     val secondTrustlyAccountId = "secondTrustlyAccountId"
-    val latestTrusltyAccountId = "thirdTrustlyAccountId"
+    val latestTrustlyAccountId = "thirdTrustlyAccountId"
 
     fixture
       .given(
@@ -235,14 +235,14 @@ class MemberTest {
         makeDirectDebitConnectedEvent(MEMBER_ID_ONE),
         makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId),
         makeDirectDebitConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId),
-        makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, latestTrusltyAccountId),
-        makeDirectDebitConnectedEvent(MEMBER_ID_ONE, latestTrusltyAccountId)
+        makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, latestTrustlyAccountId),
+        makeDirectDebitConnectedEvent(MEMBER_ID_ONE, latestTrustlyAccountId)
       )
       .`when`(
         UpdateTrustlyAccountCommand(
           memberId = MEMBER_ID_ONE,
           hedvigOrderId = HEDViG_ORDER_ID,
-          accountId = latestTrusltyAccountId,
+          accountId = latestTrustlyAccountId,
           address = null,
           bank = null,
           city = null,
@@ -260,7 +260,7 @@ class MemberTest {
         TrustlyAccountUpdatedEvent(
           memberId = MEMBER_ID_ONE,
           hedvigOrderId = HEDViG_ORDER_ID,
-          trustlyAccountId = latestTrusltyAccountId,
+          trustlyAccountId = latestTrustlyAccountId,
           address = null,
           bank = null,
           city = null,
@@ -274,16 +274,16 @@ class MemberTest {
         DirectDebitDisconnectedEvent(
           MEMBER_ID_ONE,
           HEDViG_ORDER_ID.toString(),
-          latestTrusltyAccountId
+          latestTrustlyAccountId
         )
       )
       .expectState { member ->
         assertThat(member.trustlyAccounts.size).isEqualTo(3)
         assertThat(member.trustlyAccounts[TRUSTLY_ACCOUNT_ID]).isEqualTo(DirectDebitStatus.CONNECTED)
         assertThat(member.trustlyAccounts[secondTrustlyAccountId]).isEqualTo(DirectDebitStatus.CONNECTED)
-        assertThat(member.trustlyAccounts[latestTrusltyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
-        assertThat(member.latestTrustlyAccountId).isEqualTo(latestTrusltyAccountId)
-        assertThat(member.trustlyAccounts[latestTrusltyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
+        assertThat(member.trustlyAccounts[latestTrustlyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
+        assertThat(member.latestTrustlyAccountId).isEqualTo(latestTrustlyAccountId)
+        assertThat(member.trustlyAccounts[latestTrustlyAccountId]).isEqualTo(DirectDebitStatus.DISCONNECTED)
       }
   }
 
