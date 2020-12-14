@@ -16,7 +16,7 @@ class MemberPayinMethodFilterServiceImpl(
     override fun membersWithConnectedPayinMethodForMarket(market: Market): List<String> {
         val members = memberRepository.findAll()
 
-        val membersForMarket= members.filter {
+        val membersForMarket = members.filter {
             member -> getContractMarketInfoForMember(member.id) == market }
 
         return membersForMarket.filter { member ->

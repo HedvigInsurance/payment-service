@@ -114,7 +114,9 @@ class MemberControllerV2(
     fun getMembersConnectedToProvider(
         @PathVariable payinProvider: PayinProvider
     ): ResponseEntity<List<String>> =
-        throw DeprecatedException(this.javaClass.name, "/v2/_/members/payinProvider/{payinProvider}", emptyList())
+        throw DeprecatedException(
+            this.javaClass.name, "/v2/_/members/payinProvider/{payinProvider}", emptyList()
+        )
 
     @GetMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
