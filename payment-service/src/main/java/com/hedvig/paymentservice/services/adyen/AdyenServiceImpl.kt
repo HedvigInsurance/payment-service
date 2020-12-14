@@ -21,6 +21,7 @@ import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthorisedAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenFromNotificationRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
@@ -350,34 +351,17 @@ class AdyenServiceImpl(
     }
 
     override fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem) {
-        val adyenTransactionId = UUID.fromString(adyenNotification.merchantReference!!)
+        val transactionId = UUID.fromString(adyenNotification.merchantReference!!)
 
-        val transactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(adyenTransactionId)
+        val payinTransactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(transactionId)
 
-        if (!transactionMaybe.isPresent) {
-            logger.error("Handle Authorisation -  Could find not Adyen transaction $adyenTransactionId")
-            return
+        val tokenRegistrationMaybe: Optional<AdyenTokenRegistration> = adyenTokenRegistrationRepository.findById(transactionId)
+
+        when {
+            payinTransactionMaybe.isPresent -> handlePayinAuthorizationNotification(payinTransactionMaybe.get(), adyenNotification)
+            tokenRegistrationMaybe.isPresent -> handleTokenRegistration(tokenRegistrationMaybe.get(), adyenNotification)
+            else -> logger.error("Handle Authorisation -  Could find not Adyen transaction $transactionId")
         }
-
-        val transaction = transactionMaybe.get()
-
-        if (adyenNotification.success) {
-            commandGateway.sendAndWait<Void>(
-                ReceiveAuthorisationAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId
-                )
-            )
-        } else {
-            commandGateway.sendAndWait<Void>(
-                ReceiveCancellationResponseAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    reason = adyenNotification.reason ?: "No reason provided"
-                )
-            )
-        }
-
     }
 
     override fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem) {
@@ -579,6 +563,46 @@ class AdyenServiceImpl(
 
         val adyenTransaction = adyenTransactionMaybe.get()
         commandGateway.sendAndWait<Void>(getCommandFromTransaction(adyenTransaction))
+    }
+
+    private fun handlePayinAuthorizationNotification(transaction : AdyenTransaction, adyenNotification: NotificationRequestItem){
+        if (adyenNotification.success) {
+            commandGateway.sendAndWait<Void>(
+                ReceiveAuthorisationAdyenTransactionCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId
+                )
+            )
+        } else {
+            commandGateway.sendAndWait<Void>(
+                ReceiveCancellationResponseAdyenTransactionCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    reason = adyenNotification.reason ?: "No reason provided"
+                )
+            )
+        }
+    }
+
+    private fun handleTokenRegistration(tokenRegistration: AdyenTokenRegistration, adyenNotification: NotificationRequestItem) {
+        if (adyenNotification.success) {
+                commandGateway.sendAndWait<Void>(
+                    AuthoriseAdyenTokenRegistrationFromNotificationCommand(
+                        adyenTokenRegistrationId = tokenRegistration.adyenTokenRegistrationId,
+                        memberId = tokenRegistration.memberId,
+                        adyenNotification = adyenNotification,
+                        shopperReference = tokenRegistration.shopperReference
+                    )
+                )
+
+        } else {
+            commandGateway.sendAndWait<Void>(
+                CancelAdyenTokenFromNotificationRegistrationCommand(
+                    adyenTokenRegistrationId = tokenRegistration.adyenTokenRegistrationId,
+                    memberId = tokenRegistration.memberId
+                )
+            )
+        }
     }
 
     private fun createMember(memberId: String) {
