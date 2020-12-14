@@ -41,11 +41,13 @@ class MemberPayinFilterServiceTest {
     fun `if market is Sweden only return member if both trustly account number is present and direct debit status is connected`() {
         val onlyHaveAccountNumber = buildMemberEntity(
             id = "123",
-            trustlyAccountNumber = "222"
+            trustlyAccountNumber = "222",
+            directDebitStatus = null
         )
 
         val onlyHaveDirectDebitStatus = buildMemberEntity(
             id = "234",
+            trustlyAccountNumber = null,
             directDebitStatus = DirectDebitStatus.CONNECTED
         )
 
