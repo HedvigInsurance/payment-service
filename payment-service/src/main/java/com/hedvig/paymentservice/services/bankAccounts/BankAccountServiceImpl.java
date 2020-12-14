@@ -74,10 +74,10 @@ public class BankAccountServiceImpl implements BankAccountService {
             .max(Comparator.comparing(AccountRegistration::getInitiated))
             .orElse(null);
 
-        Optional<Member> optionalMember = memberRepository.findById(memberId);
+        Optional<Member> memberMaybe = memberRepository.findById(memberId);
 
-        if (optionalMember.isPresent()) {
-            Member member = optionalMember.get();
+        if (memberMaybe.isPresent()) {
+            Member member = memberMaybe.get();
             if (member.getDirectDebitStatus() != null && member.getDirectDebitStatus().equals(DirectDebitStatus.CONNECTED)) {
                 if (accountRegistration == null || accountRegistration.getStatus().equals(AccountRegistrationStatus.CONFIRMED) || accountRegistration.getStatus().equals(AccountRegistrationStatus.CANCELLED)) {
                     return com.hedvig.paymentservice.graphQl.types.DirectDebitStatus.ACTIVE;
@@ -107,10 +107,10 @@ public class BankAccountServiceImpl implements BankAccountService {
             log.error("getPayinMethodStatus - hedvig.token is missing");
             return PayinMethodStatus.NEEDS_SETUP;
         }
-        Optional<Member> optionalMember = memberRepository.findById(memberId);
+        Optional<Member> memberMaybe = memberRepository.findById(memberId);
 
-        if (optionalMember.isPresent()) {
-            Member member = optionalMember.get();
+        if (memberMaybe.isPresent()) {
+            Member member = memberMaybe.get();
 
             if (member.getTrustlyAccountNumber() != null) {
                 return PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId));

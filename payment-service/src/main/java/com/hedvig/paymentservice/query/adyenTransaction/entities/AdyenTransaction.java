@@ -108,7 +108,7 @@ public class AdyenTransaction {
   public void setReason(@Nullable String reason) {
     this.reason = reason;
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
