@@ -22,7 +22,7 @@ data class TrustlyAccountCreatedEvent(
 ) {
 
   companion object {
-    fun fromUpdateTrustlyAccountCmd(
+    fun fromUpdateTrustlyAccountCommand(
       memberId: String,
       cmd: UpdateTrustlyAccountCommand
     ): TrustlyAccountCreatedEvent {
