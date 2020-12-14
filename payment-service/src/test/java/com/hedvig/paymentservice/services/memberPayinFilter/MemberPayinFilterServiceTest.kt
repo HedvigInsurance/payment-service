@@ -37,6 +37,42 @@ class MemberPayinFilterServiceTest {
         )
     }
 
+    @Test
+    fun `if market is Sweden only return member if both trustly account number is present and direct debit status is connected`() {
+        val onlyHaveAccountNumber = buildMemberEntity(
+            id = "123",
+            trustlyAccountNumber = "222"
+        )
+
+        val onlyHaveDirectDebitStatus = buildMemberEntity(
+            id = "234",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
+
+        val accountNumberAndDirectDebitStatusConnected = buildMemberEntity(
+            id = "345",
+            trustlyAccountNumber = "111",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
+
+
+        whenever(memberRepository.findAll()).thenReturn(
+            listOf(
+                onlyHaveAccountNumber,
+                onlyHaveDirectDebitStatus,
+                accountNumberAndDirectDebitStatusConnected
+            )
+        )
+
+        whenever(productPricingService.getContractMarketInfo(any())).thenReturn(
+            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
+        )
+
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result[0]).isEqualTo("345")
+    }
 
     @Test
     fun `if market is Sweden and one member has DD connected and one member has DD disconnected only return member with DD connected`() {
