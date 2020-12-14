@@ -197,6 +197,23 @@ class MemberPayinFilterServiceTest {
         assertThat(result).isEmpty()
     }
 
+    @Test
+    fun `if market is null for member return empty list`() {
+        val connectedDirectDebit = buildMemberEntity(
+            id = "123",
+            trustlyAccountNumber = "111",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
+
+        whenever(memberRepository.findAll()).thenReturn(listOf(connectedDirectDebit))
+
+        whenever(productPricingService.getContractMarketInfo("234")).thenThrow(NullPointerException::class.java)
+
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+
+        assertThat(result).isEmpty()
+    }
+
     private fun buildMemberEntity(
         id: String = "321",
         trustlyAccountNumber: String? = null,

@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.services.payinMethodFilter
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import org.springframework.stereotype.Service
 
@@ -16,7 +17,7 @@ class MemberPayinMethodFilterServiceImpl(
         val members = memberRepository.findAll()
 
         val membersForMarket= members.filter {
-            member -> productPricingService.getContractMarketInfo(member.id).market == market }
+            member -> getContractMarketInfoForMember(member.id) == market }
 
         return membersForMarket.filter { member ->
             when (market) {
@@ -26,5 +27,13 @@ class MemberPayinMethodFilterServiceImpl(
                     && member.trustlyAccountNumber != null
             }
         }.map { member -> member.id }
+    }
+
+    fun getContractMarketInfoForMember(memberId: String): Market? {
+        return try {
+          productPricingService.getContractMarketInfo(memberId).market
+        } catch (exception: Exception) {
+            null
+        }
     }
 }
