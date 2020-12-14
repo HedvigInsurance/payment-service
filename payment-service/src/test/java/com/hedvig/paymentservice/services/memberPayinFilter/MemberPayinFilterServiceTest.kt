@@ -6,8 +6,8 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
-import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinFilterService
-import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinFilterServiceImpl
+import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterService
+import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterServiceImpl
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
@@ -27,11 +27,11 @@ class MemberPayinFilterServiceTest {
     @Mock
     lateinit var productPricingService: ProductPricingService
 
-    lateinit var classUnderTest: MemberPayinFilterService
+    lateinit var classUnderTest: MemberPayinMethodFilterService
 
     @Before
     fun setup() {
-        classUnderTest = MemberPayinFilterServiceImpl(
+        classUnderTest = MemberPayinMethodFilterServiceImpl(
             memberRepository,
             productPricingService
         )

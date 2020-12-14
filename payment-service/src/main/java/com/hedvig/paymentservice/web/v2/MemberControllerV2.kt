@@ -7,7 +7,7 @@ import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
-import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinFilterService
+import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterService
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
@@ -34,7 +34,7 @@ class MemberControllerV2(
     private val paymentService: PaymentService,
     private val memberService: MemberService,
     private val meerkat: Meerkat,
-    private val memberPayinFilterService: MemberPayinFilterService
+    private val memberPayinMethodFilterService: MemberPayinMethodFilterService
 ) {
 
     @PostMapping("{memberId}/charge")
@@ -121,7 +121,7 @@ class MemberControllerV2(
         @PathVariable market: Market
     ): ResponseEntity<List<String>> =
         ResponseEntity.ok(
-            memberPayinFilterService.membersWithConnectedPayinMethodForMarket(market)
+            memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(market)
         )
 
     companion object {

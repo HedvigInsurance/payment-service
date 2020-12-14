@@ -7,10 +7,10 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import org.springframework.stereotype.Service
 
 @Service
-class MemberPayinFilterServiceImpl(
+class MemberPayinMethodFilterServiceImpl(
     private val memberRepository: MemberRepository,
     private val productPricingService: ProductPricingService
-) : MemberPayinFilterService {
+) : MemberPayinMethodFilterService {
 
     override fun membersWithConnectedPayinMethodForMarket(market: Market): List<String> {
         val members = memberRepository.findAll()
