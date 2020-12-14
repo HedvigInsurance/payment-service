@@ -2,10 +2,12 @@ package com.hedvig.paymentservice.web.v2
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
+import com.hedvig.paymentservice.exceptions.DeprecatedException
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
+import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinFilterService
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
@@ -31,7 +33,8 @@ import java.util.UUID
 class MemberControllerV2(
     private val paymentService: PaymentService,
     private val memberService: MemberService,
-    private val meerkat: Meerkat
+    private val meerkat: Meerkat,
+    private val memberPayinFilterService: MemberPayinFilterService
 ) {
 
     @PostMapping("{memberId}/charge")
@@ -111,13 +114,15 @@ class MemberControllerV2(
     fun getMembersConnectedToProvider(
         @PathVariable payinProvider: PayinProvider
     ): ResponseEntity<List<String>> =
-        ResponseEntity.ok(memberService.getMembersByPayinProvider(payinProvider))
+        throw DeprecatedException(this.javaClass.name, "/v2/_/members/payinProvider/{payinProvider}", emptyList())
 
-    @GetMapping("markets/{market}")
+    @GetMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
         @PathVariable market: Market
     ): ResponseEntity<List<String>> =
-        ResponseEntity.ok(memberService.membersWithConnectedPayinMethodForMarket(market))
+        ResponseEntity.ok(
+            memberPayinFilterService.membersWithConnectedPayinMethodForMarket(market)
+        )
 
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
