@@ -245,8 +245,6 @@ class MemberPayinFilterServiceTest {
 
         whenever(memberRepository.findAll()).thenReturn(listOf(connectedDirectDebit))
 
-        whenever(productPricingService.getContractMarketInfo("234")).thenThrow(NullPointerException::class.java)
-
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
 
         assertThat(result).isEmpty()
