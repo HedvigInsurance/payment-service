@@ -8,8 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class MemberPayinMethodFilterServiceImpl(
-    private val memberRepository: MemberRepository,
-    private val productPricingService: ProductPricingService
+    private val memberRepository: MemberRepository
 ) : MemberPayinMethodFilterService {
 
     override fun membersWithConnectedPayinMethodForMarket(memberIds: List<String>, market: Market): List<String> {
@@ -23,13 +22,5 @@ class MemberPayinMethodFilterServiceImpl(
                     && member.trustlyAccountNumber != null
             }
         }.map { member -> member.id }
-    }
-
-    fun getContractMarketInfoForMember(memberId: String): Market? {
-        return try {
-            productPricingService.getContractMarketInfo(memberId).market
-        } catch (exception: Exception) {
-            null
-        }
     }
 }

@@ -3,12 +3,9 @@ package com.hedvig.paymentservice.services.memberPayinFilter
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
-import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterService
 import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterServiceImpl
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -16,7 +13,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import javax.money.Monetary
 
 @RunWith(MockitoJUnitRunner::class)
 class MemberPayinFilterServiceTest {
@@ -24,17 +20,11 @@ class MemberPayinFilterServiceTest {
     @Mock
     lateinit var memberRepository: MemberRepository
 
-    @Mock
-    lateinit var productPricingService: ProductPricingService
-
     private lateinit var classUnderTest: MemberPayinMethodFilterService
 
     @Before
     fun setup() {
-        classUnderTest = MemberPayinMethodFilterServiceImpl(
-            memberRepository,
-            productPricingService
-        )
+        classUnderTest = MemberPayinMethodFilterServiceImpl(memberRepository)
     }
 
     @Test
@@ -66,10 +56,6 @@ class MemberPayinFilterServiceTest {
             )
         )
 
-        whenever(productPricingService.getContractMarketInfo(any())).thenReturn(
-            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
-        )
-
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(listOf(
             "123", "234", "345"),
             Market.SWEDEN
@@ -94,10 +80,6 @@ class MemberPayinFilterServiceTest {
 
         whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(disconnectedDirectDebit, connectedDirectDebit))
 
-        whenever(productPricingService.getContractMarketInfo(any())).thenReturn(
-            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
-        )
-
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
             Market.SWEDEN
@@ -117,10 +99,6 @@ class MemberPayinFilterServiceTest {
         val withAdyenPending = buildMemberEntity(
             id = "234",
             adyenRecurringDetailReference = null
-        )
-
-        whenever(productPricingService.getContractMarketInfo(any())).thenReturn(
-            ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
         )
 
         whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withAdyenPending))
@@ -149,13 +127,6 @@ class MemberPayinFilterServiceTest {
 
         whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withTrustlyConnected))
 
-        whenever(productPricingService.getContractMarketInfo("123")).thenReturn(
-            ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
-        )
-
-        whenever(productPricingService.getContractMarketInfo("234")).thenReturn(
-            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
-        )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
