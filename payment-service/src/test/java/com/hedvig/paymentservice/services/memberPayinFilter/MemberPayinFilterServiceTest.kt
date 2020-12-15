@@ -112,28 +112,24 @@ class MemberPayinFilterServiceTest {
     }
 
     @Test
-    fun `if market is Sweden will only return members with market of Sweden`() {
-
+    fun `if market is Denmark and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
         val withAdyenConnected = buildMemberEntity(
             id = "123",
-            adyenRecurringDetailReference = "5463",
-            directDebitStatus = DirectDebitStatus.CONNECTED
+            adyenRecurringDetailReference = "5463"
         )
-        val withTrustlyConnected = buildMemberEntity(
+        val withAdyenPending = buildMemberEntity(
             id = "234",
-            directDebitStatus = DirectDebitStatus.CONNECTED,
-            trustlyAccountNumber = "2334"
+            adyenRecurringDetailReference = null
         )
 
-        whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withTrustlyConnected))
-
+        whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withAdyenPending))
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
-            Market.SWEDEN)
+            Market.DENMARK)
 
         assertThat(result.size).isEqualTo(1)
-        assertThat(result[0]).isEqualTo("234")
+        assertThat(result[0]).isEqualTo("123")
     }
 
     @Test
