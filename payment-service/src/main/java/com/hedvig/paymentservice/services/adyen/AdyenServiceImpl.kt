@@ -592,7 +592,8 @@ class AdyenServiceImpl(
                 amount = Money.of(transaction.amount, transaction.currency),
                 reason = adyenNotification.reason!!,
                 rescueReference = adyenNotification.additionalData!!["retry.rescueReference"]!!,
-                retryWasSuccessful = adyenNotification.success
+                retryWasSuccessful = adyenNotification.success,
+                orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
             )
         }
 

@@ -172,7 +172,8 @@ class AdyenTransaction() {
                 amount = command.amount,
                 reason = command.reason,
                 rescueReference = command.rescueReference,
-                retryWasSuccessful = command.retryWasSuccessful
+                retryWasSuccessful = command.retryWasSuccessful,
+                orderAttemptNumber = command.orderAttemptNumber
             )
         )
     }
