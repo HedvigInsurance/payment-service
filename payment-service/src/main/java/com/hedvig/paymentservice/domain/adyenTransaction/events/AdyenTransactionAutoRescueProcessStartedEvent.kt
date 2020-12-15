@@ -3,10 +3,10 @@ package com.hedvig.paymentservice.domain.adyenTransaction.events
 import java.util.UUID
 import javax.money.MonetaryAmount
 
-data class AdyenTransactionAutoRescueProcessStartedReceivedEvent(
+data class AdyenTransactionAutoRescueProcessStartedEvent(
     val transactionId: UUID,
     val memberId: String,
     val amount: MonetaryAmount,
-    val refusalReason: String,
+    val reason: String,
     val rescueReference: String
 )

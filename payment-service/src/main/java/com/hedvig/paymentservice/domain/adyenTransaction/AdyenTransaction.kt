@@ -10,7 +10,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenT
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessEndedReceivedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
@@ -56,11 +56,11 @@ class AdyenTransaction() {
 
             if (response.resultCode!! == PaymentsResponse.ResultCodeEnum.REFUSED && response.additionalData?.get("retry.rescueScheduled") == "true") {
                 apply(
-                    AdyenTransactionAutoRescueProcessStartedReceivedEvent(
+                    AdyenTransactionAutoRescueProcessStartedEvent(
                         transactionId = command.transactionId,
                         memberId = command.memberId,
                         amount = command.amount,
-                        refusalReason = response.refusalReason,
+                        reason = response.refusalReason,
                         rescueReference = response.additionalData["retry.rescueReference"]!!
                     )
                 )
@@ -143,6 +143,11 @@ class AdyenTransaction() {
     @EventSourcingHandler
     fun on(event: AdyenTransactionCanceledEvent) {
         transactionStatus = AdyenTransactionStatus.CANCELLED
+    }
+
+    @EventSourcingHandler
+    fun on(event: AdyenTransactionAutoRescueProcessStartedEvent) {
+        transactionStatus = AdyenTransactionStatus.RESCUING
     }
 
     @CommandHandler

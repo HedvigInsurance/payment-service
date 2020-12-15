@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.query.adyenTransaction
 
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
@@ -18,79 +19,90 @@ import java.math.BigDecimal
 @Component
 @Transactional
 class AdyenTransactionEventListener(
-  val adyenTransactionRepository: AdyenTransactionRepository
+    val adyenTransactionRepository: AdyenTransactionRepository
 ) {
-  @EventHandler
-  fun on(e: AdyenTransactionInitiatedEvent) {
-    adyenTransactionRepository.save(
-      AdyenTransaction(
-        e.transactionId,
-        e.memberId,
-        e.recurringDetailReference,
-        e.amount.number.numberValueExact(BigDecimal::class.java),
-        e.amount.currency.currencyCode,
-        AdyenTransactionStatus.INITIATED
-      )
-    )
-  }
+    @EventHandler
+    fun on(event: AdyenTransactionInitiatedEvent) {
+        adyenTransactionRepository.save(
+            AdyenTransaction(
+                event.transactionId,
+                event.memberId,
+                event.recurringDetailReference,
+                event.amount.number.numberValueExact(BigDecimal::class.java),
+                event.amount.currency.currencyCode,
+                AdyenTransactionStatus.INITIATED
+            )
+        )
+    }
 
-  @EventHandler
-  fun on(e: AdyenTransactionAuthorisedEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: AdyenTransactionAuthorisedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.AUTHORISED
-    adyenTransaction.reason = null
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.AUTHORISED
+        adyenTransaction.reason = null
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 
-  @EventHandler
-  fun on(e: AdyenTransactionPendingResponseReceivedEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: AdyenTransactionPendingResponseReceivedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.PENDING
-    adyenTransaction.reason = e.reason
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.PENDING
+        adyenTransaction.reason = event.reason
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 
-  @EventHandler
-  fun on(e: AdyenTransactionCanceledEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: AdyenTransactionCanceledEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.CANCELLED
-    adyenTransaction.reason = e.reason
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.CANCELLED
+        adyenTransaction.reason = event.reason
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 
-  @EventHandler
-  fun on(e: AdyenTransactionCancellationResponseReceivedEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: AdyenTransactionAutoRescueProcessStartedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.CANCELLED
-    adyenTransaction.reason = e.reason
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.RESCUING
+        adyenTransaction.reason = event.reason
+        adyenTransaction.rescueReference = event.rescueReference
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 
-  @EventHandler
-  fun on(e: CaptureFailureAdyenTransactionReceivedEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: AdyenTransactionCancellationResponseReceivedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.CAPTURE_FAILED
-    adyenTransaction.reason = "Capture failure"
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.CANCELLED
+        adyenTransaction.reason = event.reason
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 
-  @EventHandler
-  fun on(e: AuthorisationAdyenTransactionReceivedEvent) {
-    val adyenTransaction = adyenTransactionRepository.findById(e.transactionId).orElseThrow()
+    @EventHandler
+    fun on(event: CaptureFailureAdyenTransactionReceivedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
 
-    adyenTransaction.transactionStatus = AdyenTransactionStatus.AUTHORISED
-    adyenTransaction.reason = null
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.CAPTURE_FAILED
+        adyenTransaction.reason = "Capture failure"
 
-    adyenTransactionRepository.save(adyenTransaction)
-  }
+        adyenTransactionRepository.save(adyenTransaction)
+    }
+
+    @EventHandler
+    fun on(event: AuthorisationAdyenTransactionReceivedEvent) {
+        val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
+
+        adyenTransaction.transactionStatus = AdyenTransactionStatus.AUTHORISED
+        adyenTransaction.reason = null
+
+        adyenTransactionRepository.save(adyenTransaction)
+    }
 }
