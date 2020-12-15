@@ -1,8 +1,6 @@
 package com.hedvig.paymentservice.web.v2
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
-import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
-import com.hedvig.paymentservice.exceptions.DeprecatedException
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
@@ -109,14 +107,6 @@ class MemberControllerV2(
             ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build()
         }
     }
-
-    @GetMapping("payinProvider/{payinProvider}")
-    fun getMembersConnectedToProvider(
-        @PathVariable payinProvider: PayinProvider
-    ): ResponseEntity<List<String>> =
-        throw DeprecatedException(
-            this.javaClass.name, "/v2/_/members/payinProvider/{payinProvider}", emptyList()
-        )
 
     @GetMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
