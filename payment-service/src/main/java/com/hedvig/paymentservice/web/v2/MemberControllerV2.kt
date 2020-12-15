@@ -110,10 +110,11 @@ class MemberControllerV2(
 
     @GetMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
-        @PathVariable market: Market
+        @PathVariable market: Market,
+        @RequestParam memberIds: List<String>
     ): ResponseEntity<List<String>> =
         ResponseEntity.ok(
-            memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(market)
+            memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(memberIds, market)
         )
 
     companion object {

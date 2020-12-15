@@ -12,12 +12,10 @@ class MemberPayinMethodFilterServiceImpl(
     private val productPricingService: ProductPricingService
 ) : MemberPayinMethodFilterService {
 
-    override fun membersWithConnectedPayinMethodForMarket(market: Market): List<String> {
-        val members = memberRepository.findAll()
+    override fun membersWithConnectedPayinMethodForMarket(memberIds: List<String>, market: Market): List<String> {
+        val members = memberRepository.findAllByIdIn(memberIds)
 
-        val membersForMarket = members.filter { member -> getContractMarketInfoForMember(member.id) == market }
-
-        return membersForMarket.filter { member ->
+        return members.filter { member ->
             when (market) {
                 Market.NORWAY,
                 Market.DENMARK -> member.adyenRecurringDetailReference != null

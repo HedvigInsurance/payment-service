@@ -27,7 +27,7 @@ class MemberPayinFilterServiceTest {
     @Mock
     lateinit var productPricingService: ProductPricingService
 
-    lateinit var classUnderTest: MemberPayinMethodFilterService
+    private lateinit var classUnderTest: MemberPayinMethodFilterService
 
     @Before
     fun setup() {
@@ -58,7 +58,7 @@ class MemberPayinFilterServiceTest {
         )
 
 
-        whenever(memberRepository.findAll()).thenReturn(
+        whenever(memberRepository.findAllByIdIn( listOf("123", "234", "345"))).thenReturn(
             listOf(
                 onlyHaveAccountNumber,
                 onlyHaveDirectDebitStatus,
@@ -70,7 +70,10 @@ class MemberPayinFilterServiceTest {
             ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
         )
 
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(listOf(
+            "123", "234", "345"),
+            Market.SWEDEN
+        )
 
         assertThat(result.size).isEqualTo(1)
         assertThat(result[0]).isEqualTo("345")
@@ -89,13 +92,16 @@ class MemberPayinFilterServiceTest {
             directDebitStatus = DirectDebitStatus.CONNECTED
         )
 
-        whenever(memberRepository.findAll()).thenReturn(listOf(disconnectedDirectDebit, connectedDirectDebit))
+        whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(disconnectedDirectDebit, connectedDirectDebit))
 
         whenever(productPricingService.getContractMarketInfo(any())).thenReturn(
             ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
         )
 
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf("123", "234"),
+            Market.SWEDEN
+        )
 
         assertThat(result.size).isEqualTo(1)
         assertThat(result[0]).isEqualTo("234")
@@ -117,9 +123,11 @@ class MemberPayinFilterServiceTest {
             ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
         )
 
-        whenever(memberRepository.findAll()).thenReturn(listOf(withAdyenConnected, withAdyenPending))
+        whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withAdyenPending))
 
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.NORWAY)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf("123", "234"),
+            Market.NORWAY)
 
         assertThat(result.size).isEqualTo(1)
         assertThat(result[0]).isEqualTo("123")
@@ -139,7 +147,7 @@ class MemberPayinFilterServiceTest {
             trustlyAccountNumber = "2334"
         )
 
-        whenever(memberRepository.findAll()).thenReturn(listOf(withAdyenConnected, withTrustlyConnected))
+        whenever(memberRepository.findAllByIdIn( listOf("123", "234"))).thenReturn(listOf(withAdyenConnected, withTrustlyConnected))
 
         whenever(productPricingService.getContractMarketInfo("123")).thenReturn(
             ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
@@ -149,103 +157,20 @@ class MemberPayinFilterServiceTest {
             ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
         )
 
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf("123", "234"),
+            Market.SWEDEN)
 
         assertThat(result.size).isEqualTo(1)
         assertThat(result[0]).isEqualTo("234")
     }
 
     @Test
-    fun `if market is Denmark will only return members with adyen connected and market of Denmark`() {
-
-        val danishMemberWithAdyenConnected = buildMemberEntity(
-            id = "123",
-            adyenRecurringDetailReference = "5463",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-        val norwegianMemberWithAdyenConnected = buildMemberEntity(
-            id = "234",
-            adyenRecurringDetailReference = "5463",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-        val swedishMemberWithTrustlyConnected = buildMemberEntity(
-            id = "345",
-            directDebitStatus = DirectDebitStatus.CONNECTED,
-            trustlyAccountNumber = "2334"
-        )
-
-        whenever(memberRepository.findAll()).thenReturn(listOf(
-            danishMemberWithAdyenConnected,
-            norwegianMemberWithAdyenConnected,
-            swedishMemberWithTrustlyConnected)
-        )
-
-        whenever(productPricingService.getContractMarketInfo("123")).thenReturn(
-            ContractMarketInfo(Market.DENMARK, Monetary.getCurrency("DKK"))
-        )
-
-        whenever(productPricingService.getContractMarketInfo("234")).thenReturn(
-            ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
-        )
-
-        whenever(productPricingService.getContractMarketInfo("345")).thenReturn(
-            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
-        )
-
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.DENMARK)
-
-        assertThat(result.size).isEqualTo(1)
-        assertThat(result[0]).isEqualTo("123")
-    }
-
-    @Test
-    fun `when market is Denmark return empty list if all members are Swedish or Norwegian`() {
-        val connectedDirectDebit = buildMemberEntity(
-            id = "123",
-            trustlyAccountNumber = "111",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-        val adyenConnected = buildMemberEntity(
-            id = "234",
-            adyenRecurringDetailReference = "222",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-
-        whenever(memberRepository.findAll()).thenReturn(listOf(connectedDirectDebit, adyenConnected))
-
-        whenever(productPricingService.getContractMarketInfo("123")).thenReturn(
-            ContractMarketInfo(Market.SWEDEN, Monetary.getCurrency("SEK"))
-        )
-
-        whenever(productPricingService.getContractMarketInfo("234")).thenReturn(
-            ContractMarketInfo(Market.NORWAY, Monetary.getCurrency("NOK"))
-        )
-
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.DENMARK)
-
-        assertThat(result).isEmpty()
-    }
-
-    @Test
     fun `if members are null return empty list`() {
-        whenever(memberRepository.findAll()).thenReturn(emptyList())
+        whenever(memberRepository.findAllByIdIn(listOf())).thenReturn(emptyList())
 
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.NORWAY)
-
-        assertThat(result).isEmpty()
-    }
-
-    @Test
-    fun `if market is null for member return empty list`() {
-        val connectedDirectDebit = buildMemberEntity(
-            id = "123",
-            trustlyAccountNumber = "111",
-            directDebitStatus = DirectDebitStatus.CONNECTED
-        )
-
-        whenever(memberRepository.findAll()).thenReturn(listOf(connectedDirectDebit))
-
-        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(Market.SWEDEN)
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf(), Market.NORWAY)
 
         assertThat(result).isEmpty()
     }
