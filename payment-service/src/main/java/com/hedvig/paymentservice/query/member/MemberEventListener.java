@@ -23,11 +23,11 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ResetHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -35,6 +35,7 @@ import java.util.Optional;
 @Component
 @Slf4j
 @Order(0)
+@ProcessingGroup("MemberEventsProcessorGroup")
 public class MemberEventListener {
 
   private final MemberRepository memberRepository;
