@@ -14,6 +14,8 @@ class MemberPayinMethodFilterServiceImpl(
     override fun membersWithConnectedPayinMethodForMarket(memberIds: List<String>, market: Market): List<String> {
         val members = memberRepository.findAllByIdIn(memberIds)
 
+        if (members.isEmpty()) return emptyList()
+
         return members.filter { member ->
             when (market) {
                 Market.NORWAY,
