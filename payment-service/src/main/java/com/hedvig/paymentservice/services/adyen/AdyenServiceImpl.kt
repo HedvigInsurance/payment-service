@@ -363,17 +363,19 @@ class AdyenServiceImpl(
 
         val transaction = transactionMaybe.get()
 
+        val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
+
         val commandToSend: Any = when {
             adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                 transactionId = transaction.transactionId,
                 memberId = transaction.memberId
             )
-            adyenNotification.additionalData?.get("retry.rescueScheduled") == "true" ->
+            hasAutoRescueScheduled ->
                 ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
                     transactionId = transaction.transactionId,
                     memberId = transaction.memberId,
                     reason = adyenNotification.reason ?: "No reason provided",
-                    rescueReference = adyenNotification.additionalData["retry.rescueReference"]!!,
+                    rescueReference = adyenNotification.additionalData!!["retry.rescueReference"]!!,
                     orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
                 )
             else -> ReceiveCancellationResponseAdyenTransactionCommand(
@@ -441,10 +443,13 @@ class AdyenServiceImpl(
             .reference(request.transactionId.toString())
             .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
             .shopperReference(request.memberId)
-            .additionalData(mapOf(
-                "autoRescue" to "true",
-                "maxDaysToRescue" to "10" // TODO: Set correct amount of maxDaysToRescue
-            ))
+            .additionalData(
+                mapOf(
+                    "autoRescue" to "true",
+                    "maxDaysToRescue" to "10"
+                    // "autoRescueScenario" to "AutoRescueSuccessfulFirst"
+                )
+            )
 
         val paymentsResponse: PaymentsResponse
 

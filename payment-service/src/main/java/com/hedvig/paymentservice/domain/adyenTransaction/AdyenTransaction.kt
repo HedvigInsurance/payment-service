@@ -25,6 +25,7 @@ import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 @Aggregate
@@ -34,6 +35,8 @@ class AdyenTransaction() {
     lateinit var memberId: String
     lateinit var recurringDetailReference: String
     lateinit var transactionStatus: AdyenTransactionStatus
+
+    private val logger = LoggerFactory.getLogger(AdyenTransaction::class.java)
 
     @CommandHandler
     constructor(
@@ -54,7 +57,9 @@ class AdyenTransaction() {
                 ChargeMemberWithTokenRequest(command.transactionId, command.memberId, command.recurringDetailReference, command.amount)
             val response = adyenService.chargeMemberWithToken(request)
 
-            if (response.resultCode!! == PaymentsResponse.ResultCodeEnum.REFUSED && response.additionalData?.get("retry.rescueScheduled") == "true") {
+            val hasAutoRescueScheduled = response.additionalData?.get("retry.rescueScheduled") == "true"
+
+            if (response.resultCode!! == PaymentsResponse.ResultCodeEnum.REFUSED && hasAutoRescueScheduled) {
                 apply(
                     AdyenTransactionAutoRescueProcessStartedEvent(
                         transactionId = command.transactionId,

@@ -17,62 +17,60 @@ import java.util.UUID
 @RequestMapping("/debug/adyen")
 @Profile("development")
 class AdyenDebugController(
-  val adyenService: AdyenService,
-  @Value("\${hedvig.adyen.clientKey:\"\"}") val clientKey: String
+    val adyenService: AdyenService,
+    @Value("\${hedvig.adyen.clientKey:\"\"}") val clientKey: String
 ) {
+    @PostMapping("/payout")
+    fun performPayout(
+        @RequestParam("shopperReference") shopperReference: String,
+        @RequestParam("memberId") memberId: String
+    ): ResponseEntity<Any> {
+        val response = adyenService.startPayoutTransaction(
+            memberId,
+            UUID.randomUUID().toString(),
+            Money.of(100, "NOK"),
+            shopperReference,
+            "test@hedvig.com"
+        )
+        return ResponseEntity.ok(response)
+    }
 
-  @PostMapping("/payout")
-  fun performPayout(
-    @RequestParam("shopperReference") shopperReference: String,
-    @RequestParam("memberId") memberId: String
-  ): ResponseEntity<Any> {
-    val response = adyenService.startPayoutTransaction(
-      memberId,
-      UUID.randomUUID().toString(),
-      Money.of(100, "NOK"),
-      shopperReference,
-      "test@hedvig.com"
-    )
-    return ResponseEntity.ok(response)
-  }
+    @PostMapping("/confirmPayout")
+    fun confirmPayout(
+        @RequestParam("payoutReference") payoutReference: String,
+        @RequestParam("memberId") memberId: String
+    ): ResponseEntity<Any> {
+        val response = adyenService.confirmPayout(payoutReference, memberId)
+        return ResponseEntity.ok(response)
+    }
 
-  @PostMapping("/confirmPayout")
-  fun confirmPayout(
-    @RequestParam("payoutReference") payoutReference: String,
-    @RequestParam("memberId") memberId: String
-  ): ResponseEntity<Any> {
-    val response = adyenService.confirmPayout(payoutReference, memberId)
-    return ResponseEntity.ok(response)
-  }
+    @GetMapping("payin")
+    fun payin(
+        @RequestParam("memberId")
+        memberId: String
+    ): ModelAndView {
+        return ModelAndView(
+            "adyenDebugController/index",
+            mapOf<String, Any>(
+                "clientKey" to clientKey,
+                "memberId" to memberId,
+                "paymentDirection" to "payin"
+            )
+        )
+    }
 
-
-  @GetMapping("payin")
-  fun payin(
-    @RequestParam("memberId")
-    memberId: String
-  ): ModelAndView {
-    return ModelAndView(
-      "adyenDebugController/index",
-      mapOf<String, Any>(
-        "clientKey" to clientKey,
-        "memberId" to memberId,
-        "paymentDirection" to "payin"
-      )
-    )
-  }
-
-  @GetMapping("payout")
-  fun payout(
-    @RequestParam("memberId")
-    memberId: String
-  ): ModelAndView {
-    return ModelAndView(
-      "adyenDebugController/index",
-      mapOf<String, Any>(
-        "clientKey" to clientKey,
-        "memberId" to memberId,
-        "paymentDirection" to "payout"
-      )
-    )
-  }
+    @GetMapping("payout")
+    fun payout(
+        @RequestParam("memberId")
+        memberId: String
+    ): ModelAndView {
+        return ModelAndView(
+            "adyenDebugController/index",
+            mapOf<String, Any>(
+                "clientKey" to clientKey,
+                "memberId" to memberId,
+                "paymentDirection" to "payout"
+            )
+        )
+    }
 }
