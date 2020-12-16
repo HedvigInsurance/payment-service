@@ -108,7 +108,7 @@ class MemberControllerV2(
         }
     }
 
-    @GetMapping("/connectedPayinProviders/markets/{market}")
+    @PostMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
         @PathVariable market: Market,
         @RequestBody memberIds: List<String>
