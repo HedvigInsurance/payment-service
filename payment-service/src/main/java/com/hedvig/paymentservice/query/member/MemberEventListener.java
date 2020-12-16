@@ -32,11 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static com.hedvig.paymentservice.util.TrustlyUtilKt.isUpdateForTheLatestTrustlyAccount;
-
 @Component
 @Slf4j
-@Transactional
 @Order(0)
 public class MemberEventListener {
 
@@ -174,11 +171,8 @@ public class MemberEventListener {
       log.error("Could not find member");
       return;
     }
-    Member m = member.get();
 
-    if (!isUpdateForTheLatestTrustlyAccount(m, e.getTrustlyAccountId())) {
-      return;
-    }
+    Member m = member.get();
 
     m.setTrustlyAccountNumber(e.getTrustlyAccountId());
     m.setBank(e.getBank());
@@ -250,10 +244,6 @@ public class MemberEventListener {
     }
 
     Member m = optionalMember.get();
-
-    if (!isUpdateForTheLatestTrustlyAccount(m, trustlyAccountId)) {
-      return;
-    }
 
     m.setDirectDebitStatus(status);
     memberRepository.save(m);
