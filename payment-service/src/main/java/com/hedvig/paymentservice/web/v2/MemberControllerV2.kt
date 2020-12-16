@@ -111,7 +111,7 @@ class MemberControllerV2(
     @GetMapping("/connectedPayinProviders/markets/{market}")
     fun getMembersWithConnectedPayinMethodForMarket(
         @PathVariable market: Market,
-        @RequestParam memberIds: List<String>
+        @RequestBody memberIds: List<String>
     ): ResponseEntity<List<String>> =
         ResponseEntity.ok(
             memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(memberIds, market)
