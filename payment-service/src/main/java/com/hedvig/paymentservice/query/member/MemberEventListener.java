@@ -34,7 +34,6 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-@Transactional
 @Order(0)
 public class MemberEventListener {
 
