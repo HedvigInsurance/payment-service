@@ -88,7 +88,9 @@ class AdyenServiceImpl(
     @param:Value("\${hedvig.adyen.allow3DS2}")
     val allow3DS2: Boolean,
     @param:Value("\${hedvig.adyen.public.key}")
-    val adyenPublicKey: String
+    val adyenPublicKey: String,
+    @param:Value("\${hedvig.adyen.charge.autorescue.scenario}")
+    val autoRescueScenario: String?
 ) : AdyenService {
     override fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse {
         val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
@@ -427,6 +429,14 @@ class AdyenServiceImpl(
 
         val adyenMerchantInfo = adyenMerchantPicker.getAdyenMerchantInfo(request.memberId)
 
+        val additionalData = mutableMapOf(
+            "autoRescue" to "true",
+            "maxDaysToRescue" to "10"
+        )
+        if (autoRescueScenario != null) {
+            additionalData["autoRescueScenario"] = autoRescueScenario!!
+        }
+
         val paymentsRequest = PaymentsRequest()
             .amount(
                 Amount()
@@ -443,13 +453,7 @@ class AdyenServiceImpl(
             .reference(request.transactionId.toString())
             .shopperInteraction(PaymentsRequest.ShopperInteractionEnum.CONTAUTH)
             .shopperReference(request.memberId)
-            .additionalData(
-                mapOf(
-                    "autoRescue" to "true",
-                    "maxDaysToRescue" to "10"
-                    // "autoRescueScenario" to "AutoRescueSuccessfulFirst"
-                )
-            )
+            .additionalData(additionalData)
 
         val paymentsResponse: PaymentsResponse
 

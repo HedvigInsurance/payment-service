@@ -2,10 +2,10 @@ package com.hedvig.paymentservice.domain.adyenTransaction
 
 import com.adyen.model.checkout.PaymentsResponse
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
-import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
@@ -51,10 +51,16 @@ class AdyenTransaction() {
                 command.amount
             )
         )
+        logger.info("${command::class.simpleName}: Adyen transaction initiated (transactionId=${command.transactionId}, memberId=${command.memberId})")
 
         try {
             val request =
-                ChargeMemberWithTokenRequest(command.transactionId, command.memberId, command.recurringDetailReference, command.amount)
+                ChargeMemberWithTokenRequest(
+                    command.transactionId,
+                    command.memberId,
+                    command.recurringDetailReference,
+                    command.amount
+                )
             val response = adyenService.chargeMemberWithToken(request)
 
             val hasAutoRescueScheduled = response.additionalData?.get("retry.rescueScheduled") == "true"
@@ -69,6 +75,7 @@ class AdyenTransaction() {
                         rescueReference = response.additionalData["retry.rescueReference"]!!
                     )
                 )
+                logger.info("${command::class.simpleName}: Adyen transaction auto rescue process started (transactionId=${command.transactionId}, memberId=${command.memberId})")
                 return
             }
 
@@ -82,6 +89,7 @@ class AdyenTransaction() {
                             command.amount
                         )
                     )
+                    logger.info("${command::class.simpleName}: Adyen transaction authorized (transactionId=${command.transactionId}, memberId=${command.memberId})")
                 }
                 PaymentsResponse.ResultCodeEnum.AUTHENTICATIONFINISHED,
                 PaymentsResponse.ResultCodeEnum.AUTHENTICATIONNOTREQUIRED,
@@ -99,6 +107,7 @@ class AdyenTransaction() {
                             response.resultCode.value
                         )
                     )
+                    logger.info("${command::class.simpleName}: Adyen transaction pending (transactionId=${command.transactionId}, memberId=${command.memberId})")
                 }
                 PaymentsResponse.ResultCodeEnum.CANCELLED,
                 PaymentsResponse.ResultCodeEnum.ERROR,
@@ -112,26 +121,31 @@ class AdyenTransaction() {
                             response.resultCode.value
                         )
                     )
+                    logger.info("${command::class.simpleName}: Adyen transaction cancelled (transactionId=${command.transactionId}, memberId=${command.memberId})")
                 }
             }
-        } catch (ex: Exception) {
+        } catch (exception: Exception) {
             apply(
                 AdyenTransactionCanceledEvent(
                     command.transactionId,
                     command.memberId,
                     command.recurringDetailReference,
                     command.amount,
-                    ex.message ?: EXCEPTION_MESSAGE
+                    exception.message ?: EXCEPTION_MESSAGE
                 )
+            )
+            logger.error(
+                "${command::class.simpleName}: Adyen transaction cancelled (transactionId=${command.transactionId}, memberId=${command.memberId})",
+                exception
             )
         }
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenTransactionInitiatedEvent) {
-        transactionId = e.transactionId
-        memberId = e.memberId
-        recurringDetailReference = e.recurringDetailReference
+    fun on(event: AdyenTransactionInitiatedEvent) {
+        transactionId = event.transactionId
+        memberId = event.memberId
+        recurringDetailReference = event.recurringDetailReference
         transactionStatus = AdyenTransactionStatus.INITIATED
     }
 
@@ -166,6 +180,7 @@ class AdyenTransaction() {
                 orderAttemptNumber = command.orderAttemptNumber
             )
         )
+        logger.info("${command::class.simpleName}: Adyen transaction auto rescue unsuccessful notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
     }
 
     @CommandHandler
@@ -181,6 +196,7 @@ class AdyenTransaction() {
                 orderAttemptNumber = command.orderAttemptNumber
             )
         )
+        logger.info("${command::class.simpleName}: Adyen transaction auto rescue processes ended notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
     }
 
     @CommandHandler
@@ -193,6 +209,7 @@ class AdyenTransaction() {
                     reason = command.reason
                 )
             )
+            logger.info("${command::class.simpleName}: Adyen transaction cancellation notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
         }
     }
 
@@ -210,6 +227,7 @@ class AdyenTransaction() {
                     memberId = command.memberId
                 )
             )
+            logger.info("${command::class.simpleName}: Adyen transaction capture failed notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
         }
     }
 
@@ -227,6 +245,7 @@ class AdyenTransaction() {
                     command.memberId
                 )
             )
+            logger.info("${command::class.simpleName}: Adyen transaction authorized notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
         }
     }
 
