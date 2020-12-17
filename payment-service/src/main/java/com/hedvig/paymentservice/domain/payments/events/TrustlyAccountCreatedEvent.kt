@@ -7,9 +7,11 @@ import java.util.UUID
 
 @Revision("1.0")
 data class TrustlyAccountCreatedEvent(
-  @AggregateIdentifier val memberId: String,
+  val memberId: String,
+
   val hedvigOrderId: UUID,
   val trustlyAccountId: String,
+
   val address: String?,
   val bank: String?,
   val city: String?,
