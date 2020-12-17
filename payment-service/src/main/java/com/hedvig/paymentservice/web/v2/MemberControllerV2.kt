@@ -1,10 +1,11 @@
 package com.hedvig.paymentservice.web.v2
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
-import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
+import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterService
 import com.hedvig.paymentservice.services.payments.PaymentService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
@@ -30,7 +31,8 @@ import java.util.UUID
 class MemberControllerV2(
     private val paymentService: PaymentService,
     private val memberService: MemberService,
-    private val meerkat: Meerkat
+    private val meerkat: Meerkat,
+    private val memberPayinMethodFilterService: MemberPayinMethodFilterService
 ) {
 
     @PostMapping("{memberId}/charge")
@@ -106,15 +108,17 @@ class MemberControllerV2(
         }
     }
 
-    @GetMapping("payinProvider/{payinProvider}")
-    fun getMembersConnectedToProvider(
-        @PathVariable payinProvider: PayinProvider
+    @PostMapping("/connectedPayinProviders/markets/{market}")
+    fun getMembersWithConnectedPayinMethodForMarket(
+        @PathVariable market: Market,
+        @RequestBody memberIds: List<String>
     ): ResponseEntity<List<String>> =
-        ResponseEntity.ok(memberService.getMembersByPayinProvider(payinProvider))
+        ResponseEntity.ok(
+            memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(memberIds, market)
+        )
 
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
     }
-
 }
 
