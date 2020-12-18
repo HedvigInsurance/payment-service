@@ -92,7 +92,7 @@ class Member() {
             return ChargeMemberResult(command.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
         }
 
-        if (trustlyAccount != null && trustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED) {
+        if (trustlyAccount != null && trustlyAccount.directDebitStatus != DirectDebitStatus.CONNECTED) {
             log.info("Cannot charge account - direct debit mandate not received in Trustly ${command.memberId}")
             failChargeCreation(
                 memberId = memberId,

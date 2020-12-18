@@ -241,38 +241,11 @@ class MemberTest {
                 makeDirectDebitConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
             )
             .`when`(
-                UpdateTrustlyAccountCommand(
-                    memberId = MEMBER_ID_ONE,
-                    hedvigOrderId = HEDVIG_ORDER_ID_ONE,
-                    accountId = TRUSTLY_ACCOUNT_ID,
-                    address = null,
-                    bank = null,
-                    city = null,
-                    clearingHouse = null,
-                    descriptor = null,
-                    directDebitMandateActive = false,
-                    lastDigits = null,
-                    name = null,
-                    personId = null,
-                    zipCode = null
-                )
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE, false)
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                TrustlyAccountUpdatedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    hedvigOrderId = HEDVIG_ORDER_ID_ONE,
-                    trustlyAccountId = TRUSTLY_ACCOUNT_ID,
-                    address = null,
-                    bank = null,
-                    city = null,
-                    clearingHouse = null,
-                    descriptor = null,
-                    lastDigits = null,
-                    name = null,
-                    personId = null,
-                    zipCode = null
-                ),
+                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
                 DirectDebitDisconnectedEvent(
                     MEMBER_ID_ONE,
                     HEDVIG_ORDER_ID_ONE.toString(),
@@ -323,21 +296,7 @@ class MemberTest {
                 makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE)
             )
             .`when`(
-                UpdateTrustlyAccountCommand(
-                    memberId = MEMBER_ID_ONE,
-                    hedvigOrderId = HEDVIG_ORDER_ID_TWO,
-                    accountId = secondTrustlyAccountId,
-                    address = null,
-                    bank = null,
-                    city = null,
-                    clearingHouse = null,
-                    descriptor = null,
-                    directDebitMandateActive = true,
-                    lastDigits = null,
-                    name = null,
-                    personId = null,
-                    zipCode = null
-                )
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
@@ -371,7 +330,6 @@ class MemberTest {
             }
     }
 
-    // Two accounts happy flow
     // Happy flow with charge command which will pick the latest account
     //TrustlyUpdatedEvent - 70 people which will pick the latest account
 
@@ -429,6 +387,27 @@ class MemberTest {
         memberId = memberId,
         recurringDetailReference = RECURRING_DETAIL_REFERENCE,
         accountStatus = status
+    )
+
+    private fun makeUpdateTrustlyAccountCommand(
+        memberId: String,
+        accountId: String = TRUSTLY_ACCOUNT_ID,
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE,
+        isConnected: Boolean = true
+    ) = UpdateTrustlyAccountCommand(
+        memberId = memberId,
+        hedvigOrderId = hedvigOrderId,
+        accountId = accountId,
+        address = null,
+        bank = null,
+        city = null,
+        clearingHouse = null,
+        descriptor = null,
+        directDebitMandateActive = connected,
+        lastDigits = null,
+        name = null,
+        personId = null,
+        zipCode = null
     )
 
     companion object {
