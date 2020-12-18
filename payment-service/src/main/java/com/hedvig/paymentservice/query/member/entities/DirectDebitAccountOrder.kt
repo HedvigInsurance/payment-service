@@ -6,6 +6,8 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEve
 import java.time.Instant
 import java.util.*
 import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 import javax.persistence.Id
 
 @Entity
@@ -16,6 +18,7 @@ class DirectDebitAccountOrder(
     val trustlyAccountId: String,
     val bank: String?,
     val descriptor: String?,
+    @Enumerated(EnumType.STRING)
     var directDebitStatus: DirectDebitStatus?,
     val createdAt: Instant
 ) {
