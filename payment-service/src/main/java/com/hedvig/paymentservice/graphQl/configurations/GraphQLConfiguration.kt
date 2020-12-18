@@ -8,7 +8,6 @@ import com.adyen.model.checkout.PaymentsRequest
 import com.adyen.model.checkout.PaymentsResponse
 import com.coxautodev.graphql.tools.SchemaParserDictionary
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hedvig.graphql.commons.scalars.LocalDateScalar
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
@@ -22,6 +21,7 @@ import graphql.schema.CoercingSerializeException
 import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import kotlin.jvm.Throws
 
 @Configuration
 class GraphQLConfiguration(
