@@ -51,7 +51,7 @@ import javax.money.MonetaryAmount
 class Member() {
     @AggregateIdentifier
     lateinit var memberId: String
-    val trustlyOrders: MutableList<TrustlyOrder> = mutableListOf()
+    val directDebitAccountOrders: MutableList<DirectDebitAccountOrder> = mutableListOf()
     var transactions: MutableList<Transaction> = ArrayList()
     var adyenAccount: AdyenAccount? = null
     var adyenPayoutAccount: AdyenPayoutAccount? = null
@@ -198,7 +198,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: UpdateTrustlyAccountCommand) {
-        if (trustlyOrders.isEmpty() || trustlyOrders.any { it.account.accountId != command.accountId }) {
+        if (directDebitAccountOrders.isEmpty() || directDebitAccountOrders.any { it.account.accountId != command.accountId }) {
             apply(
                 TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
@@ -378,8 +378,8 @@ class Member() {
 
     @EventSourcingHandler
     fun on(event: TrustlyAccountCreatedEvent, @Timestamp timestamp: Instant) {
-        trustlyOrders.add(
-            TrustlyOrder(
+        directDebitAccountOrders.add(
+            DirectDebitAccountOrder(
                 event.hedvigOrderId,
                 TrustlyAccount(event.trustlyAccountId, null),
                 timestamp
@@ -389,9 +389,9 @@ class Member() {
 
     @EventSourcingHandler
     fun on(event: TrustlyAccountUpdatedEvent, @Timestamp timestamp: Instant) {
-        if (trustlyOrders.none { it.hedvigOrderID == event.hedvigOrderId }) {
-            trustlyOrders.add(
-                TrustlyOrder(
+        if (directDebitAccountOrders.none { it.hedvigOrderId == event.hedvigOrderId }) {
+            directDebitAccountOrders.add(
+                DirectDebitAccountOrder(
                     event.hedvigOrderId,
                     TrustlyAccount(event.trustlyAccountId, null),
                     timestamp
@@ -515,13 +515,13 @@ class Member() {
     }
 
     private fun setTrustlyAccountStatus(hedvigOrderId: String, status: DirectDebitStatus) {
-        trustlyOrders
-            .first { it.hedvigOrderID == UUID.fromString(hedvigOrderId) }
+        directDebitAccountOrders
+            .first { it.hedvigOrderId == UUID.fromString(hedvigOrderId) }
             .account
             .directDebitStatus = status
     }
 
-    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = trustlyOrders.maxBy { it.createdAt }?.account
+    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxBy { it.createdAt }?.account
 
 
     companion object {

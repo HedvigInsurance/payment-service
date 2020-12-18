@@ -6,80 +6,81 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedE
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
+import com.hedvig.paymentservice.query.member.entities.DirectDebitAccountOrder
+import com.hedvig.paymentservice.query.member.entities.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import lombok.extern.slf4j.Slf4j
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
+import org.axonframework.eventhandling.Timestamp
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import java.time.Instant
+import java.util.*
 
 @Component
 @Slf4j
 @Order(2)
 @ProcessingGroup("DirectDebitProcessorGroup")
 class DirectDebitEventListener(
-    val memberRepository: MemberRepository
+    val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
 ) {
     @EventHandler
-    fun on(e: TrustlyAccountCreatedEvent) {
-        val member = memberRepository.findById(e.memberId)
-        if (!member.isPresent) {
-            logger.error("Could not find member")
-            return
+    fun on(event: TrustlyAccountCreatedEvent, @Timestamp timestamp: Instant) {
+        createAndSaveDirectDebitAccountOrder(event, timestamp)
+    }
+
+    private fun createAndSaveDirectDebitAccountOrder(
+        event: TrustlyAccountCreatedEvent,
+        timestamp: Instant
+    ) {
+        val directDebitAccountOrder = DirectDebitAccountOrder.fromTrustlyAccountCreatedEvent(event, timestamp)
+        directDebitAccountOrderRepository.save(directDebitAccountOrder)
+    }
+
+    @EventHandler
+    fun on(event: TrustlyAccountUpdatedEvent, @Timestamp timestamp: Instant) {
+        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(event.memberId)
+
+        if (directDebitAccountOrders.none { it.hedvigOrderId == event.hedvigOrderId }) {
+            val directDebitAccountOrder = DirectDebitAccountOrder.fromTrustlyAccountUpdatedEvent(event, timestamp)
+            directDebitAccountOrderRepository.save(directDebitAccountOrder)
         }
-        val m = member.get()
-        m.trustlyAccountNumber = e.trustlyAccountId
-        m.bank = e.bank
-        m.descriptor = e.descriptor
-        memberRepository.save(m)
     }
 
     @EventHandler
-    fun on(e: TrustlyAccountUpdatedEvent) {
-        val member = memberRepository.findById(e.memberId)
-        if (!member.isPresent) {
-            logger.error("Could not find member")
-            return
-        }
-        val m = member.get()
-        m.trustlyAccountNumber = e.trustlyAccountId
-        m.bank = e.bank
-        m.descriptor = e.descriptor
-        memberRepository.save(m)
+    fun on(event: DirectDebitConnectedEvent) {
+        updateDirectDebitStatus(DirectDebitStatus.CONNECTED, event.hedvigOrderId)
     }
 
     @EventHandler
-    fun on(e: DirectDebitConnectedEvent) {
-        updateDirectDebitStatus(DirectDebitStatus.CONNECTED, e.memberId, e.trustlyAccountId)
+    fun on(event: DirectDebitPendingConnectionEvent) {
+        updateDirectDebitStatus(DirectDebitStatus.PENDING, event.hedvigOrderId)
     }
 
     @EventHandler
-    fun on(e: DirectDebitPendingConnectionEvent) {
-        updateDirectDebitStatus(DirectDebitStatus.PENDING, e.memberId, e.trustlyAccountId)
+    fun on(event: DirectDebitDisconnectedEvent) {
+        updateDirectDebitStatus(DirectDebitStatus.DISCONNECTED, event.hedvigOrderId)
     }
 
-    @EventHandler
-    fun on(e: DirectDebitDisconnectedEvent) {
-        updateDirectDebitStatus(DirectDebitStatus.DISCONNECTED, e.memberId, e.trustlyAccountId)
-    }
-
-    private fun updateDirectDebitStatus(status: DirectDebitStatus, memberId: String, trustlyAccountId: String) {
-        val optionalMember = memberRepository.findById(memberId)
-        if (!optionalMember.isPresent) {
+    private fun updateDirectDebitStatus(status: DirectDebitStatus, hedvigOrderId: String) {
+        val optionalDirectDebitAccountOrder = directDebitAccountOrderRepository.findById(UUID.fromString(hedvigOrderId))
+        if (!optionalDirectDebitAccountOrder.isPresent) {
             logger.error(
-                "Cannot update direct debit status! Member {} cannot be found. TrustlyAccountId: {}",
-                memberId,
-                trustlyAccountId
+                "Cannot update direct debit status! DirectDebitAccountOrder cannot be found for hedvigOrderId {}",
+                hedvigOrderId
             )
             return
         }
-        val m = optionalMember.get()
-        m.directDebitStatus = status
-        memberRepository.save(m)
+        val directDebitAccountOrder = optionalDirectDebitAccountOrder.get()
+
+        directDebitAccountOrder.apply { directDebitStatus = status }
+
+        directDebitAccountOrderRepository.save(directDebitAccountOrder)
     }
 
-    companion object{
+    companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
     }
 }
