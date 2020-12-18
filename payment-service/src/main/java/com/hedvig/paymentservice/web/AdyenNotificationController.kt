@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web
 
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_AUTHORISATION
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_AUTORESCUE
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_CAPTURE_FAILED
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAIDOUT_REVERSED
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_DECLINE
@@ -39,10 +40,11 @@ class AdyenNotificationController(
                     EVENT_CODE_PAYOUT_DECLINE -> adyenService.handlePayoutDeclinedNotification(item.notificationItem!!)
                     EVENT_CODE_PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
                     EVENT_CODE_PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
+                    EVENT_CODE_AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
                     else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem?.eventCode} is not supported")
                 }
             } catch (exception: Exception) {
-                logger.error("Cannot process notification [Type: ${item.notificationItem!!.eventCode}]", exception)
+                logger.error("Cannot process notification [Type: ${item.notificationItem?.eventCode}]", exception)
             }
             adyenNotificationRepository.save(
                 AdyenNotification.fromNotificationRequestItem(item.notificationItem)
