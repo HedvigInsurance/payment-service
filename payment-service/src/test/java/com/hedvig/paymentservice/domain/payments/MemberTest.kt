@@ -312,6 +312,69 @@ class MemberTest {
             }
     }
 
+    @Test
+    fun `given one connected trustly account when a notification from a different account with a new orderId arrives, expect the new account will be connected`() {
+        val secondTrustlyAccountId = "secondTrustlyAccountId"
+
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE)
+            )
+            .`when`(
+                UpdateTrustlyAccountCommand(
+                    memberId = MEMBER_ID_ONE,
+                    hedvigOrderId = HEDVIG_ORDER_ID_TWO,
+                    accountId = secondTrustlyAccountId,
+                    address = null,
+                    bank = null,
+                    city = null,
+                    clearingHouse = null,
+                    descriptor = null,
+                    directDebitMandateActive = true,
+                    lastDigits = null,
+                    name = null,
+                    personId = null,
+                    zipCode = null
+                )
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeTrustlyAccountCreatedEvent(
+                    MEMBER_ID_ONE,
+                    secondTrustlyAccountId,
+                    HEDVIG_ORDER_ID_TWO
+                ),
+                DirectDebitConnectedEvent(
+                    MEMBER_ID_ONE,
+                    HEDVIG_ORDER_ID_TWO.toString(),
+                    secondTrustlyAccountId
+                )
+            )
+            .expectState { member ->
+                assertThat(member.directDebitAccountOrders.size).isEqualTo(2)
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .directDebitStatus
+                ).isEqualTo(
+                    DirectDebitStatus.CONNECTED
+                )
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .accountId
+                ).isEqualTo(
+                    secondTrustlyAccountId
+                )
+            }
+    }
+
+    // Two accounts happy flow
+    // Happy flow with charge command which will pick the latest account
+    //TrustlyUpdatedEvent - 70 people which will pick the latest account
+
     private fun makeTrustlyAccountCreatedEvent(
         memberId: String,
         accountId: String = TRUSTLY_ACCOUNT_ID,
@@ -331,6 +394,25 @@ class MemberTest {
             personId = null,
             zipCode = null
         )
+
+    private fun makeTrustlyAccountUpdatedEvent(
+        memberId: String,
+        accountId: String = TRUSTLY_ACCOUNT_ID,
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) = TrustlyAccountUpdatedEvent(
+        memberId = memberId,
+        hedvigOrderId = hedvigOrderId,
+        trustlyAccountId = accountId,
+        address = null,
+        bank = null,
+        city = null,
+        clearingHouse = null,
+        descriptor = null,
+        lastDigits = null,
+        name = null,
+        personId = null,
+        zipCode = null
+    )
 
     private fun makeDirectDebitConnectedEvent(
         memberId: String,
