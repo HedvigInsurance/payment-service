@@ -149,26 +149,24 @@ class MemberTest {
 
     @Test
     fun `given two trustly accounts when a notification from the old account arrives, expect that only the old account will be updated`() {
-        val secondTrustlyAccountId = "secondTrustlyAccountId"
-
         fixture
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
             )
             .`when`(
-                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE, false)
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE, false)
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
                 DirectDebitDisconnectedEvent(
                     MEMBER_ID_ONE,
                     HEDVIG_ORDER_ID_ONE.toString(),
-                    TRUSTLY_ACCOUNT_ID
+                    TRUSTLY_ACCOUNT_ID_ONE
                 )
             )
             .expectState { member ->
@@ -185,7 +183,7 @@ class MemberTest {
                     .account
                     .accountId
                 ).isEqualTo(
-                    TRUSTLY_ACCOUNT_ID
+                    TRUSTLY_ACCOUNT_ID_ONE
                 )
                 assertThat(member.directDebitAccountOrders
                     .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
@@ -199,35 +197,33 @@ class MemberTest {
                     .account
                     .accountId
                 ).isEqualTo(
-                    secondTrustlyAccountId
+                    TRUSTLY_ACCOUNT_ID_TWO
                 )
             }
     }
 
     @Test
     fun `given one connected trustly account when a notification from a different account with a new orderId arrives, expect the new account will be connected`() {
-        val secondTrustlyAccountId = "secondTrustlyAccountId"
-
         fixture
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE)
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE)
             )
             .`when`(
-                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
                 makeTrustlyAccountCreatedEvent(
                     MEMBER_ID_ONE,
-                    secondTrustlyAccountId,
+                    TRUSTLY_ACCOUNT_ID_TWO,
                     HEDVIG_ORDER_ID_TWO
                 ),
                 DirectDebitConnectedEvent(
                     MEMBER_ID_ONE,
                     HEDVIG_ORDER_ID_TWO.toString(),
-                    secondTrustlyAccountId
+                    TRUSTLY_ACCOUNT_ID_TWO
                 )
             )
             .expectState { member ->
@@ -244,22 +240,20 @@ class MemberTest {
                     .account
                     .accountId
                 ).isEqualTo(
-                    secondTrustlyAccountId
+                    TRUSTLY_ACCOUNT_ID_TWO
                 )
             }
     }
 
     @Test
     fun `given two trustly accounts when a charge arrives, expect the latest account will be charged`() {
-        val secondTrustlyAccountId = "secondTrustlyAccountId"
-
         fixture
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
             )
             .`when`(
                 makeCreateChargeCommand()
@@ -267,21 +261,20 @@ class MemberTest {
             .expectSuccessfulHandlerExecution()
             .expectEvents(
                 makeChargeCreatedEvent(
-                    providerId = secondTrustlyAccountId
+                    providerId = TRUSTLY_ACCOUNT_ID_TWO
                 )
             )
     }
+
     @Test
     fun `given two trustly accounts and the latest is disconnected, when a charge arrives, expect the charge will fail`() {
-        val secondTrustlyAccountId = "secondTrustlyAccountId"
-
         fixture
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
-                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO),
-                makeDirectDebitDisConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitDisConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
             )
             .`when`(
                 makeCreateChargeCommand()
@@ -292,12 +285,30 @@ class MemberTest {
             )
     }
 
-    // Happy flow with charge command which will pick the latest account
-    //TrustlyUpdatedEvent - 70 people which will pick the latest account
+    @Test
+    fun `given two trustly accounts and the latest is only updated, when a charge arrives, expect the latest account will be charged`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent(
+                    providerId = TRUSTLY_ACCOUNT_ID_TWO
+                )
+            )
+    }
 
     private fun makeTrustlyAccountCreatedEvent(
         memberId: String,
-        accountId: String = TRUSTLY_ACCOUNT_ID,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
         hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
     ) =
         TrustlyAccountCreatedEvent(
@@ -317,7 +328,7 @@ class MemberTest {
 
     private fun makeTrustlyAccountUpdatedEvent(
         memberId: String,
-        accountId: String = TRUSTLY_ACCOUNT_ID,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
         hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
     ) = TrustlyAccountUpdatedEvent(
         memberId = memberId,
@@ -364,7 +375,7 @@ class MemberTest {
 
     private fun makeUpdateTrustlyAccountCommand(
         memberId: String,
-        accountId: String = TRUSTLY_ACCOUNT_ID,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
         hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE,
         isConnected: Boolean = true
     ) = UpdateTrustlyAccountCommand(
@@ -396,7 +407,7 @@ class MemberTest {
 
     private fun makeChargeCreatedEvent(
         payinProvider : PayinProvider = PayinProvider.TRUSTLY,
-        providerId: String = TRUSTLY_ACCOUNT_ID
+        providerId: String = TRUSTLY_ACCOUNT_ID_ONE
     ) = ChargeCreatedEvent(
         memberId = MEMBER_ID_ONE,
         transactionId = TRANSACTION_ID_ONE,
@@ -423,14 +434,14 @@ class MemberTest {
         val TRANSACTION_ID_ONE: UUID = UUID.fromString("4DC41766-803E-423F-B604-E7F7F8CE5FD7")
         val HEDVIG_ORDER_ID_ONE: UUID = UUID.fromString("06467B87-3EED-4000-9887-2B4C6033FC05")
         val HEDVIG_ORDER_ID_TWO: UUID = UUID.fromString("DE58DE3C-C7FD-456D-A3F3-1CD840D8B505")
-        val HEDVIG_ORDER_ID_THREE: UUID = UUID.fromString("C28A27DE-5839-4C0F-AD09-F94B69A2248A")
         val AMOUNT: MonetaryAmount = Money.of(1234, "NOK")
         val NOW: Instant = Instant.now()
         const val EMAIL: String = "test@hedvig.com"
         const val CREATED_BY: String = "hedvig"
         const val NO_PAYIN_METHOD_FOUND_MESSAGE = "no payin method found"
         const val DIRECT_DEBIT_NOT_CONNECTED = "direct debit mandate not received in Trustly"
-        const val TRUSTLY_ACCOUNT_ID = "trusttlyAccountId"
+        const val TRUSTLY_ACCOUNT_ID_ONE = "trusttlyAccountId"
+        const val TRUSTLY_ACCOUNT_ID_TWO = "secondTrusttlyAccountId"
         const val RECURRING_DETAIL_REFERENCE = "recurringDetailReference"
         const val ADYEN_NOT_AUTHORISED = "adyen recurring is not authorised"
         const val CURRENCY_MISMATCH = "currency mismatch"
