@@ -403,7 +403,7 @@ class MemberTest {
         city = null,
         clearingHouse = null,
         descriptor = null,
-        directDebitMandateActive = connected,
+        directDebitMandateActive = isConnected,
         lastDigits = null,
         name = null,
         personId = null,
