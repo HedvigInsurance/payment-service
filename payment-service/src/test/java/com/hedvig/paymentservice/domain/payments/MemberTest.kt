@@ -57,24 +57,11 @@ class MemberTest {
         fixture
             .given(MemberCreatedEvent(MEMBER_ID_ONE))
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreationFailedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    reason = CURRENCY_MISMATCH
-                )
+                makeChargeCreationFailedEvent(CURRENCY_MISMATCH)
             )
     }
 
@@ -84,24 +71,11 @@ class MemberTest {
 
             .given(MemberCreatedEvent(MEMBER_ID_ONE))
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreationFailedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    reason = NO_PAYIN_METHOD_FOUND_MESSAGE
-                )
+                makeChargeCreationFailedEvent(NO_PAYIN_METHOD_FOUND_MESSAGE)
             )
     }
 
@@ -111,24 +85,11 @@ class MemberTest {
 
             .given(MemberCreatedEvent(MEMBER_ID_ONE), makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE))
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreationFailedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    reason = DIRECT_DEBIT_NOT_CONNECTED
-                )
+                makeChargeCreationFailedEvent()
             )
     }
 
@@ -141,27 +102,11 @@ class MemberTest {
                 makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
             )
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreatedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    providerId = TRUSTLY_ACCOUNT_ID,
-                    provider = PayinProvider.TRUSTLY,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeChargeCreatedEvent()
             )
     }
 
@@ -174,24 +119,11 @@ class MemberTest {
                 makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.PENDING)
             )
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreationFailedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    reason = ADYEN_NOT_AUTHORISED
-                )
+                makeChargeCreationFailedEvent(ADYEN_NOT_AUTHORISED)
             )
     }
 
@@ -204,26 +136,13 @@ class MemberTest {
                 makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.AUTHORISED)
             )
             .`when`(
-                CreateChargeCommand(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
-                )
+                makeCreateChargeCommand()
             )
             .expectSuccessfulHandlerExecution()
             .expectEvents(
-                ChargeCreatedEvent(
-                    memberId = MEMBER_ID_ONE,
-                    transactionId = TRANSACTION_ID_ONE,
-                    amount = AMOUNT,
-                    timestamp = NOW,
-                    providerId = RECURRING_DETAIL_REFERENCE,
-                    provider = PayinProvider.ADYEN,
-                    email = EMAIL,
-                    createdBy = CREATED_BY
+                makeChargeCreatedEvent(
+                    payinProvider = PayinProvider.ADYEN,
+                    providerId = RECURRING_DETAIL_REFERENCE
                 )
             )
     }
@@ -330,6 +249,49 @@ class MemberTest {
             }
     }
 
+    @Test
+    fun `given two trustly accounts when a charge arrives, expect the latest account will be charged`() {
+        val secondTrustlyAccountId = "secondTrustlyAccountId"
+
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent(
+                    providerId = secondTrustlyAccountId
+                )
+            )
+    }
+    @Test
+    fun `given two trustly accounts and the latest is disconnected, when a charge arrives, expect the charge will fail`() {
+        val secondTrustlyAccountId = "secondTrustlyAccountId"
+
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitDisConnectedEvent(MEMBER_ID_ONE, secondTrustlyAccountId, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent()
+            )
+    }
+
     // Happy flow with charge command which will pick the latest account
     //TrustlyUpdatedEvent - 70 people which will pick the latest account
 
@@ -383,6 +345,17 @@ class MemberTest {
             trustlyAccountId = trustlyAccountId
         )
 
+    private fun makeDirectDebitDisConnectedEvent(
+        memberId: String,
+        trustlyAccountId: String = "trusttlyAccountId",
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) =
+        DirectDebitDisconnectedEvent(
+            memberId = memberId,
+            hedvigOrderId = hedvigOrderId.toString(),
+            trustlyAccountId = trustlyAccountId
+        )
+
     private fun makeAdyenAccountCreated(memberId: String, status: AdyenAccountStatus) = AdyenAccountCreatedEvent(
         memberId = memberId,
         recurringDetailReference = RECURRING_DETAIL_REFERENCE,
@@ -408,6 +381,41 @@ class MemberTest {
         name = null,
         personId = null,
         zipCode = null
+    )
+
+    private fun makeCreateChargeCommand(
+        transactionId: UUID = TRANSACTION_ID_ONE
+    ) = CreateChargeCommand(
+        memberId = MEMBER_ID_ONE,
+        transactionId = transactionId,
+        amount = AMOUNT,
+        timestamp = NOW,
+        email = EMAIL,
+        createdBy = CREATED_BY
+    )
+
+    private fun makeChargeCreatedEvent(
+        payinProvider : PayinProvider = PayinProvider.TRUSTLY,
+        providerId: String = TRUSTLY_ACCOUNT_ID
+    ) = ChargeCreatedEvent(
+        memberId = MEMBER_ID_ONE,
+        transactionId = TRANSACTION_ID_ONE,
+        amount = AMOUNT,
+        timestamp = NOW,
+        providerId = providerId,
+        provider = payinProvider,
+        email = EMAIL,
+        createdBy = CREATED_BY
+    )
+
+    private fun makeChargeCreationFailedEvent(
+        reason: String = DIRECT_DEBIT_NOT_CONNECTED
+    ) = ChargeCreationFailedEvent(
+        memberId = MEMBER_ID_ONE,
+        transactionId = TRANSACTION_ID_ONE,
+        amount = AMOUNT,
+        timestamp = NOW,
+        reason = reason
     )
 
     companion object {
