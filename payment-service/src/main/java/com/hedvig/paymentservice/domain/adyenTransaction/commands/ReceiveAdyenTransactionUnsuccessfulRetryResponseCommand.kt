@@ -2,13 +2,12 @@ package com.hedvig.paymentservice.domain.adyenTransaction.commands
 
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.UUID
-import javax.money.MonetaryAmount
 
-data class InitiateAdyenTransactionPayoutCommand(
+data class ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
     @TargetAggregateIdentifier
     val transactionId: UUID,
     val memberId: String,
-    val shopperReference: String,
-    val amount: MonetaryAmount,
-    val email: String
+    val reason: String,
+    val rescueReference: String,
+    val orderAttemptNumber: Int
 )

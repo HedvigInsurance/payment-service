@@ -1,10 +1,10 @@
 spring:
-  jackson:
-    serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
+    jackson:
+        serialization:
+            WRITE_DATES_AS_TIMESTAMPS: false
 
-  mustache:
-    suffix: .html
+    mustache:
+        suffix: .html
 
   security:
     user:
@@ -19,30 +19,33 @@ spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDiale
 
 
 graphql:
-  servlet:
-    mapping: /graphql
-    enabled: true
-    corsEnabled: true
-    actuator-metrics: true
+    servlet:
+        mapping: /graphql
+        enabled: true
+        corsEnabled: true
+        actuator-metrics: true
 
 graphiql:
-  mapping: /graphiql
-  endpoint:
-    graphql: /graphql
-  enabled: true
-  pageTitle: Payment-service GraphiQL
+    mapping: /graphiql
+    endpoint:
+        graphql: /graphql
+    enabled: true
+    pageTitle: Payment-service GraphiQL
 
 hedvig:
-  adyen:
-    public:
-      key: test
-    allow3DS2: true
-    returnUrl: test
-    merchantAccount: test
-    enviroment: TEST
-    apiKey: test
-    urlPrefix: test
+    adyen:
+        public:
+            key: test
+        allow3DS2: true
+        returnUrl: test
+        merchantAccount: test
+        enviroment: TEST
+        apiKey: test
+        urlPrefix: test
+        charge:
+            autorescue:
+                scenario:
 
-  trustly:
-    validRedirectHosts: []
-    URLScheme: test
+    trustly:
+        validRedirectHosts: [ ]
+        URLScheme: test
