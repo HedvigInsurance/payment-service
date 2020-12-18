@@ -11,21 +11,19 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market;
 import com.hedvig.paymentservice.util.ChargeUtilKt;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Optional;
 
 @Service
-@Slf4j
 public class BankAccountServiceImpl implements BankAccountService {
 
+    private static final Logger log = LoggerFactory.getLogger(BankAccountServiceImpl.class);
     private MemberRepository memberRepository;
     private AccountRegistrationRepository accountRegistrationRepository;
     private ProductPricingService productPricingService;

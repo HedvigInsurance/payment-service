@@ -280,12 +280,6 @@ class GraphQLConfiguration(
       }).build()
   }
 
-
-  @Bean
-  fun localDateScalar(): GraphQLScalarType {
-    return LocalDateScalar()
-  }
-
   @Bean
   fun schemaParserDictionary(): SchemaParserDictionary {
     return SchemaParserDictionary()
@@ -298,7 +292,7 @@ class GraphQLConfiguration(
           StoredPaymentMethodsDetails::class.java,
           BrowserInfo::class.java,
           SubmitAdyenRedirectionResponse::class.java
-          
+
         )
       )
   }

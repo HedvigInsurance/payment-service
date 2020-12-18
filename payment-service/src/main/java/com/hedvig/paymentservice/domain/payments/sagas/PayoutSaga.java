@@ -10,7 +10,6 @@ import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
 
 import java.util.UUID;
 
-import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.saga.EndSaga;
 import org.axonframework.eventhandling.saga.SagaEventHandler;
@@ -34,22 +33,22 @@ public class PayoutSaga {
   @EndSaga
   public void on(PayoutCreatedEvent e) {
     if (e.getTrustlyAccountId() != null) {
-      val hedvigOrderId =
-        (UUID)
-          commandGateway.sendAndWait(
-            new CreatePayoutOrderCommand(
-              uuidGenerator.generateRandom(),
-              e.getTransactionId(),
-              e.getMemberId(),
-              e.getAmount(),
-              e.getTrustlyAccountId(),
-              e.getAddress(),
-              e.getCountryCode(),
-              e.getDateOfBirth(),
-              e.getFirstName(),
-              e.getLastName()
-            )
-          );
+        final UUID hedvigOrderId =
+            (UUID)
+                commandGateway.sendAndWait(
+                    new CreatePayoutOrderCommand(
+                        uuidGenerator.generateRandom(),
+                        e.getTransactionId(),
+                        e.getMemberId(),
+                        e.getAmount(),
+                        e.getTrustlyAccountId(),
+                        e.getAddress(),
+                        e.getCountryCode(),
+                        e.getDateOfBirth(),
+                        e.getFirstName(),
+                        e.getLastName()
+                    )
+                );
 
       trustlyService.startPayoutOrder(
         new PayoutRequest(

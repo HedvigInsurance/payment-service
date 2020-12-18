@@ -56,7 +56,7 @@ public class Axon {
               .forSingleThreadedProcessing()
               .andInitialTrackingToken(StreamableMessageSource::createTailToken));
 
-      config.registerTrackingEventProcessor("MemberEventsProcessorGroup", trackingConfig ->
+      config.registerTrackingEventProcessor("DirectDebitProcessorGroup", trackingConfig ->
           TrackingEventProcessorConfiguration
               .forSingleThreadedProcessing()
               .andInitialTrackingToken(StreamableMessageSource::createTailToken));

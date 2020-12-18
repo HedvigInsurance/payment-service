@@ -2,6 +2,8 @@ package com.hedvig.paymentservice.services.trustly;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+
 import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,19 +16,19 @@ public class TrustlyDateTest {
 
   @Test
   public void shouldParseDateCorrectly() {
-    val dateTimeFormatter = getDateTimeFormatter();
-    val ta = dateTimeFormatter.parse(trustlyDate);
-    val inst = Instant.from(ta);
+      final DateTimeFormatter dateTimeFormatter = getDateTimeFormatter();
+      final TemporalAccessor ta = dateTimeFormatter.parse(trustlyDate);
+      final Instant inst = Instant.from(ta);
     // This test should simply not raise an exception :)
     System.out.println(inst.toString());
   }
 
   @Test
   public void shouldAlsoParseDateCorrectly() {
-    val dateTimeFormatter = getDateTimeFormatter();
+      final DateTimeFormatter dateTimeFormatter = getDateTimeFormatter();
 
-    val ta = dateTimeFormatter.parse(trustlyDate2);
-    val inst = Instant.from(ta);
+      final TemporalAccessor ta = dateTimeFormatter.parse(trustlyDate2);
+      final Instant inst = Instant.from(ta);
     // This test should simply not raise an exception :)
     System.out.println(inst.toString());
   }

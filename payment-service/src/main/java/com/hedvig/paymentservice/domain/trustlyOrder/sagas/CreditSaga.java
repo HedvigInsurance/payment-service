@@ -6,20 +6,21 @@ import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.CreditNotificationReceivedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.ExternalTransactionIdAssignedEvent;
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent;
-import java.util.UUID;
-
-import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.saga.EndSaga;
 import org.axonframework.eventhandling.saga.SagaEventHandler;
 import org.axonframework.eventhandling.saga.StartSaga;
 import org.axonframework.spring.stereotype.Saga;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Slf4j
+import java.util.UUID;
+
 @Saga
 public class CreditSaga {
-  @Autowired transient CommandGateway commandGateway;
+    private static final Logger log = LoggerFactory.getLogger(CreditSaga.class);
+    @Autowired transient CommandGateway commandGateway;
 
   String memberId;
   private UUID transactionId;

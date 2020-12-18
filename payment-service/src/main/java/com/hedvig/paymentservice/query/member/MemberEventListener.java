@@ -15,23 +15,25 @@ import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.query.member.entities.Transaction;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.axonframework.config.ProcessingGroup;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.ResetHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
-@Slf4j
 @Order(0)
 @ProcessingGroup("MemberEventsProcessorGroup")
 public class MemberEventListener {
 
+    private static final Logger log = LoggerFactory.getLogger(MemberEventListener.class);
     private final MemberRepository memberRepository;
 
     public MemberEventListener(MemberRepository memberRepository) {
@@ -40,18 +42,18 @@ public class MemberEventListener {
 
     @EventHandler
     public void on(MemberCreatedEvent e) {
-        val member = new Member();
+        Member member = new Member();
         member.setId(e.getMemberId());
         memberRepository.save(member);
     }
 
     @EventHandler
     public void on(ChargeCreatedEvent e) {
-        val member =
+        Member member =
             memberRepository
                 .findById(e.getMemberId())
                 .orElseThrow(() -> new RuntimeException("Could not find member"));
-        val transaction = new Transaction();
+        Transaction transaction = new Transaction();
         transaction.setId(e.getTransactionId());
         transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
         transaction.setCurrency(e.getAmount().getCurrency().getCurrencyCode());
@@ -60,30 +62,30 @@ public class MemberEventListener {
         transaction.setTransactionStatus(TransactionStatus.INITIATED);
         transaction.setMember(member);
 
-        val transactions = member.getTransactions();
+        Map<UUID, Transaction> transactions = member.getTransactions();
         transactions.put(transaction.getId(), transaction);
         memberRepository.save(member);
     }
 
     @EventHandler
     public void on(ChargeFailedEvent e) {
-        val member =
+        Member member =
             memberRepository
                 .findById(e.getMemberId())
                 .orElseThrow(() -> new RuntimeException("Could not find member"));
-        val transactions = member.getTransactions();
-        val transaction = transactions.get(e.getTransactionId());
+        Map<UUID, Transaction> transactions = member.getTransactions();
+        Transaction transaction = transactions.get(e.getTransactionId());
         transaction.setTransactionStatus(TransactionStatus.FAILED);
         memberRepository.save(member);
     }
 
     @EventHandler
     public void on(PayoutCreatedEvent e) {
-        val member =
+        Member member =
             memberRepository
                 .findById(e.getMemberId())
                 .orElseThrow(() -> new RuntimeException("Could not find member"));
-        val transaction = new Transaction();
+        Transaction transaction = new Transaction();
         transaction.setId(e.getTransactionId());
         transaction.setAmount(e.getAmount().getNumber().numberValueExact(BigDecimal.class));
         transaction.setCurrency(e.getAmount().getCurrency().getCurrencyCode());
@@ -92,21 +94,21 @@ public class MemberEventListener {
         transaction.setTransactionStatus(TransactionStatus.INITIATED);
         transaction.setMember(member);
 
-        val transactions = member.getTransactions();
+        Map<UUID, Transaction> transactions = member.getTransactions();
         transactions.put(e.getTransactionId(), transaction);
         memberRepository.save(member);
     }
 
     @EventHandler
     public void on(ChargeCompletedEvent e) {
-        val maybeMember = memberRepository.findById(e.getMemberId());
+        Optional<Member> maybeMember = memberRepository.findById(e.getMemberId());
         if (maybeMember.isPresent() == false) {
             log.error("Could not find member");
             return;
         }
-        val member = maybeMember.get();
+        Member member = maybeMember.get();
 
-        val transaction = member.getTransactions().get(e.getTransactionId());
+        Transaction transaction = member.getTransactions().get(e.getTransactionId());
 
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         memberRepository.save(member);
@@ -114,28 +116,28 @@ public class MemberEventListener {
 
     @EventHandler
     public void on(PayoutCompletedEvent e) {
-        val maybeMember = memberRepository.findById(e.getMemberId());
+        Optional<Member> maybeMember = memberRepository.findById(e.getMemberId());
         if (maybeMember.isPresent() == false) {
             log.error("Could not find member");
             return;
         }
 
         final Member member = maybeMember.get();
-        val transaction = member.getTransaction(e.getTransactionId());
+        Transaction transaction = member.getTransaction(e.getTransactionId());
         transaction.setTransactionStatus(TransactionStatus.COMPLETED);
         memberRepository.save(member);
     }
 
     @EventHandler
     public void on(PayoutFailedEvent e) {
-        val maybeMember = memberRepository.findById(e.getMemberId());
+        Optional<Member> maybeMember = memberRepository.findById(e.getMemberId());
         if (maybeMember.isPresent() == false) {
             log.error("Could not find member");
             return;
         }
-        val member = maybeMember.get();
+        Member member = maybeMember.get();
 
-        val transaction = member.getTransaction(e.getTransactionId());
+        Transaction transaction = member.getTransaction(e.getTransactionId());
         transaction.setTransactionStatus(TransactionStatus.FAILED);
         memberRepository.save(member);
     }

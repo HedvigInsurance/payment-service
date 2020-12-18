@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-@Order(1)
+@Order(2)
 @ProcessingGroup("DirectDebitProcessorGroup")
 class DirectDebitEventListener(
     val memberRepository: MemberRepository
