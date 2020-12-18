@@ -242,7 +242,8 @@ class AdyenTransaction() {
             apply(
                 AuthorisationAdyenTransactionReceivedEvent(
                     command.transactionId,
-                    command.memberId
+                    command.memberId,
+                    command.rescueReference
                 )
             )
             logger.info("${command::class.simpleName}: Adyen transaction authorized notification received (transactionId=${command.transactionId}, memberId=${command.memberId})")
