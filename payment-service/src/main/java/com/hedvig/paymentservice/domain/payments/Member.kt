@@ -198,7 +198,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: UpdateTrustlyAccountCommand) {
-        if (directDebitAccountOrders.isEmpty() || directDebitAccountOrders.any { it.account.accountId != command.accountId }) {
+        if (directDebitAccountOrders.isEmpty() || directDebitAccountOrders.none { it.account.accountId == command.accountId }) {
             apply(
                 TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
