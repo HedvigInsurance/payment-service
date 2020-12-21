@@ -364,7 +364,7 @@ class AdyenServiceImpl(
                 adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                     transactionId = transaction.transactionId,
                     memberId = transaction.memberId,
-                    amount = Money.of(transaction.amount.divide(BigDecimal("100")), transaction.currency),
+                    amount = Money.of(transaction.amount, transaction.currency),
                     rescueReference = adyenNotification.additionalData?.get("retry.rescueReference")
                 )
                 hasAutoRescueScheduled -> ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
