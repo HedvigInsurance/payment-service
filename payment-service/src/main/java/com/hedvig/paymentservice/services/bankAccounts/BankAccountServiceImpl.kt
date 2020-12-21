@@ -13,6 +13,7 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.util.getNextChargeChargeDate
+import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -27,7 +28,7 @@ class BankAccountServiceImpl(
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
-        val directDebitAccountOrder = getLatestDirectDebitAccountOrder(memberId) ?: return null
+        val directDebitAccountOrder = getLatestDirectDebitAccountOrderEntity(memberId) ?: return null
 
         return BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrder)
     }
@@ -48,7 +49,7 @@ class BankAccountServiceImpl(
             .max(Comparator.comparing { accountRegistration -> accountRegistration.initiated })
             .orElse(null)
 
-        return when (getLatestDirectDebitAccountOrder(memberId)?.directDebitStatus) {
+        return when (getLatestDirectDebitAccountOrderEntity(memberId)?.directDebitStatus) {
             DirectDebitStatus.CONNECTED -> {
                 if (accountRegistration.isNullOrConfirmedOrCancelled()) {
                     DirectDebitStatusDTO.ACTIVE
@@ -88,9 +89,13 @@ class BankAccountServiceImpl(
         return fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId))
     }
 
-    private fun getLatestDirectDebitAccountOrder(memberId: String): DirectDebitAccountOrder? {
-        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(memberId)
+    override fun getLatestDirectDebitAccountOrder(memberId: String): DirectDebitAccountOrderDTO? {
+        val t = getLatestDirectDebitAccountOrderEntity(memberId) ?: return null
+        return DirectDebitAccountOrderDTO.from(t)
+    }
 
+    private fun getLatestDirectDebitAccountOrderEntity(memberId: String): DirectDebitAccountOrder? {
+        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(memberId)
         return directDebitAccountOrders.maxByOrNull { it.createdAt }
     }
 

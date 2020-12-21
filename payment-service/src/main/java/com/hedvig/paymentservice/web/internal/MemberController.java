@@ -3,13 +3,14 @@ package com.hedvig.paymentservice.web.internal;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
+import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequest;
 import com.hedvig.paymentservice.web.dtos.ChargeRequest;
+import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PaymentMemberDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
@@ -36,10 +37,15 @@ public class MemberController {
     private static final Logger log = LoggerFactory.getLogger(MemberController.class);
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
+    private final BankAccountService bankAccountService;
 
-    public MemberController(PaymentService paymentService, MemberRepository memberRepository, ProductPricingService productPricingService) {
+    public MemberController(
+        PaymentService paymentService,
+        MemberRepository memberRepository,
+        BankAccountService bankAccountService) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
+        this.bankAccountService = bankAccountService;
     }
 
     @PostMapping(path = "{memberId}/charge")
@@ -94,7 +100,10 @@ public class MemberController {
 
         if (memberMaybe.isPresent()) {
             Member member = memberMaybe.get();
-            return ResponseEntity.ok(PaymentMemberDTO.Companion.fromMember(member));
+
+            final DirectDebitAccountOrderDTO latestDirectDebitAccountOrder = bankAccountService.getLatestDirectDebitAccountOrder(memberId);
+
+            return ResponseEntity.ok(PaymentMemberDTO.Companion.fromMember(member, latestDirectDebitAccountOrder));
         }
 
         return ResponseEntity.notFound().build();
@@ -109,35 +118,8 @@ public class MemberController {
     }
 
     @GetMapping(path = "/directDebitStatus/[{memberIds}]")
-    public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(
-        @PathVariable("memberIds") List<String> memberIds) {
-
-        List<DirectDebitStatusDTO> members =
-            memberRepository
-                .findAllByIdIn(memberIds)
-                .stream()
-                .map(m -> new DirectDebitStatusDTO(m.getId(), m.isDirectDebitMandateActive()))
-                .collect(Collectors.toList());
-
-        if (memberIds.size() != members.size()) {
-            log.info(
-                "List size mismatch: memberIds.size = {}, members.size = {} The rest of the member ids with be replaced with false!",
-                memberIds.size(),
-                members.size());
-
-            List<String> membersWithPaymentStatus =
-                members.stream().map(DirectDebitStatusDTO::getMemberId).collect(Collectors.toList());
-
-            memberIds
-                .stream()
-                .filter(x -> !membersWithPaymentStatus.contains(x))
-                .collect(Collectors.toList());
-
-            for (String id : memberIds) {
-                members.add(new DirectDebitStatusDTO(id, false));
-            }
-        }
-
-        return ResponseEntity.ok(members);
+    public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(@PathVariable("memberIds") List<String> memberIds) {
+        throw new RuntimeException("Deprecated: Attempted to call function /directDebitStatus/[{memberIds}]" +
+            " on getDirectDebitStatuses");
     }
 }

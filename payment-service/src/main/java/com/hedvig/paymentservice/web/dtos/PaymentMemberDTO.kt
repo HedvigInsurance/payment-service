@@ -13,11 +13,11 @@ data class PaymentMemberDTO(
 ) {
 
   companion object {
-    fun fromMember(member: Member) = PaymentMemberDTO(
+    fun fromMember(member: Member, latestDirectDebitAccountOrderDTO: DirectDebitAccountOrderDTO?) = PaymentMemberDTO(
       id = member.getId(),
       transactions = member.transactions.entries.map { entry -> entry.key to TransactionDTO.fromTransaction(entry.value) }.toMap(),
-      directDebitMandateActive = member.isDirectDebitMandateActive,
-      trustlyAccountNumber = member.trustlyAccountNumber
+      directDebitMandateActive = latestDirectDebitAccountOrderDTO?.directDebitStatus == DirectDebitStatus.CONNECTED,
+      trustlyAccountNumber = latestDirectDebitAccountOrderDTO?.trustlyAccountId
     )
   }
 }
