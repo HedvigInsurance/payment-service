@@ -25,249 +25,426 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import javax.money.Monetary
 import javax.money.MonetaryAmount
 
 @RunWith(SpringRunner::class)
 class MemberTest {
-  lateinit var fixture: AggregateTestFixture<Member>
+    lateinit var fixture: AggregateTestFixture<Member>
 
-  @MockkBean
-  lateinit var productPricingService: ProductPricingService
+    @MockkBean
+    lateinit var productPricingService: ProductPricingService
 
-  @Before
-  fun setUp() {
-    fixture = AggregateTestFixture(Member::class.java)
-    fixture.registerInjectableResource(productPricingService)
+    @Before
+    fun setUp() {
+        fixture = AggregateTestFixture(Member::class.java)
+        fixture.registerInjectableResource(productPricingService)
 
-    every { productPricingService.getContractMarketInfo(any()) } returns ContractMarketInfo(
-      Market.NORWAY,
-      Monetary.getCurrency("NOK")
+        every { productPricingService.getContractMarketInfo(any()) } returns ContractMarketInfo(
+            Market.NORWAY,
+            Monetary.getCurrency("NOK")
+        )
+    }
+
+    @Test
+    fun given_memberCreatedEvent_when_CreateChargeWithDifferentCurrencyFromContract_expect_ChargeCreationFailedEvent() {
+        every { productPricingService.getContractMarketInfo(any()) } returns ContractMarketInfo(
+            Market.NORWAY,
+            Monetary.getCurrency("SEK")
+        )
+
+        fixture
+            .given(MemberCreatedEvent(MEMBER_ID_ONE))
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent(CURRENCY_MISMATCH)
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
+        fixture
+
+            .given(MemberCreatedEvent(MEMBER_ID_ONE))
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent(NO_PAYIN_METHOD_FOUND_MESSAGE)
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
+        fixture
+
+            .given(MemberCreatedEvent(MEMBER_ID_ONE), makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE))
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent()
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreateCharge_expect_ChargeCreatedEvent() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent()
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
+        fixture
+
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.PENDING)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent(ADYEN_NOT_AUTHORISED)
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreatedEvent() {
+        fixture
+
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.AUTHORISED)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent(
+                    payinProvider = PayinProvider.ADYEN,
+                    providerId = RECURRING_DETAIL_REFERENCE
+                )
+            )
+    }
+
+    @Test
+    fun `given two trustly accounts when a notification from the old account arrives, expect that only the old account will be updated`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE, false)
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                DirectDebitDisconnectedEvent(
+                    MEMBER_ID_ONE,
+                    HEDVIG_ORDER_ID_ONE.toString(),
+                    TRUSTLY_ACCOUNT_ID_ONE
+                )
+            )
+            .expectState { member ->
+                assertThat(member.directDebitAccountOrders.size).isEqualTo(2)
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
+                    .account
+                    .directDebitStatus
+                ).isEqualTo(
+                    DirectDebitStatus.DISCONNECTED
+                )
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
+                    .account
+                    .accountId
+                ).isEqualTo(
+                    TRUSTLY_ACCOUNT_ID_ONE
+                )
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .directDebitStatus
+                ).isEqualTo(
+                    DirectDebitStatus.CONNECTED
+                )
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .accountId
+                ).isEqualTo(
+                    TRUSTLY_ACCOUNT_ID_TWO
+                )
+            }
+    }
+
+    @Test
+    fun `given one connected trustly account when a notification from a different account with a new orderId arrives, expect the new account will be connected`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE)
+            )
+            .`when`(
+                makeUpdateTrustlyAccountCommand(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeTrustlyAccountCreatedEvent(
+                    MEMBER_ID_ONE,
+                    TRUSTLY_ACCOUNT_ID_TWO,
+                    HEDVIG_ORDER_ID_TWO
+                ),
+                DirectDebitConnectedEvent(
+                    MEMBER_ID_ONE,
+                    HEDVIG_ORDER_ID_TWO.toString(),
+                    TRUSTLY_ACCOUNT_ID_TWO
+                )
+            )
+            .expectState { member ->
+                assertThat(member.directDebitAccountOrders.size).isEqualTo(2)
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .directDebitStatus
+                ).isEqualTo(
+                    DirectDebitStatus.CONNECTED
+                )
+                assertThat(member.directDebitAccountOrders
+                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                    .account
+                    .accountId
+                ).isEqualTo(
+                    TRUSTLY_ACCOUNT_ID_TWO
+                )
+            }
+    }
+
+    @Test
+    fun `given two trustly accounts when a charge arrives, expect the latest account will be charged`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent(
+                    providerId = TRUSTLY_ACCOUNT_ID_TWO
+                )
+            )
+    }
+
+    @Test
+    fun `given two trustly accounts and the latest is disconnected, when a charge arrives, expect the charge will fail`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitDisConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreationFailedEvent()
+            )
+    }
+
+    @Test
+    fun `given two trustly accounts and the latest is only updated, when a charge arrives, expect the latest account will be charged`() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_ONE, HEDVIG_ORDER_ID_ONE),
+                makeTrustlyAccountUpdatedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE, TRUSTLY_ACCOUNT_ID_TWO, HEDVIG_ORDER_ID_TWO)
+            )
+            .`when`(
+                makeCreateChargeCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makeChargeCreatedEvent(
+                    providerId = TRUSTLY_ACCOUNT_ID_TWO
+                )
+            )
+    }
+
+    private fun makeTrustlyAccountCreatedEvent(
+        memberId: String,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) =
+        TrustlyAccountCreatedEvent(
+            memberId = memberId,
+            hedvigOrderId = hedvigOrderId,
+            trustlyAccountId = accountId,
+            address = null,
+            bank = null,
+            city = null,
+            clearingHouse = null,
+            descriptor = null,
+            lastDigits = null,
+            name = null,
+            personId = null,
+            zipCode = null
+        )
+
+    private fun makeTrustlyAccountUpdatedEvent(
+        memberId: String,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) = TrustlyAccountUpdatedEvent(
+        memberId = memberId,
+        hedvigOrderId = hedvigOrderId,
+        trustlyAccountId = accountId,
+        address = null,
+        bank = null,
+        city = null,
+        clearingHouse = null,
+        descriptor = null,
+        lastDigits = null,
+        name = null,
+        personId = null,
+        zipCode = null
     )
-  }
 
-  @Test
-  fun given_memberCreatedEvent_when_CreateChargeWithDifferentCurrencyFromContract_expect_ChargeCreationFailedEvent() {
-    every { productPricingService.getContractMarketInfo(any()) } returns ContractMarketInfo(
-      Market.NORWAY,
-      Monetary.getCurrency("SEK")
+    private fun makeDirectDebitConnectedEvent(
+        memberId: String,
+        trustlyAccountId: String = "trusttlyAccountId",
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) =
+        DirectDebitConnectedEvent(
+            memberId = memberId,
+            hedvigOrderId = hedvigOrderId.toString(),
+            trustlyAccountId = trustlyAccountId
+        )
+
+    private fun makeDirectDebitDisConnectedEvent(
+        memberId: String,
+        trustlyAccountId: String = "trusttlyAccountId",
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
+    ) =
+        DirectDebitDisconnectedEvent(
+            memberId = memberId,
+            hedvigOrderId = hedvigOrderId.toString(),
+            trustlyAccountId = trustlyAccountId
+        )
+
+    private fun makeAdyenAccountCreated(memberId: String, status: AdyenAccountStatus) = AdyenAccountCreatedEvent(
+        memberId = memberId,
+        recurringDetailReference = RECURRING_DETAIL_REFERENCE,
+        accountStatus = status
     )
 
-    fixture
-      .given(MemberCreatedEvent(MEMBER_ID_ONE))
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreationFailedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          reason = CURRENCY_MISMATCH
-        )
-      )
-  }
-
-  @Test
-  fun given_memberCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
-    fixture
-
-      .given(MemberCreatedEvent(MEMBER_ID_ONE))
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreationFailedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          reason = NO_PAYIN_METHOD_FOUND_MESSAGE
-        )
-      )
-  }
-
-  @Test
-  fun given_memberCreatedEventAndTrustlyAccountCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
-    fixture
-
-      .given(MemberCreatedEvent(MEMBER_ID_ONE), makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE))
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreationFailedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          reason = DIRECT_DEBIT_NOT_CONNECTED
-        )
-      )
-  }
-
-  @Test
-  fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreateCharge_expect_ChargeCreatedEvent() {
-    fixture
-      .given(
-        MemberCreatedEvent(MEMBER_ID_ONE),
-        makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
-        makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
-      )
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreatedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          providerId = TRUSTLY_ACCOUNT_ID,
-          provider = PayinProvider.TRUSTLY,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-  }
-
-  @Test
-  fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
-    fixture
-
-      .given(MemberCreatedEvent(MEMBER_ID_ONE), makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.PENDING))
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreationFailedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          reason = ADYEN_NOT_AUTHORISED
-        )
-      )
-  }
-
-  @Test
-  fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreatedEvent() {
-    fixture
-
-      .given(MemberCreatedEvent(MEMBER_ID_ONE), makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.AUTHORISED))
-      .`when`(
-        CreateChargeCommand(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-      .expectSuccessfulHandlerExecution()
-      .expectEvents(
-        ChargeCreatedEvent(
-          memberId = MEMBER_ID_ONE,
-          transactionId = TRANSACTION_ID_ONE,
-          amount = AMOUNT,
-          timestamp = NOW,
-          providerId = RECURRING_DETAIL_REFERENCE,
-          provider = PayinProvider.ADYEN,
-          email = EMAIL,
-          createdBy = CREATED_BY
-        )
-      )
-  }
-
-  private fun makeTrustlyAccountCreatedEvent(memberId: String, accountId: String = TRUSTLY_ACCOUNT_ID) =
-    TrustlyAccountCreatedEvent(
-      memberId = memberId,
-      hedvigOrderId = HEDViG_ORDER_ID,
-      trustlyAccountId = accountId,
-      address = null,
-      bank = null,
-      city = null,
-      clearingHouse = null,
-      descriptor = null,
-      lastDigits = null,
-      name = null,
-      personId = null,
-      zipCode = null
+    private fun makeUpdateTrustlyAccountCommand(
+        memberId: String,
+        accountId: String = TRUSTLY_ACCOUNT_ID_ONE,
+        hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE,
+        isConnected: Boolean = true
+    ) = UpdateTrustlyAccountCommand(
+        memberId = memberId,
+        hedvigOrderId = hedvigOrderId,
+        accountId = accountId,
+        address = null,
+        bank = null,
+        city = null,
+        clearingHouse = null,
+        descriptor = null,
+        directDebitMandateActive = isConnected,
+        lastDigits = null,
+        name = null,
+        personId = null,
+        zipCode = null
     )
 
-  private fun makeDirectDebitConnectedEvent(
-    memberId: String,
-    trustlyAccountId: String = "trusttlyAccountId"
-  ) =
-    DirectDebitConnectedEvent(
-      memberId = memberId,
-      hedvigOrderId = "06467B87-3EED-4000-9887-2B4C6033FC05",
-      trustlyAccountId = trustlyAccountId
+    private fun makeCreateChargeCommand(
+        transactionId: UUID = TRANSACTION_ID_ONE
+    ) = CreateChargeCommand(
+        memberId = MEMBER_ID_ONE,
+        transactionId = transactionId,
+        amount = AMOUNT,
+        timestamp = NOW,
+        email = EMAIL,
+        createdBy = CREATED_BY
     )
 
-  private fun makeAdyenAccountCreated(memberId: String, status: AdyenAccountStatus) = AdyenAccountCreatedEvent(
-    memberId = memberId,
-    recurringDetailReference = RECURRING_DETAIL_REFERENCE,
-    accountStatus = status
-  )
+    private fun makeChargeCreatedEvent(
+        payinProvider : PayinProvider = PayinProvider.TRUSTLY,
+        providerId: String = TRUSTLY_ACCOUNT_ID_ONE
+    ) = ChargeCreatedEvent(
+        memberId = MEMBER_ID_ONE,
+        transactionId = TRANSACTION_ID_ONE,
+        amount = AMOUNT,
+        timestamp = NOW,
+        providerId = providerId,
+        provider = payinProvider,
+        email = EMAIL,
+        createdBy = CREATED_BY
+    )
 
-  companion object {
-    const val MEMBER_ID_ONE = "12345"
-    val TRANSACTION_ID_ONE: UUID = UUID.fromString("4DC41766-803E-423F-B604-E7F7F8CE5FD7")
-    val HEDViG_ORDER_ID: UUID = UUID.fromString("06467B87-3EED-4000-9887-2B4C6033FC05")
-    val AMOUNT: MonetaryAmount = Money.of(1234, "NOK")
-    val NOW: Instant = Instant.now()
-    const val EMAIL: String = "test@hedvig.com"
-    const val CREATED_BY: String = "hedvig"
-    const val NO_PAYIN_METHOD_FOUND_MESSAGE = "no payin method found"
-    const val DIRECT_DEBIT_NOT_CONNECTED = "direct debit mandate not received in Trustly"
-    const val TRUSTLY_ACCOUNT_ID = "trusttlyAccountId"
-    const val RECURRING_DETAIL_REFERENCE = "recurringDetailReference"
-    const val ADYEN_NOT_AUTHORISED = "adyen recurring is not authorised"
-    const val CURRENCY_MISMATCH = "currency mismatch"
+    private fun makeChargeCreationFailedEvent(
+        reason: String = DIRECT_DEBIT_NOT_CONNECTED
+    ) = ChargeCreationFailedEvent(
+        memberId = MEMBER_ID_ONE,
+        transactionId = TRANSACTION_ID_ONE,
+        amount = AMOUNT,
+        timestamp = NOW,
+        reason = reason
+    )
 
-  }
+    companion object {
+        const val MEMBER_ID_ONE = "12345"
+        val TRANSACTION_ID_ONE: UUID = UUID.fromString("4DC41766-803E-423F-B604-E7F7F8CE5FD7")
+        val HEDVIG_ORDER_ID_ONE: UUID = UUID.fromString("06467B87-3EED-4000-9887-2B4C6033FC05")
+        val HEDVIG_ORDER_ID_TWO: UUID = UUID.fromString("DE58DE3C-C7FD-456D-A3F3-1CD840D8B505")
+        val AMOUNT: MonetaryAmount = Money.of(1234, "NOK")
+        val NOW: Instant = Instant.now()
+        const val EMAIL: String = "test@hedvig.com"
+        const val CREATED_BY: String = "hedvig"
+        const val NO_PAYIN_METHOD_FOUND_MESSAGE = "no payin method found"
+        const val DIRECT_DEBIT_NOT_CONNECTED = "direct debit mandate not received in Trustly"
+        const val TRUSTLY_ACCOUNT_ID_ONE = "trusttlyAccountId"
+        const val TRUSTLY_ACCOUNT_ID_TWO = "secondTrusttlyAccountId"
+        const val RECURRING_DETAIL_REFERENCE = "recurringDetailReference"
+        const val ADYEN_NOT_AUTHORISED = "adyen recurring is not authorised"
+        const val CURRENCY_MISMATCH = "currency mismatch"
+
+    }
 }

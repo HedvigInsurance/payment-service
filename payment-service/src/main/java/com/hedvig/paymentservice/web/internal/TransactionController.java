@@ -5,14 +5,12 @@ import com.hedvig.paymentservice.query.member.entities.TransactionRepository;
 import com.hedvig.paymentservice.web.dtos.TransactionDTO;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequestMapping(path = "/_/transactions/")
 public class TransactionController {
@@ -28,7 +26,7 @@ public class TransactionController {
     Optional<Transaction> optionalTransaction = repository.findById(transactionId);
 
     return optionalTransaction
-        .map(transaction -> ResponseEntity.ok(TransactionDTO.fromTransaction(transaction)))
+        .map(transaction -> ResponseEntity.ok(TransactionDTO.Companion.fromTransaction(transaction)))
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 }

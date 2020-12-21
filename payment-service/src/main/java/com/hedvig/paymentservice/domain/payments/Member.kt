@@ -39,19 +39,19 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
+import org.axonframework.eventhandling.Timestamp
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.util.ArrayList
-import java.util.UUID
+import java.util.*
 import javax.money.MonetaryAmount
 
 @Aggregate
 class Member() {
     @AggregateIdentifier
     lateinit var memberId: String
-    var trustlyAccount: TrustlyAccount? = null
+    val directDebitAccountOrders: MutableList<DirectDebitAccountOrder> = mutableListOf()
     var transactions: MutableList<Transaction> = ArrayList()
     var adyenAccount: AdyenAccount? = null
     var adyenPayoutAccount: AdyenPayoutAccount? = null
@@ -78,6 +78,8 @@ class Member() {
             return ChargeMemberResult(command.transactionId, ChargeMemberResultType.CURRENCY_MISMATCH)
         }
 
+        val trustlyAccount = getTrustlyAccountBasedOnLatestHedvigOrder()
+
         if (trustlyAccount == null && adyenAccount == null) {
             log.info("Cannot charge account - no account set up ${command.memberId}")
             failChargeCreation(
@@ -90,7 +92,7 @@ class Member() {
             return ChargeMemberResult(command.transactionId, ChargeMemberResultType.NO_PAYIN_METHOD_FOUND)
         }
 
-        if (trustlyAccount != null  && trustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED) {
+        if (trustlyAccount != null && trustlyAccount.directDebitStatus != DirectDebitStatus.CONNECTED) {
             log.info("Cannot charge account - direct debit mandate not received in Trustly ${command.memberId}")
             failChargeCreation(
                 memberId = memberId,
@@ -140,7 +142,8 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreatePayoutCommand): Boolean {
-        if (trustlyAccount != null) {
+        if (getTrustlyAccountBasedOnLatestHedvigOrder() != null) {
+            val trustlyAccount = getTrustlyAccountBasedOnLatestHedvigOrder()
             apply(
                 PayoutCreatedEvent(
                     memberId = memberId,
@@ -195,7 +198,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: UpdateTrustlyAccountCommand) {
-        if (trustlyAccount == null || trustlyAccount!!.accountId != command.accountId) {
+        if (directDebitAccountOrders.isEmpty() || directDebitAccountOrders.none { it.account.accountId == command.accountId }) {
             apply(
                 TrustlyAccountCreatedEvent.fromUpdateTrustlyAccountCommand(memberId, command)
             )
@@ -377,23 +380,42 @@ class Member() {
     }
 
     @EventSourcingHandler
-    fun on(event: TrustlyAccountCreatedEvent) {
-        trustlyAccount = TrustlyAccount(event.trustlyAccountId, null)
+    fun on(event: TrustlyAccountCreatedEvent, @Timestamp timestamp: Instant) {
+        directDebitAccountOrders.add(
+            DirectDebitAccountOrder(
+                event.hedvigOrderId,
+                TrustlyAccount(event.trustlyAccountId, null),
+                timestamp
+            )
+        )
+    }
+
+    @EventSourcingHandler
+    fun on(event: TrustlyAccountUpdatedEvent, @Timestamp timestamp: Instant) {
+        if (directDebitAccountOrders.none { it.hedvigOrderId == event.hedvigOrderId }) {
+            directDebitAccountOrders.add(
+                DirectDebitAccountOrder(
+                    event.hedvigOrderId,
+                    TrustlyAccount(event.trustlyAccountId, null),
+                    timestamp
+                )
+            )
+        }
     }
 
     @EventSourcingHandler
     fun on(event: DirectDebitConnectedEvent) {
-        trustlyAccount!!.directDebitStatus = DirectDebitStatus.CONNECTED
+        setTrustlyAccountStatus(event.hedvigOrderId, DirectDebitStatus.CONNECTED)
     }
 
     @EventSourcingHandler
     fun on(event: DirectDebitDisconnectedEvent) {
-        trustlyAccount!!.directDebitStatus = DirectDebitStatus.DISCONNECTED
+        setTrustlyAccountStatus(event.hedvigOrderId, DirectDebitStatus.DISCONNECTED)
     }
 
     @EventSourcingHandler
     fun on(event: DirectDebitPendingConnectionEvent) {
-        trustlyAccount!!.directDebitStatus = DirectDebitStatus.PENDING
+        setTrustlyAccountStatus(event.hedvigOrderId, DirectDebitStatus.PENDING)
     }
 
     @EventSourcingHandler
@@ -446,10 +468,12 @@ class Member() {
                 )
             )
         } else {
+            val trustlyAccount = getTrustlyAccountBasedOnLatestHedvigOrder()
+
             if (trustlyAccount!!.directDebitStatus == null ||
                 (
-                    trustlyAccount!!.directDebitStatus != DirectDebitStatus.CONNECTED ||
-                        trustlyAccount!!.directDebitStatus != DirectDebitStatus.DISCONNECTED
+                    trustlyAccount.directDebitStatus != DirectDebitStatus.CONNECTED ||
+                        trustlyAccount.directDebitStatus != DirectDebitStatus.DISCONNECTED
                     )
             ) {
                 apply(
@@ -492,6 +516,16 @@ class Member() {
         }
         return matchingTransactions[0]
     }
+
+    private fun setTrustlyAccountStatus(hedvigOrderId: String, status: DirectDebitStatus) {
+        directDebitAccountOrders
+            .first { it.hedvigOrderId == UUID.fromString(hedvigOrderId) }
+            .account
+            .directDebitStatus = status
+    }
+
+    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxByOrNull { it.createdAt }?.account
+
 
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)!!

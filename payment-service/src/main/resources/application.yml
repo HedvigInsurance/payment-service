@@ -10,8 +10,13 @@ spring:
         user:
             name: test
             password: test
+
+    main:
+        allow-bean-definition-overriding: true
+
 spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
+
 
 graphql:
     servlet:

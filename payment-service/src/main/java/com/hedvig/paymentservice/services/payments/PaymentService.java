@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.services.payments;
 
-import com.adyen.service.Payment;
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
@@ -15,7 +14,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-import lombok.val;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.model.AggregateNotFoundException;
 import org.slf4j.Logger;
@@ -40,7 +38,7 @@ public class PaymentService {
     }
 
     public ChargeMemberResult chargeMember(ChargeMemberRequest request) {
-        val transactionId = uuidGenerator.generateRandom();
+        UUID transactionId = uuidGenerator.generateRandom();
 
         try {
             return commandGateway.sendAndWait(
@@ -63,7 +61,7 @@ public class PaymentService {
 
     @Deprecated
     public boolean payoutMember(PayoutMemberRequest request) {
-        val transactionId = uuidGenerator.generateRandom();
+        UUID transactionId = uuidGenerator.generateRandom();
         return commandGateway.sendAndWait(
             new CreatePayoutCommand(
                 request.getMemberId(),

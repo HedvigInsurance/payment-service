@@ -30,6 +30,7 @@ import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionS
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
@@ -108,7 +109,7 @@ public class PayoutIntegrationTest {
   public void givenMemberWithoutTrustlyAccount_WhenCreatingPayout_ThenShouldReturnNotAcceptable()
     throws Exception {
 
-    val payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
+      final PayoutRequestDTO payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
 
     mockMvc
       .perform(
@@ -117,7 +118,7 @@ public class PayoutIntegrationTest {
           .content(objectMapper.writeValueAsString(payoutRequest)))
       .andExpect(status().isNotAcceptable());
 
-    val memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      final List<? extends DomainEventMessage<?>> memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
     assertThat(memberEvents, hasEvent(PayoutCreationFailedEvent.class));
   }
@@ -129,7 +130,7 @@ public class PayoutIntegrationTest {
 
     updateTrustly();
 
-    val payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
+      final PayoutRequestDTO payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
 
@@ -140,7 +141,7 @@ public class PayoutIntegrationTest {
           .content(objectMapper.writeValueAsString(payoutRequest)))
       .andExpect(status().isAccepted());
 
-    val memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      final List<? extends DomainEventMessage<?>> memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
     assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
     assertThat(memberEvents, hasEvent(PayoutCompletedEvent.class));
@@ -155,8 +156,8 @@ public class PayoutIntegrationTest {
 
     updateTrustly();
 
-    val payoutRequest =
-      new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
+      final PayoutRequestDTO payoutRequest =
+          new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
 
@@ -167,7 +168,7 @@ public class PayoutIntegrationTest {
           .content(objectMapper.writeValueAsString(payoutRequest)))
       .andExpect(status().isAccepted());
 
-    val memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      final List<? extends DomainEventMessage<?>> memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
     assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
     assertThat(memberEvents, not(hasEvent(PayoutCompletedEvent.class)));
@@ -176,7 +177,7 @@ public class PayoutIntegrationTest {
   @Test
   public void givenPayoutWithIncorrectCategory_WhenCreatingPayout_ThenShouldReturnBadRequest()
     throws Exception {
-    val payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
+      final PayoutRequestDTO payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
 
     mockMvc
       .perform(
@@ -192,7 +193,7 @@ public class PayoutIntegrationTest {
 
     updateTrustly();
 
-    val payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
+      final PayoutRequestDTO payoutRequest = new PayoutRequestDTO(TRANSACTION_AMOUNT, true);
 
     mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
 
@@ -203,13 +204,13 @@ public class PayoutIntegrationTest {
           .content(objectMapper.writeValueAsString(payoutRequest)))
       .andExpect(status().isAccepted());
 
-    val memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+      final List<? extends DomainEventMessage<?>> memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
     assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
     assertThat(memberEvents, hasEvent(PayoutCompletedEvent.class));
 
 
-    val category = getCategoryFromEventStore(eventStore);
+      final String category = getCategoryFromEventStore(eventStore);
     Assertions.assertThat(category).isEqualTo(TransactionCategory.MARKETING.name());
   }
 
@@ -234,25 +235,25 @@ public class PayoutIntegrationTest {
   }
 
   private String getCategoryFromEventStore(EventStore eventStore) {
-    val payoutCreatedEvent = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream()
-      .filter(event -> event.getPayloadType().getTypeName().equalsIgnoreCase(PayoutCreatedEvent.class.getTypeName()))
-      .map(event -> (PayoutCreatedEvent) event.getPayload())
-      .findFirst();
+      final Optional<PayoutCreatedEvent> payoutCreatedEvent = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream()
+          .filter(event -> event.getPayloadType().getTypeName().equalsIgnoreCase(PayoutCreatedEvent.class.getTypeName()))
+          .map(event -> (PayoutCreatedEvent) event.getPayload())
+          .findFirst();
     return payoutCreatedEvent.get().getCategory().name();
   }
 
   private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {
-    val trustlyResultData = new HashMap<String, Object>();
+      final HashMap<String, Object> trustlyResultData = new HashMap<>();
     trustlyResultData.put("orderid", TRUSTLY_ORDER_ID);
 
-    val trustlyResult = new Result();
+      final Result trustlyResult = new Result();
     trustlyResult.setData(trustlyResultData);
-    val trustlyApiResponse = new Response();
+      final Response trustlyApiResponse = new Response();
 
     if (result == TrustlyApiResponseResult.SHOULD_SUCCEED) {
       trustlyApiResponse.setResult(trustlyResult);
     } else {
-      val error = new Error();
+        final Error error = new Error();
       trustlyApiResponse.setError(error);
     }
 

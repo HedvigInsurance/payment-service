@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("customer.io")
 @ProcessingGroup("TrustlySegmentProcessorGroup")
-@Order(1)
+@Order(2)
 class TrustlyCustomerIoEventListener(
     val memberRepository: MemberRepository,
     val notificationService: NotificationService
