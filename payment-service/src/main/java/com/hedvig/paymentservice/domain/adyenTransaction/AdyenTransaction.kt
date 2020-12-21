@@ -8,6 +8,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancell
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCaptureFailureAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessEndedReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedEvent
@@ -16,7 +17,6 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionPendingResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionRetryUnsuccessfulResponseReceivedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
@@ -240,9 +240,10 @@ class AdyenTransaction() {
     fun handle(command: ReceiveAuthorisationAdyenTransactionCommand) {
         if (transactionStatus != AdyenTransactionStatus.AUTHORISED) {
             apply(
-                AuthorisationAdyenTransactionReceivedEvent(
+                AdyenTransactionAuthorisationResponseReceivedEvent(
                     command.transactionId,
                     command.memberId,
+                    command.amount,
                     command.rescueReference
                 )
             )
@@ -251,7 +252,7 @@ class AdyenTransaction() {
     }
 
     @EventSourcingHandler
-    fun on(event: AuthorisationAdyenTransactionReceivedEvent) {
+    fun on(event: AdyenTransactionAuthorisationResponseReceivedEvent) {
         transactionStatus = AdyenTransactionStatus.AUTHORISED
     }
 

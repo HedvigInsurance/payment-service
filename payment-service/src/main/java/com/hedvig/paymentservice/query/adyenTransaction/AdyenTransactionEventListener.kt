@@ -7,7 +7,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionPendingResponseReceivedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AuthorisationAdyenTransactionReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
@@ -111,7 +111,7 @@ class AdyenTransactionEventListener(
     }
 
     @EventHandler
-    fun on(event: AuthorisationAdyenTransactionReceivedEvent) {
+    fun on(event: AdyenTransactionAuthorisationResponseReceivedEvent) {
         logger.info("AdyenTransactionEventListener: Handling event AuthorisationAdyenTransactionReceivedEvent (memberId=${event.memberId}, transactionId=${event.transactionId})")
 
         val adyenTransaction = adyenTransactionRepository.findById(event.transactionId).orElseThrow()
