@@ -90,8 +90,8 @@ class BankAccountServiceImpl(
     }
 
     override fun getLatestDirectDebitAccountOrder(memberId: String): DirectDebitAccountOrderDTO? {
-        val t = getLatestDirectDebitAccountOrderEntity(memberId) ?: return null
-        return DirectDebitAccountOrderDTO.from(t)
+        val directDebitAccountOrder = getLatestDirectDebitAccountOrderEntity(memberId) ?: return null
+        return DirectDebitAccountOrderDTO.from(directDebitAccountOrder)
     }
 
     private fun getLatestDirectDebitAccountOrderEntity(memberId: String): DirectDebitAccountOrder? {
