@@ -41,68 +41,110 @@ class MemberPayinFilterServiceTest {
     }
 
     @Test
-    fun `if market is Sweden only return member if both trustly account number is present and direct debit status is connected`() {
-        val onlyHaveAccountNumber = buildDirectDebitAccountOrder(
+    fun `if market is Sweden only return memberIds if the latest direct debit account order is connected`() {
+        val directDebitAccountOrderOne = buildDirectDebitAccountOrder(
             id = "123",
             trustlyAccountNumber = "222",
             directDebitStatus = DirectDebitStatus.CONNECTED
         )
 
-        val onlyHaveDirectDebitStatus = buildDirectDebitAccountOrder(
+        val directDebitAccountOrderTwo = buildDirectDebitAccountOrder(
             id = "234",
             trustlyAccountNumber = "accountOne",
             directDebitStatus = DirectDebitStatus.CONNECTED,
             createdAt = Instant.now().minus(2, ChronoUnit.DAYS)
         )
 
-        val accountNumberAndDirectDebitStatusConnected = buildDirectDebitAccountOrder(
+        val directDebitAccountOrderThree = buildDirectDebitAccountOrder(
             id = "234",
             trustlyAccountNumber = "accountTwo",
             directDebitStatus = DirectDebitStatus.DISCONNECTED,
             createdAt = Instant.now().minus(1, ChronoUnit.DAYS)
         )
 
-        val accountNumberAndDirectDebitStatusConnectedTwo = buildDirectDebitAccountOrder(
-            id = "234",
-            trustlyAccountNumber = "accountTwo",
-            directDebitStatus = DirectDebitStatus.CONNECTED,
-            createdAt = Instant.now().minus(0, ChronoUnit.DAYS)
+        directDebitAccountOrderRepository.saveAll(
+            listOf(
+                directDebitAccountOrderOne,
+                directDebitAccountOrderTwo,
+                directDebitAccountOrderThree
+            )
         )
-
-
-        directDebitAccountOrderRepository.saveAll(listOf(
-            onlyHaveAccountNumber,
-            onlyHaveDirectDebitStatus,
-            accountNumberAndDirectDebitStatusConnected,
-            accountNumberAndDirectDebitStatusConnectedTwo
-        ))
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf(
-                "123", "234", "345"
+                "123", "234"
             ),
             Market.SWEDEN
         )
 
-        assertThat(result.size).isEqualTo(2)
+        assertThat(result.size).isEqualTo(1)
+        assertThat(result[0]).isEqualTo("123")
     }
 
     @Test
-    fun `if market is Sweden and one member has DD connected and one member has DD disconnected only return member with DD connected`() {
-        val disconnectedDirectDebit = buildMemberEntity(
+    fun `if market is Sweden and all latest direct debit account orders are disconnected return empty list`() {
+        val directDebitAccountOrderOne = buildDirectDebitAccountOrder(
             id = "123",
-            trustlyAccountNumber = "111",
-            directDebitStatus = DirectDebitStatus.DISCONNECTED
+            trustlyAccountNumber = "accountOne",
+            directDebitStatus = DirectDebitStatus.DISCONNECTED,
+            createdAt = Instant.now()
         )
-        val connectedDirectDebit = buildMemberEntity(
+        val directDebitAccountOrderTwo = buildDirectDebitAccountOrder(
             id = "234",
-            trustlyAccountNumber = "222",
-            directDebitStatus = DirectDebitStatus.CONNECTED
+            trustlyAccountNumber = "accountTwo",
+            directDebitStatus = DirectDebitStatus.CONNECTED,
+            createdAt = Instant.now().minus(5, ChronoUnit.DAYS)
+        )
+        val directDebitAccountOrderThree = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "accountTwo",
+            directDebitStatus = DirectDebitStatus.DISCONNECTED,
+            createdAt = Instant.now().minus(1, ChronoUnit.DAYS)
         )
 
-        every { memberRepository.findAllByIdIn(listOf("123", "234")) } returns listOf(
-            disconnectedDirectDebit,
-            connectedDirectDebit
+        directDebitAccountOrderRepository.saveAll(
+            listOf(
+                directDebitAccountOrderOne,
+                directDebitAccountOrderTwo,
+                directDebitAccountOrderThree
+            )
+        )
+
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf("123", "234"),
+            Market.SWEDEN
+        )
+
+        assertThat(result.size).isEqualTo(0)
+    }
+
+    @Test
+    fun `if market is Sweden and all direct debit account orders are connected return the latest connected`() {
+        val directDebitAccountOrderOne = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "account",
+            directDebitStatus = DirectDebitStatus.CONNECTED,
+            createdAt = Instant.now()
+        )
+        val directDebitAccountOrderTwo = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "accountTwo",
+            directDebitStatus = DirectDebitStatus.CONNECTED,
+            createdAt = Instant.now().minus(5, ChronoUnit.DAYS)
+        )
+        val directDebitAccountOrderThree = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "accountTwo",
+            directDebitStatus = DirectDebitStatus.CONNECTED,
+            createdAt = Instant.now().minus(1, ChronoUnit.DAYS)
+        )
+
+        directDebitAccountOrderRepository.saveAll(
+            listOf(
+                directDebitAccountOrderOne,
+                directDebitAccountOrderTwo,
+                directDebitAccountOrderThree
+            )
         )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(

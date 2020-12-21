@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.payinMethodFilter
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
@@ -19,9 +20,9 @@ class MemberPayinMethodFilterServiceImpl(
                 members.filter { it.adyenRecurringDetailReference != null }.map { it.id }
             }
             Market.SWEDEN -> {
-                memberIds.mapNotNull {
-                    directDebitAccountOrderRepository.findFirstByMemberIdOrderByCreatedAtDesc(it)?.memberId
-                }
+                directDebitAccountOrderRepository.findAllWithLatestActiveDirectDebitAccountOrders(memberIds)
+                    .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
+                    .map { it.memberId }
             }
         }
     }
