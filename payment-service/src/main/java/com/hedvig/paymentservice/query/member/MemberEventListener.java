@@ -30,7 +30,6 @@ import java.util.UUID;
 
 @Component
 @Order(0)
-@ProcessingGroup("MemberEventsProcessorGroup")
 public class MemberEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(MemberEventListener.class);

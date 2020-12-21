@@ -18,7 +18,7 @@ import java.util.*
 
 @Component
 @Slf4j
-@Order(2)
+@Order(1)
 @ProcessingGroup("DirectDebitProcessorGroup")
 class DirectDebitEventListener(
     val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
