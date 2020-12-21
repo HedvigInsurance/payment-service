@@ -3,7 +3,9 @@ package com.hedvig.paymentservice.services.bankAccounts
 import com.google.common.collect.Lists
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
+import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.graphQl.types.BankAccount
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.Member
@@ -143,6 +145,32 @@ class BankAccountServiceTest {
             .isEqualTo(BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrderLatest))
     }
 
+    @Test
+    fun `when no member exists, expect PayinMethodStatus to be NEEDS_SETUP`() {
+        every { memberRepository.findById(any()) } returns Optional.empty()
+
+        assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
+            .isEqualTo(PayinMethodStatus.NEEDS_SETUP)
+    }
+
+    @Test
+    fun `when a member exists, and payin provider is adyen, expect PayinMethodStatus to be ACTIVE`() {
+        every { memberRepository.findById(any()) } returns Optional.of(makeMember(payinProvider = PayinProvider.ADYEN))
+
+        assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
+            .isEqualTo(PayinMethodStatus.ACTIVE)
+    }
+
+    @Test
+    fun `when a member exists, and payin provider is trustly, and latest order payment is PENDING expect PayinMethodStatus to be PENDING`() {
+        every { memberRepository.findById(any()) } returns Optional.of(makeMember(payinProvider = PayinProvider.TRUSTLY))
+
+        makeStub(directDebitStatus = DirectDebitStatus.PENDING, accountRegistrationStatus = AccountRegistrationStatus.IN_PROGRESS)
+
+        assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
+            .isEqualTo(PayinMethodStatus.PENDING)
+    }
+
     private fun makeStub(
         directDebitStatus: DirectDebitStatus?,
         accountRegistrationStatus: AccountRegistrationStatus?
@@ -167,11 +195,12 @@ class BankAccountServiceTest {
     }
 
     private fun makeMember(
-        directDebitStatus: DirectDebitStatus? = DirectDebitStatus.CONNECTED
+        payinProvider: PayinProvider = PayinProvider.TRUSTLY
     ): Member {
         val member = Member()
         member.id = MEMBER_ID
-        member.directDebitStatus = directDebitStatus
+        member.adyenRecurringDetailReference = if (payinProvider == PayinProvider.ADYEN) "reference" else null
+        member.payinMethodStatus = if (payinProvider == PayinProvider.ADYEN) PayinMethodStatus.ACTIVE else null
         return member
     }
 

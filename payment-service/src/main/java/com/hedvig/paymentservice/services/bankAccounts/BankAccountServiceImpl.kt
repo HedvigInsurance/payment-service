@@ -76,16 +76,16 @@ class BankAccountServiceImpl(
 
     override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
         val memberMaybe = memberRepository.findById(memberId)
-        if (memberMaybe.isPresent) {
-            val member = memberMaybe.get()
-            if (member.trustlyAccountNumber != null) {
-                return fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId))
-            }
-            if (member.adyenRecurringDetailReference != null) {
-                return member.payinMethodStatus
-            }
+
+        if (!memberMaybe.isPresent) return PayinMethodStatus.NEEDS_SETUP
+
+        val member = memberMaybe.get()
+
+        if (member.adyenRecurringDetailReference != null) {
+            return member.payinMethodStatus
         }
-        return PayinMethodStatus.NEEDS_SETUP
+
+        return fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId))
     }
 
     private fun getLatestDirectDebitAccountOrder(memberId: String): DirectDebitAccountOrder? {
