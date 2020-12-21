@@ -521,7 +521,7 @@ class Member() {
             .directDebitStatus = status
     }
 
-    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxBy { it.createdAt }?.account
+    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxByOrNull { it.createdAt }?.account
 
 
     companion object {
