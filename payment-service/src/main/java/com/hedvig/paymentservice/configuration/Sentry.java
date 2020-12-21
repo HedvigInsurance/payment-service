@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
-@Profile("production")
+@Profile({"production", "staging"})
 public class Sentry {
   @Bean
   public HandlerExceptionResolver sentryExceptionResolver() {

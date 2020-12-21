@@ -367,19 +367,20 @@ class AdyenServiceImpl(
 
         val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
 
+        logger.info("additionalData=${adyenNotification.additionalData}")
+
         val commandToSend: Any = when {
             adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                 transactionId = transaction.transactionId,
                 memberId = transaction.memberId
             )
-            hasAutoRescueScheduled ->
-                ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    reason = adyenNotification.reason ?: "No reason provided",
-                    rescueReference = adyenNotification.additionalData!!["retry.rescueReference"]!!,
-                    orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
-                )
+            hasAutoRescueScheduled -> ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
+                transactionId = transaction.transactionId,
+                memberId = transaction.memberId,
+                reason = adyenNotification.reason ?: "No reason provided",
+                rescueReference = adyenNotification.additionalData?.get("retry.rescueReference"),
+                orderAttemptNumber = adyenNotification.additionalData?.get("retry.orderAttemptNumber")?.toInt()
+            )
             else -> ReceiveCancellationResponseAdyenTransactionCommand(
                 transactionId = transaction.transactionId,
                 memberId = transaction.memberId,
