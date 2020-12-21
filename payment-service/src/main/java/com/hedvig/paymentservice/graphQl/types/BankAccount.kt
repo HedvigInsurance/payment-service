@@ -11,15 +11,6 @@ data class BankAccount(
     val directDebitStatus: DirectDebitStatus
 ) {
     companion object {
-        @JvmStatic
-        fun fromMember(m: Member): BankAccount {
-            return BankAccount(
-                m.bank,
-                m.descriptor,
-                fromMemberDirectStatus(m.directDebitStatus)
-            )
-        }
-
         private fun fromMemberDirectStatus(s: DomainPaymentsDirectDebitStatus): DirectDebitStatus {
             return when (s) {
                 DomainPaymentsDirectDebitStatus.CONNECTED -> DirectDebitStatus.ACTIVE
