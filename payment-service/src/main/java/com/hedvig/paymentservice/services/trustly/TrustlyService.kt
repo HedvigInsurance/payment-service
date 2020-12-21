@@ -274,7 +274,7 @@ class TrustlyService(
   private fun createPayoutRequest(hedvigOrderId: UUID, request: PayoutRequest): Request {
     val formatter = DecimalFormat("#0.00", DecimalFormatSymbols(Locale.ENGLISH))
     val amount = formatter.format(request.amount.number.doubleValueExact())
-    val dateOfBirth = request.dateOfBirth.format(DateTimeFormatter.ofPattern("uuuu-MM-dd"))
+    val dateOfBirth = request.dateOfBirth?.format(DateTimeFormatter.ofPattern("uuuu-MM-dd"))
     val build = AccountPayout.Build(
       request.accountId,
       notificationUrl,
