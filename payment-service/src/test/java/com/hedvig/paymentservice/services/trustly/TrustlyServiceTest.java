@@ -300,20 +300,6 @@ public class TrustlyServiceTest {
 
   @Test
   public void
-  givenDirectDebitRequest_whenSignedApiThrowsException_thenSelectAccountRequestFailedCommandIsSent() {
-
-    TrustlyConnectionException exception = new TrustlyConnectionException(EXCEPTION_MESSAGE);
-    given(signedAPI.sendRequest(requestCaptor.capture(), any())).willThrow(exception);
-
-    thrown.expect(RuntimeException.class);
-    testService.requestDirectDebitAccount(makeDirectDebitOrderInfo(true), null, null);
-
-    verify(gateway, atLeastOnce())
-      .sendAndWait(new SelectAccountRequestFailedCommand(REQUEST_ID, EXCEPTION_MESSAGE));
-  }
-
-  @Test
-  public void
   givenPaymentRequestAndUUID_whenStartPaymentOrder_thenSignedApiIsCalledWithEmail_eqCustomerInboxEmail() {
 
     final Response trustlyResponse = makeChargeResponse(TRUSTLY_ORDERID);
