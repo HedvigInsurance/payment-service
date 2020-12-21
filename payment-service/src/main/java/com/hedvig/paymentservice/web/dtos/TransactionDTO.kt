@@ -13,13 +13,13 @@ data class TransactionDTO(
     val transactionStatus: String?,
 ) {
     companion object {
-        fun fromTransaction(t: Transaction): TransactionDTO {
+        fun fromTransaction(transaction: Transaction): TransactionDTO {
             return TransactionDTO(
-                t.id,
-                t.money,
-                t.timestamp,
-                t.transactionType.toString(),
-                t.transactionStatus.toString()
+                transaction.id,
+                transaction.money,
+                transaction.timestamp,
+                transaction.transactionType.toString(),
+                transaction.transactionStatus.toString()
             )
         }
     }
