@@ -109,8 +109,4 @@ class BankAccountServiceImpl(
         this == null ||
             this.status == AccountRegistrationStatus.CANCELLED
         )
-
-    companion object {
-        private val log = LoggerFactory.getLogger(BankAccountServiceImpl::class.java)
-    }
 }
