@@ -160,8 +160,7 @@ class MemberPayinFilterServiceTest {
     fun `if market is Norway and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
         val withAdyenConnected = buildMemberEntity(
             id = "123",
-            adyenRecurringDetailReference = "5463",
-            directDebitStatus = DirectDebitStatus.CONNECTED
+            adyenRecurringDetailReference = "5463"
         )
         val withAdyenPending = buildMemberEntity(
             id = "234",
@@ -221,14 +220,12 @@ class MemberPayinFilterServiceTest {
     private fun buildMemberEntity(
         id: String = "321",
         trustlyAccountNumber: String? = null,
-        adyenRecurringDetailReference: String? = null,
-        directDebitStatus: DirectDebitStatus? = null
+        adyenRecurringDetailReference: String? = null
     ): Member {
         val member = Member()
         member.id = id
         member.trustlyAccountNumber = trustlyAccountNumber
         member.adyenRecurringDetailReference = adyenRecurringDetailReference
-        member.directDebitStatus = directDebitStatus
 
         return member
     }

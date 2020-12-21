@@ -5,7 +5,9 @@ import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
+import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
+import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO;
 import org.junit.Test;
@@ -22,6 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -49,23 +52,31 @@ public class DirectDebitControllerTest {
   private TrustlyService trustlyService;
 
   @MockBean
-  private MemberRepository memberRepository;
+  private BankAccountService bankAccountService;
 
   @Test
   public void Should_ReturnBadRequest_WhenMemberCannotBeFound() throws Exception {
 
-    given(memberRepository.findById(Mockito.anyString())).willReturn(Optional.empty());
+    given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(null);
 
-    mockMvc
-      .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-      .andExpect(status().isBadRequest());
+      mockMvc
+          .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+          .andExpect(status().is2xxSuccessful())
+          .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
+          .andExpect(jsonPath("$.directDebitActivated").value(false));
   }
 
   @Test
   public void Should_ReturnDirectDebitStatus_WhenMemberHasDirectDebit() throws Exception {
 
-    given(memberRepository.findById(Mockito.anyString()))
-      .willReturn(Optional.of(makeMember(MEMBER_ID, true)));
+      given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(
+          new DirectDebitAccountOrderDTO(
+              UUID.randomUUID(),
+              MEMBER_ID,
+              "account",
+              DirectDebitStatus.CONNECTED
+          )
+      );
 
     mockMvc
       .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
