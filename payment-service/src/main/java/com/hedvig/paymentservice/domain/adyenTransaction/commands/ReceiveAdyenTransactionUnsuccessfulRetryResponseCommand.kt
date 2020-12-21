@@ -8,6 +8,6 @@ data class ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
     val transactionId: UUID,
     val memberId: String,
     val reason: String,
-    val rescueReference: String?,
-    val orderAttemptNumber: Int?
+    val rescueReference: String,
+    val orderAttemptNumber: Int
 )
