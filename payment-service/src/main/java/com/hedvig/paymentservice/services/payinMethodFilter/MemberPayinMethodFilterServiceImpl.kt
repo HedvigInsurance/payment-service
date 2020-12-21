@@ -20,7 +20,7 @@ class MemberPayinMethodFilterServiceImpl(
                 members.filter { it.adyenRecurringDetailReference != null }.map { it.id }
             }
             Market.SWEDEN -> {
-                directDebitAccountOrderRepository.findAllWithLatestActiveDirectDebitAccountOrders(memberIds)
+                directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders(memberIds)
                     .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
                     .map { it.memberId }
             }
