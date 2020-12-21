@@ -8,10 +8,10 @@ data class PayoutRequest(
   val memberId: String,
   val amount: MonetaryAmount,
   val accountId: String,
-  val address: String,
-  val countryCode: String,
+  val address: String?,
+  val countryCode: String?,
   val dateOfBirth: LocalDate,
-  val firstName: String,
-  val lastName: String,
+  val firstName: String?,
+  val lastName: String?,
   val category: TransactionCategory
 )
