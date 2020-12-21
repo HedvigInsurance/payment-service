@@ -5,7 +5,6 @@ import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistr
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
-import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -22,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
+import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 
 @RunWith(SpringRunner::class)
 class BankAccountServiceTest {
@@ -53,7 +53,7 @@ class BankAccountServiceTest {
 
     @Test
     fun When_memberDoesNotExistInPaymentService_Then_Return_NeedSetup() {
-        setMockData(
+        makeStub(
             directDebitStatus = null,
             accountRegistrationStatus = null
         )
@@ -63,7 +63,7 @@ class BankAccountServiceTest {
 
     @Test
     fun When_memberExistInPaymentServiceWuthoutDirectDebitStatus_Then_Return_NeedSetup() {
-        setMockData(
+        makeStub(
             directDebitStatus = null,
             accountRegistrationStatus = null
         )
@@ -73,49 +73,49 @@ class BankAccountServiceTest {
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsConnectedAndAccountStatusIsNull_Then_Return_Active() {
-        setMockData(directDebitStatus = DirectDebitStatus.CONNECTED, accountRegistrationStatus = null)
+        makeStub(directDebitStatus = DirectDebitStatus.CONNECTED, accountRegistrationStatus = null)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.ACTIVE)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsConnectedAndAccountStatusIsInProgress_Then_Return_Pending() {
-        setMockData(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.IN_PROGRESS)
+        makeStub(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.IN_PROGRESS)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.PENDING)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsConnectedAndAccountStatusIsInDone_Then_Return_Active() {
-        setMockData(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.CONFIRMED)
+        makeStub(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.CONFIRMED)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.ACTIVE)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsConnectedAndAccountStatusIsInCancelled_Then_Return_Active() {
-        setMockData(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.CANCELLED)
+        makeStub(DirectDebitStatus.CONNECTED, AccountRegistrationStatus.CANCELLED)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.ACTIVE)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsNotConnectedAndAccountStatusIsInCancelled_Then_Return_Need_Setup() {
-        setMockData(DirectDebitStatus.DISCONNECTED, AccountRegistrationStatus.CANCELLED)
+        makeStub(DirectDebitStatus.DISCONNECTED, AccountRegistrationStatus.CANCELLED)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.NEEDS_SETUP)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsPendingAndAccountStatusIsInCancelled_Then_Return_Need_Setup() {
-        setMockData(DirectDebitStatus.PENDING, AccountRegistrationStatus.CANCELLED)
+        makeStub(DirectDebitStatus.PENDING, AccountRegistrationStatus.CANCELLED)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.NEEDS_SETUP)
     }
 
     @Test
     fun When_memberExistInPaymentServiceAndDirectDebitStatusIsPendingAndAccountStatusIsInConfirmed_Then_Return_Pending() {
-        setMockData(DirectDebitStatus.PENDING, AccountRegistrationStatus.CONFIRMED)
+        makeStub(DirectDebitStatus.PENDING, AccountRegistrationStatus.CONFIRMED)
 
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.PENDING)
     }
@@ -130,7 +130,7 @@ class BankAccountServiceTest {
     @Test
     fun `when three directDebitAccountOrder exist, expect the latest bankaccount`() {
         val directDebitAccountOrder = makeDirectDebitAccountOrder(Instant.now().minus(7, ChronoUnit.DAYS))
-        val directDebitAccountOrderLatest= makeDirectDebitAccountOrder(Instant.now())
+        val directDebitAccountOrderLatest = makeDirectDebitAccountOrder(Instant.now())
         val directDebitAccountOrderTwo = makeDirectDebitAccountOrder(Instant.now().minus(4, ChronoUnit.DAYS))
 
         every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns listOf(
@@ -143,15 +143,25 @@ class BankAccountServiceTest {
             .isEqualTo(BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrderLatest))
     }
 
-    private fun setMockData(
+    private fun makeStub(
         directDebitStatus: DirectDebitStatus?,
         accountRegistrationStatus: AccountRegistrationStatus?
     ) {
-        every { memberRepository.findById(any()) } returns Optional.of(makeMember(directDebitStatus))
-        if (accountRegistrationStatus != null) {
-            every { accountRegistrationRepository.findByMemberId(any()) } returns makeAccountRegistration(accountRegistrationStatus)
+        if (directDebitStatus != null) {
+            every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns listOf(
+                makeDirectDebitAccountOrder(
+                    status = directDebitStatus
+                )
+            )
+        } else {
+            every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns emptyList()
         }
-        else {
+
+        if (accountRegistrationStatus != null) {
+            every { accountRegistrationRepository.findByMemberId(any()) } returns makeAccountRegistration(
+                accountRegistrationStatus
+            )
+        } else {
             every { accountRegistrationRepository.findByMemberId(any()) } returns emptyList()
         }
     }
@@ -177,14 +187,15 @@ class BankAccountServiceTest {
     }
 
     private fun makeDirectDebitAccountOrder(
-        createdAt: Instant
+        createdAt: Instant = Instant.now(),
+        status: DirectDebitStatus = DirectDebitStatus.CONNECTED
     ) = DirectDebitAccountOrder(
         UUID.randomUUID(),
         MEMBER_ID,
         TRUSTLY_ORDER_ID,
         "Bank",
         "**1234",
-        DirectDebitStatus.CONNECTED,
+        status,
         createdAt
     )
 

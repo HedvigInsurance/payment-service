@@ -6,6 +6,7 @@ import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus
+import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
@@ -26,9 +27,7 @@ class BankAccountServiceImpl(
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
-        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(memberId)
-
-        val directDebitAccountOrder = directDebitAccountOrders.maxByOrNull { it.createdAt } ?: return null
+        val directDebitAccountOrder = getLatestDirectDebitAccountOrder(memberId) ?: return null
 
         return BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrder)
     }
@@ -49,13 +48,7 @@ class BankAccountServiceImpl(
             .max(Comparator.comparing { accountRegistration -> accountRegistration.initiated })
             .orElse(null)
 
-        val memberMaybe = memberRepository.findById(memberId)
-
-        if (!memberMaybe.isPresent) return DirectDebitStatusDTO.NEEDS_SETUP
-
-        val member = memberMaybe.get()
-
-        return when (member.directDebitStatus) {
+        return when (getLatestDirectDebitAccountOrder(memberId)?.directDebitStatus) {
             DirectDebitStatus.CONNECTED -> {
                 if (accountRegistration.isNullOrConfirmedOrCancelled()) {
                     DirectDebitStatusDTO.ACTIVE
@@ -79,7 +72,6 @@ class BankAccountServiceImpl(
             }
             null -> DirectDebitStatusDTO.NEEDS_SETUP
         }
-
     }
 
     override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
@@ -94,6 +86,12 @@ class BankAccountServiceImpl(
             }
         }
         return PayinMethodStatus.NEEDS_SETUP
+    }
+
+    private fun getLatestDirectDebitAccountOrder(memberId: String): DirectDebitAccountOrder? {
+        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(memberId)
+
+        return directDebitAccountOrders.maxByOrNull { it.createdAt }
     }
 
     private fun AccountRegistration?.isNullOrConfirmedOrCancelled(): Boolean = (
