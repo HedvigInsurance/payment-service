@@ -7,5 +7,5 @@ data class AdyenTransactionRetryUnsuccessfulResponseReceivedEvent(
     val memberId: String,
     val reason: String,
     val rescueReference: String,
-    val orderAttemptNumber: Int
+    val orderAttemptNumber: Int?
 )

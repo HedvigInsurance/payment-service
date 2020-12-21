@@ -372,7 +372,7 @@ class AdyenServiceImpl(
                     memberId = transaction.memberId,
                     reason = adyenNotification.reason ?: "No reason provided",
                     rescueReference = adyenNotification.additionalData!!["retry.rescueReference"]!!,
-                    orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
+                    orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]?.toInt()
                 )
                 else -> ReceiveCancellationResponseAdyenTransactionCommand(
                     transactionId = transaction.transactionId,
