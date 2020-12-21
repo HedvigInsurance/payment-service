@@ -358,9 +358,6 @@ class AdyenServiceImpl(
 
             val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
 
-            logger.info("adyenNotification=${adyenNotification}")
-            logger.info("additionalData=${adyenNotification.additionalData}")
-
             when {
                 adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                     transactionId = transaction.transactionId,
@@ -594,7 +591,7 @@ class AdyenServiceImpl(
                 reason = adyenNotification.reason!!,
                 rescueReference = adyenNotification.additionalData!!["retry.rescueReference"]!!,
                 retryWasSuccessful = adyenNotification.success,
-                orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]!!.toInt()
+                orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]?.toInt()
             )
         }
 

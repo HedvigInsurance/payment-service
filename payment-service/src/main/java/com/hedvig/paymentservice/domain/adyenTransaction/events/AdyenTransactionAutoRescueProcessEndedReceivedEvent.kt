@@ -10,5 +10,5 @@ data class AdyenTransactionAutoRescueProcessEndedReceivedEvent(
     val reason: String,
     val rescueReference: String,
     val retryWasSuccessful: Boolean,
-    val orderAttemptNumber: Int
+    val orderAttemptNumber: Int?
 )

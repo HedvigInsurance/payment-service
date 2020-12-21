@@ -30,7 +30,10 @@ class AdyenNotificationController(
 ) {
     @PostMapping(value = ["notifications"], produces = ["application/json"])
     fun notifications(@RequestBody requestBody: NotificationRequest): ResponseEntity<String> {
+        logger.info("requestBody=$requestBody")
         requestBody.notificationItems!!.forEach { item ->
+            logger.info("notificationItem=${item.notificationItem}")
+            logger.info("additionalData=$${item.notificationItem?.additionalData}")
             try {
                 when (item.notificationItem?.eventCode) {
                     EVENT_CODE_CAPTURE_FAILED -> adyenService.handleSettlementErrorNotification(UUID.fromString(item.notificationItem?.merchantReference!!))
