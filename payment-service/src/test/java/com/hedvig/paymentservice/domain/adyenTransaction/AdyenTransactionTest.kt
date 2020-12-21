@@ -246,6 +246,7 @@ class AdyenTransactionTest {
                 ReceiveAuthorisationAdyenTransactionCommand(
                     transactionId = TRANSACTION_ID_ONE,
                     memberId = MEMBER_ID_ONE,
+                    amount = ONE_THOUSAND_NOK,
                     rescueReference = null
                 )
             )

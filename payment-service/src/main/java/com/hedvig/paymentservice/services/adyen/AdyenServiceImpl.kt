@@ -64,6 +64,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.Optional
 import java.util.UUID
 import javax.money.MonetaryAmount
@@ -362,6 +364,7 @@ class AdyenServiceImpl(
                 adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                     transactionId = transaction.transactionId,
                     memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount.divide(BigDecimal("100")), transaction.currency),
                     rescueReference = adyenNotification.additionalData?.get("retry.rescueReference")
                 )
                 hasAutoRescueScheduled -> ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
