@@ -6,6 +6,7 @@ import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus
+import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
@@ -20,15 +21,16 @@ import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitS
 class BankAccountServiceImpl(
     private val memberRepository: MemberRepository,
     private val accountRegistrationRepository: AccountRegistrationRepository,
-    private val productPricingService: ProductPricingService
+    private val productPricingService: ProductPricingService,
+    private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
-        val optionalMember = memberRepository.findById(memberId)
-        return optionalMember
-            .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
-            .map { BankAccount.fromMember(it) }
-            .orElse(null)
+        val directDebitAccountOrders = directDebitAccountOrderRepository.findAllByMemberId(memberId)
+
+        val directDebitAccountOrder = directDebitAccountOrders.maxByOrNull { it.createdAt } ?: return null
+
+        return BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrder)
     }
 
     override fun getNextChargeDate(memberId: String): LocalDate? {
