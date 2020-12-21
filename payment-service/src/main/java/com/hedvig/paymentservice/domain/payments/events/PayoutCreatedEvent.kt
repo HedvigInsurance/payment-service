@@ -24,5 +24,5 @@ data class PayoutCreatedEvent(
   val note: String?,
   val handler: String?,
   val adyenShopperReference: String?,
-  val email: String
+  val email: String?
 )

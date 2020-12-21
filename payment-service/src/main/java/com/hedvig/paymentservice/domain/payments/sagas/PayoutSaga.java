@@ -72,7 +72,7 @@ public class PayoutSaga {
           e.getMemberId(),
           e.getAdyenShopperReference(),
           e.getAmount(),
-          e.getEmail()
+            e.getEmail() != null ? e.getEmail() : ""
         )
       );
       return;

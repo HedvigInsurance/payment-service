@@ -10,7 +10,7 @@ data class PayoutRequest(
   val accountId: String,
   val address: String?,
   val countryCode: String?,
-  val dateOfBirth: LocalDate,
+  val dateOfBirth: LocalDate?,
   val firstName: String?,
   val lastName: String?,
   val category: TransactionCategory
