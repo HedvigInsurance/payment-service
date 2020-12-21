@@ -6,5 +6,6 @@ import java.util.UUID
 class ReceiveAuthorisationAdyenTransactionCommand(
     @TargetAggregateIdentifier
     val transactionId: UUID,
-    val memberId: String
+    val memberId: String,
+    val rescueReference: String?
 )
