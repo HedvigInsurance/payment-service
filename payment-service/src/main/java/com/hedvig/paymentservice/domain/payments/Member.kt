@@ -271,7 +271,10 @@ class Member() {
         }
         apply(
             ChargeCompletedEvent(
-                memberId, command.transactionId, command.amount, command.timestamp
+                memberId,
+                command.transactionId,
+                command.amount,
+                command.timestamp
             )
         )
     }
