@@ -6,8 +6,8 @@ import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import java.time.LocalDate
 
 interface BankAccountService {
-    fun getBankAccount(memberId: String?): BankAccount?
-    fun getNextChargeDate(memberId: String?): LocalDate?
-    fun getDirectDebitStatus(memberId: String?): DirectDebitStatus
-    fun getPayinMethodStatus(memberId: String?): PayinMethodStatus
+    fun getBankAccount(memberId: String): BankAccount?
+    fun getNextChargeDate(memberId: String): LocalDate?
+    fun getDirectDebitStatus(memberId: String): DirectDebitStatus
+    fun getPayinMethodStatus(memberId: String): PayinMethodStatus
 }

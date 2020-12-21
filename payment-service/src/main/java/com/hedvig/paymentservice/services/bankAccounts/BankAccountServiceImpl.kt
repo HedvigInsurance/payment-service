@@ -23,11 +23,7 @@ class BankAccountServiceImpl(
     private val productPricingService: ProductPricingService
 ) : BankAccountService {
 
-    override fun getBankAccount(memberId: String?): BankAccount? {
-        if (memberId == null) {
-            log.error("GetBankAccountInfo - hedvig.token is missing")
-            throw NullPointerException("GetBankAccountInfo - hedvig.token is missing")
-        }
+    override fun getBankAccount(memberId: String): BankAccount? {
         val optionalMember = memberRepository.findById(memberId)
         return optionalMember
             .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
@@ -35,11 +31,7 @@ class BankAccountServiceImpl(
             .orElse(null)
     }
 
-    override fun getNextChargeDate(memberId: String?): LocalDate? {
-        if (memberId == null) {
-            log.error("GetNextChargeDate - hedvig.token is missing")
-            throw NullPointerException("GetNextChargeDate - hedvig.token is missing")
-        }
+    override fun getNextChargeDate(memberId: String): LocalDate? {
         val hasContractActiveCurrentMonth = productPricingService.hasContractActiveCurrentMonth(memberId)
         if (!hasContractActiveCurrentMonth) {
             return null
@@ -48,13 +40,7 @@ class BankAccountServiceImpl(
         return getNextChargeChargeDate(market)
     }
 
-    override fun getDirectDebitStatus(memberId: String?): DirectDebitStatusDTO {
-
-        if (memberId == null) {
-            log.error("GetDirectDebitStatus - hedvig.token is missing")
-            throw NullPointerException("GetDirectDebitStatus - hedvig.token is missing")
-        }
-
+    override fun getDirectDebitStatus(memberId: String): DirectDebitStatusDTO {
         val accountRegistration = accountRegistrationRepository
             .findByMemberId(memberId)
             .stream()
@@ -94,11 +80,7 @@ class BankAccountServiceImpl(
 
     }
 
-    override fun getPayinMethodStatus(memberId: String?): PayinMethodStatus {
-        if (memberId == null) {
-            log.error("getPayinMethodStatus - hedvig.token is missing")
-            return PayinMethodStatus.NEEDS_SETUP
-        }
+    override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
         val memberMaybe = memberRepository.findById(memberId)
         if (memberMaybe.isPresent) {
             val member = memberMaybe.get()
