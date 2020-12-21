@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.query.member.entities
+package com.hedvig.paymentservice.query.directDebit
 
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent

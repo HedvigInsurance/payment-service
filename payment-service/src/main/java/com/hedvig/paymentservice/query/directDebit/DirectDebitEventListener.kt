@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.query.member
+package com.hedvig.paymentservice.query.directDebit
 
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
@@ -6,9 +6,6 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedE
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
-import com.hedvig.paymentservice.query.member.entities.DirectDebitAccountOrder
-import com.hedvig.paymentservice.query.member.entities.DirectDebitAccountOrderRepository
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import lombok.extern.slf4j.Slf4j
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
