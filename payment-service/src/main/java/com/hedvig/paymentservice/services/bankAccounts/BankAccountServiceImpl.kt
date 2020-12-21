@@ -45,9 +45,7 @@ class BankAccountServiceImpl(
     override fun getDirectDebitStatus(memberId: String): DirectDebitStatusDTO {
         val accountRegistration = accountRegistrationRepository
             .findByMemberId(memberId)
-            .stream()
-            .max(Comparator.comparing { accountRegistration -> accountRegistration.initiated })
-            .orElse(null)
+            .maxByOrNull { it.initiated }
 
         return when (getLatestDirectDebitAccountOrderEntity(memberId)?.directDebitStatus) {
             DirectDebitStatus.CONNECTED -> {
