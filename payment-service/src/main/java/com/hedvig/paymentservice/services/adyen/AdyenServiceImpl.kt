@@ -372,7 +372,8 @@ class AdyenServiceImpl(
         val commandToSend: Any = when {
             adyenNotification.success -> ReceiveAuthorisationAdyenTransactionCommand(
                 transactionId = transaction.transactionId,
-                memberId = transaction.memberId
+                memberId = transaction.memberId,
+                rescueReference = adyenNotification.additionalData?.get("retry.rescueReference")
             )
             hasAutoRescueScheduled -> ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
                 transactionId = transaction.transactionId,

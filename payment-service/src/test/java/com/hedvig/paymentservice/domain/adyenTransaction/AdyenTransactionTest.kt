@@ -245,7 +245,8 @@ class AdyenTransactionTest {
             .`when`(
                 ReceiveAuthorisationAdyenTransactionCommand(
                     transactionId = TRANSACTION_ID_ONE,
-                    memberId = MEMBER_ID_ONE
+                    memberId = MEMBER_ID_ONE,
+                    rescueReference = null
                 )
             )
             .expectSuccessfulHandlerExecution()
