@@ -7,4 +7,5 @@ import java.util.*
 @Repository
 interface DirectDebitAccountOrderRepository : CrudRepository<DirectDebitAccountOrder, UUID> {
     fun findAllByMemberId(memberId: String): List<DirectDebitAccountOrder>
+    fun findFirstByMemberIdOrderByCreatedAtDesc(memberId: String): DirectDebitAccountOrder?
 }
