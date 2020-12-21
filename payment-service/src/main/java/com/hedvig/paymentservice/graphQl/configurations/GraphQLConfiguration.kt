@@ -21,7 +21,6 @@ import graphql.schema.CoercingSerializeException
 import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import kotlin.jvm.Throws
 
 @Configuration
 class GraphQLConfiguration(
