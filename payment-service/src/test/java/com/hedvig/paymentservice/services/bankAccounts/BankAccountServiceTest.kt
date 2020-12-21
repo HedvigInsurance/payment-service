@@ -3,6 +3,8 @@ package com.hedvig.paymentservice.services.bankAccounts
 import com.google.common.collect.Lists
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
+import com.hedvig.paymentservice.graphQl.types.BankAccount
+import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.Member
@@ -18,7 +20,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
 import java.time.Instant
-import java.util.Optional
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 @RunWith(SpringRunner::class)
 class BankAccountServiceTest {
@@ -117,6 +120,29 @@ class BankAccountServiceTest {
         assertThat(bankAccountService.getDirectDebitStatus(MEMBER_ID)).isEqualTo(DirectDebitStatusDTO.PENDING)
     }
 
+    @Test
+    fun `when no directDebitAccountOrder exists, expect null as the bankaccount`() {
+        every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns emptyList()
+
+        assertThat(bankAccountService.getBankAccount(MEMBER_ID)).isNull()
+    }
+
+    @Test
+    fun `when three directDebitAccountOrder exist, expect the latest bankaccount`() {
+        val directDebitAccountOrder = makeDirectDebitAccountOrder(Instant.now().minus(7, ChronoUnit.DAYS))
+        val directDebitAccountOrderLatest= makeDirectDebitAccountOrder(Instant.now())
+        val directDebitAccountOrderTwo = makeDirectDebitAccountOrder(Instant.now().minus(4, ChronoUnit.DAYS))
+
+        every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns listOf(
+            directDebitAccountOrderTwo,
+            directDebitAccountOrderLatest,
+            directDebitAccountOrder
+        )
+
+        assertThat(bankAccountService.getBankAccount(MEMBER_ID))
+            .isEqualTo(BankAccount.fromDirectDebitAccountOrder(directDebitAccountOrderLatest))
+    }
+
     private fun setMockData(
         directDebitStatus: DirectDebitStatus?,
         accountRegistrationStatus: AccountRegistrationStatus?
@@ -149,6 +175,18 @@ class BankAccountServiceTest {
         a.status = status
         return Lists.newArrayList(a)
     }
+
+    private fun makeDirectDebitAccountOrder(
+        createdAt: Instant
+    ) = DirectDebitAccountOrder(
+        UUID.randomUUID(),
+        MEMBER_ID,
+        TRUSTLY_ORDER_ID,
+        "Bank",
+        "**1234",
+        DirectDebitStatus.CONNECTED,
+        createdAt
+    )
 
     companion object {
         private const val MEMBER_ID = "12345"
