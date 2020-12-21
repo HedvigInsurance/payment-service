@@ -9,5 +9,5 @@ data class ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand(
     val memberId: String,
     val reason: String,
     val rescueReference: String,
-    val orderAttemptNumber: Int
+    val orderAttemptNumber: Int?
 )
