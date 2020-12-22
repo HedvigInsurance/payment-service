@@ -26,4 +26,19 @@ class MemberPayinMethodFilterServiceImpl(
             }
         }
     }
+
+    override fun debugMembersWithConnectedPayinMethodForMarket(market: Market): List<String> =
+    when (market) {
+        Market.NORWAY,
+        Market.DENMARK -> {
+            val members = memberRepository.findAll()
+            members.filter { it.adyenRecurringDetailReference != null }.map { it.id }
+        }
+        Market.SWEDEN -> {
+            val memberIds = memberRepository.findAll().map { member -> member.id }
+            directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders(memberIds)
+                .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
+                .map { it.memberId }
+        }
+    }
 }

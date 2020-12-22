@@ -117,6 +117,14 @@ class MemberControllerV2(
             memberPayinMethodFilterService.membersWithConnectedPayinMethodForMarket(memberIds, market)
         )
 
+    @GetMapping("/debug/connectedPayinProviders/markets/{market}")
+    fun getMembersWithConnectedPayinMethodForMarket(
+        @PathVariable market: Market
+    ): ResponseEntity<List<String>> =
+        ResponseEntity.ok(
+            memberPayinMethodFilterService.debugMembersWithConnectedPayinMethodForMarket(market)
+        )
+
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
     }
