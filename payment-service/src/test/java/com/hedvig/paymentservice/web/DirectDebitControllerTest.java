@@ -3,6 +3,7 @@ package com.hedvig.paymentservice.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
@@ -54,20 +55,25 @@ public class DirectDebitControllerTest {
   @MockBean
   private BankAccountService bankAccountService;
 
+  @MockBean
+  private MemberRepository memberRepository;
+
   @Test
   public void Should_ReturnBadRequest_WhenMemberCannotBeFound() throws Exception {
+    given(memberRepository.findById(any())).willReturn(Optional.empty());
 
     given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(null);
 
       mockMvc
           .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-          .andExpect(status().is2xxSuccessful())
-          .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-          .andExpect(jsonPath("$.directDebitActivated").value(false));
+          .andExpect(status().isBadRequest());
   }
 
   @Test
   public void Should_ReturnDirectDebitStatus_WhenMemberHasDirectDebit() throws Exception {
+      Member member = makeMember("123", false);
+
+      given(memberRepository.findById(any())).willReturn(Optional.of(member));
 
       given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(
           new DirectDebitAccountOrderDTO(
@@ -84,6 +90,23 @@ public class DirectDebitControllerTest {
       .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
       .andExpect(jsonPath("$.directDebitActivated").value(true));
   }
+
+    @Test
+    public void Should_ReturnDirectDebitStatusActive_WhenMemberHasCardConnectedWithAdyen() throws Exception {
+        Member member = makeMember("123", true);
+
+        given(memberRepository.findById(any())).willReturn(Optional.of(member));
+
+        given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(
+            null
+        );
+
+        mockMvc
+            .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+            .andExpect(status().is2xxSuccessful())
+            .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
+            .andExpect(jsonPath("$.directDebitActivated").value(true));
+    }
 
   @Test
   public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
@@ -103,14 +126,14 @@ public class DirectDebitControllerTest {
   }
 
 
-  private Member makeMember(String memberId, boolean isConnected) {
+  private Member makeMember(String memberId, boolean isConnectedToAdyen) {
     Member member = new Member();
     member.setId(memberId);
 
-    if (isConnected) {
-      member.setTrustlyAccountNumber("Test");
+    if (isConnectedToAdyen) {
+      member.setAdyenRecurringDetailReference("Test");
+      member.setPayinMethodStatus(PayinMethodStatus.ACTIVE);
     }
-    member.setDirectDebitStatus(isConnected ? DirectDebitStatus.CONNECTED : DirectDebitStatus.DISCONNECTED);
 
     return member;
   }
