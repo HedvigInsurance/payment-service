@@ -20,7 +20,8 @@ class MemberPayinMethodFilterServiceImpl(
                 members.filter { it.adyenRecurringDetailReference != null }.map { it.id }
             }
             Market.SWEDEN -> {
-                directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders(memberIds)
+                directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders()
+                    .filter { memberIds.contains(it.memberId) }
                     .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
                     .map { it.memberId }
             }
@@ -35,8 +36,7 @@ class MemberPayinMethodFilterServiceImpl(
             members.filter { it.adyenRecurringDetailReference != null }.map { it.id }
         }
         Market.SWEDEN -> {
-            val memberIds = memberRepository.findAll().map { member -> member.id }
-            directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders(memberIds)
+            directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders()
                 .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
                 .map { it.memberId }
         }
