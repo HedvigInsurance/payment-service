@@ -82,6 +82,46 @@ class MemberPayinFilterServiceTest {
     }
 
     @Test
+    fun `if market is Sweden only return memberIds if the latest direct debit account order is connected and memberId is in list sent in`() {
+        val directDebitAccountOrderOne = buildDirectDebitAccountOrder(
+            id = "123",
+            trustlyAccountNumber = "222",
+            directDebitStatus = DirectDebitStatus.CONNECTED
+        )
+
+        val directDebitAccountOrderTwo = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "accountOne",
+            directDebitStatus = DirectDebitStatus.CONNECTED,
+            createdAt = Instant.now().minus(2, ChronoUnit.DAYS)
+        )
+
+        val directDebitAccountOrderThree = buildDirectDebitAccountOrder(
+            id = "234",
+            trustlyAccountNumber = "accountTwo",
+            directDebitStatus = DirectDebitStatus.DISCONNECTED,
+            createdAt = Instant.now().minus(1, ChronoUnit.DAYS)
+        )
+
+        directDebitAccountOrderRepository.saveAll(
+            listOf(
+                directDebitAccountOrderOne,
+                directDebitAccountOrderTwo,
+                directDebitAccountOrderThree
+            )
+        )
+
+        val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
+            listOf(
+                "234"
+            ),
+            Market.SWEDEN
+        )
+
+        assertThat(result.size).isEqualTo(0)
+    }
+
+    @Test
     fun `if market is Sweden and all latest direct debit account orders are disconnected return empty list`() {
         val directDebitAccountOrderOne = buildDirectDebitAccountOrder(
             id = "123",
