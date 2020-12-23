@@ -518,10 +518,9 @@ class Member() {
     }
 
     private fun setTrustlyAccountStatus(hedvigOrderId: String, status: DirectDebitStatus) {
-        directDebitAccountOrders
-            .first { it.hedvigOrderId == UUID.fromString(hedvigOrderId) }
-            .account
-            .directDebitStatus = status
+        directDebitAccountOrders.filter { it.hedvigOrderId == UUID.fromString(hedvigOrderId) }.forEach {
+            it.account.directDebitStatus = status
+        }
     }
 
     private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxByOrNull { it.createdAt }?.account
