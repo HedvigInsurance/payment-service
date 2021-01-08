@@ -5,7 +5,6 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEven
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
-import com.hedvig.paymentservice.util.isUpdateForTheLatestTrustlyAccount
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("customer.io")
 @ProcessingGroup("TrustlySegmentProcessorGroup")
-@Order(1)
+@Order(2)
 class TrustlyCustomerIoEventListener(
     val memberRepository: MemberRepository,
     val notificationService: NotificationService
@@ -40,10 +39,7 @@ class TrustlyCustomerIoEventListener(
             )
             return
         }
-        val m = optionalMember.get()
-        if (!isUpdateForTheLatestTrustlyAccount(m, trustlyAccountId)) {
-            return
-        }
+
         val traits = when (status) {
             DirectDebitStatus.PENDING,
             DirectDebitStatus.DISCONNECTED -> mapOf(IS_DIRECT_DEBIT_ACTIVATED to false)

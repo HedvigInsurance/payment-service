@@ -22,5 +22,5 @@ data class CreatePayoutCommand(
   val referenceId: String?,
   val note: String?,
   val handler: String?,
-  val email: String?
+  val email: String
 )

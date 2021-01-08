@@ -11,6 +11,7 @@ import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
+import com.hedvig.paymentservice.services.bankAccounts.BankAccountServiceImpl
 import graphql.schema.DataFetchingEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -32,18 +33,27 @@ class Query(
     }
 
     fun nextChargeDate(env: DataFetchingEnvironment): LocalDate? {
-        val memberId: String? = env.getToken()
+        val memberId: String = env.getToken()
         return bankAccountService.getNextChargeDate(memberId)
     }
 
     @Deprecated("replaced by 'payinMethodStatus'")
     fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus {
         val memberId: String? = env.getTokenOrNull()
+        if (memberId == null) {
+            logger.error("directDebitStatus - hedvig.token is missing")
+            return DirectDebitStatus.NEEDS_SETUP
+        }
         return bankAccountService.getDirectDebitStatus(memberId)
     }
 
     fun payinMethodStatus(env: DataFetchingEnvironment): PayinMethodStatus {
         val memberId: String? = env.getTokenOrNull()
+
+        if (memberId == null) {
+            logger.error("payinMethodStatus - hedvig.token is missing")
+            return PayinMethodStatus.NEEDS_SETUP
+        }
 
         return bankAccountService.getPayinMethodStatus(memberId)
     }

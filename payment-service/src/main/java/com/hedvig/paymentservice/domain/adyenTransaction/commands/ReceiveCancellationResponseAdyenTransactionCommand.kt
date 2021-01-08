@@ -4,8 +4,8 @@ import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.UUID
 
 class ReceiveCancellationResponseAdyenTransactionCommand(
-  @TargetAggregateIdentifier
-  val transactionId: UUID,
-  val memberId: String,
-  val reason: String
+    @TargetAggregateIdentifier
+    val transactionId: UUID,
+    val memberId: String,
+    val reason: String
 )

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/reset")
 public class ResetController {
   private static final String TRANSACTION_HISTORY_PROCESSING_GROUP = "TransactionHistory";
-  private static final String MEMBER_RESET_PROCESSOR_NAME = "com.hedvig.paymentservice.query.member";
+  private static final String MEMBER_RESET_PROCESSOR_NAME = "MemberEventsProcessorGroup";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
 

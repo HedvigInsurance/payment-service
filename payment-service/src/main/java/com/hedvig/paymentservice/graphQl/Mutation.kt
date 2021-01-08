@@ -48,7 +48,7 @@ class Mutation(
       clientContext?.successUrl,
       clientContext?.failureUrl
     )
-    return DirectDebitResponse.fromDirectDebitResposne(response)
+    return DirectDebitResponse.fromDirectDebitResponse(response)
   }
 
   fun tokenizePaymentDetails(
