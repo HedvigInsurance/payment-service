@@ -4,14 +4,15 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.ActivePayoutMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
-import com.hedvig.paymentservice.services.bankAccounts.BankAccountServiceImpl
 import graphql.schema.DataFetchingEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -87,6 +88,17 @@ class Query(
         env: DataFetchingEnvironment
     ): String {
         return adyenService.fetchAdyenPublicKey()
+    }
+
+    fun activePayoutMethods(
+        env: DataFetchingEnvironment
+    ): ActivePayoutMethodsResponse? {
+        val memberId: String? = env.getTokenOrNull()
+        if (memberId == null) {
+            logger.error("activePayoutMethods - hedvig.token is missing")
+            return null
+        }
+        return ActivePayoutMethodsResponse(status = PayoutMethodStatus.ACTIVE)
     }
 
     @Deprecated("replaced by  `directDebitStatus`")

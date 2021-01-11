@@ -18,6 +18,7 @@ type Query {
     adyenPublicKey: String!
     """Returns all the available payouts methods before the client requests a payout tokenization"""
     availablePayoutMethods: AvailablePaymentMethodsResponse!
+    activePayoutMethods: ActivePayoutMethodsResponse
 }
 
 type Mutation {
@@ -148,6 +149,16 @@ enum CancelDirectDebitStatus {
     ACCEPTED
     DECLINED_MISSING_TOKEN
     DECLINED_MISSING_REQUEST
+}
+
+type ActivePayoutMethodsResponse {
+    status : PayoutMethodStatus!
+}
+
+enum PayoutMethodStatus{
+    ACTIVE
+    PENDING
+    NEEDS_SETUP
 }
 
 # A String-representation of `java.time.LocalDate`, ex:  `"2018-09-26"`
