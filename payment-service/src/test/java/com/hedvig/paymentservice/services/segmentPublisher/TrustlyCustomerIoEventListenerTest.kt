@@ -25,9 +25,6 @@ class TrustlyCustomerIoEventListenerTest {
     @Mock
     internal lateinit var notificationService: NotificationService
 
-    @Mock
-    lateinit var memberRepository: MemberRepository
-
     lateinit var sut: TrustlyCustomerIoEventListener
 
     lateinit var dataCaptor: KArgumentCaptor<Map<String, Any>>
@@ -35,8 +32,7 @@ class TrustlyCustomerIoEventListenerTest {
     @Before
     fun setup() {
         dataCaptor = argumentCaptor()
-        sut = TrustlyCustomerIoEventListener(memberRepository, notificationService)
-        `when`(memberRepository.findById(any())).thenReturn(Optional.of(Member()))
+        sut = TrustlyCustomerIoEventListener(notificationService)
     }
 
     @Test
