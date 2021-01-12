@@ -15,31 +15,20 @@ import org.springframework.stereotype.Component
 @Component
 @Profile("customer.io")
 @ProcessingGroup("TrustlySegmentProcessorGroup")
-@Order(2)
 class TrustlyCustomerIoEventListener(
-    val memberRepository: MemberRepository,
     val notificationService: NotificationService
 ) {
     @EventHandler
     fun on(evt: DirectDebitConnectedEvent) {
-        updateTraitsBasedOnDirectDebitStatus(DirectDebitStatus.CONNECTED, evt.memberId, evt.trustlyAccountId)
+        updateTraitsBasedOnDirectDebitStatus(DirectDebitStatus.CONNECTED, evt.memberId)
     }
 
     @EventHandler
     fun on(evt: DirectDebitDisconnectedEvent) {
-        updateTraitsBasedOnDirectDebitStatus(DirectDebitStatus.DISCONNECTED, evt.memberId, evt.trustlyAccountId)
+        updateTraitsBasedOnDirectDebitStatus(DirectDebitStatus.DISCONNECTED, evt.memberId)
     }
 
-    private fun updateTraitsBasedOnDirectDebitStatus(status: DirectDebitStatus, memberId: String, trustlyAccountId: String) {
-        val optionalMember = memberRepository.findById(memberId)
-        if (!optionalMember.isPresent) {
-            log.error(
-                "Cannot update direct debit status in notification service " +
-                    "Member $memberId cannot be found. TrustlyAccountId: $trustlyAccountId Status: ${status.name}"
-            )
-            return
-        }
-
+    private fun updateTraitsBasedOnDirectDebitStatus(status: DirectDebitStatus, memberId: String) {
         val traits = when (status) {
             DirectDebitStatus.PENDING,
             DirectDebitStatus.DISCONNECTED -> mapOf(IS_DIRECT_DEBIT_ACTIVATED to false)
