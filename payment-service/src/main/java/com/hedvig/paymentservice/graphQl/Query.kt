@@ -4,10 +4,12 @@ import com.coxautodev.graphql.tools.GraphQLQueryResolver
 import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.ActivePayoutMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
@@ -32,18 +34,27 @@ class Query(
     }
 
     fun nextChargeDate(env: DataFetchingEnvironment): LocalDate? {
-        val memberId: String? = env.getToken()
+        val memberId: String = env.getToken()
         return bankAccountService.getNextChargeDate(memberId)
     }
 
     @Deprecated("replaced by 'payinMethodStatus'")
     fun directDebitStatus(env: DataFetchingEnvironment): DirectDebitStatus {
         val memberId: String? = env.getTokenOrNull()
+        if (memberId == null) {
+            logger.error("directDebitStatus - hedvig.token is missing")
+            return DirectDebitStatus.NEEDS_SETUP
+        }
         return bankAccountService.getDirectDebitStatus(memberId)
     }
 
     fun payinMethodStatus(env: DataFetchingEnvironment): PayinMethodStatus {
         val memberId: String? = env.getTokenOrNull()
+
+        if (memberId == null) {
+            logger.error("payinMethodStatus - hedvig.token is missing")
+            return PayinMethodStatus.NEEDS_SETUP
+        }
 
         return bankAccountService.getPayinMethodStatus(memberId)
     }
@@ -88,6 +99,17 @@ class Query(
         env: DataFetchingEnvironment
     ): String {
         return adyenService.fetchAdyenPublicKey()
+    }
+
+    fun activePayoutMethods(
+        env: DataFetchingEnvironment
+    ): ActivePayoutMethodsResponse? {
+        val memberId: String? = env.getTokenOrNull()
+        if (memberId == null) {
+            logger.error("activePayoutMethods - hedvig.token is missing")
+            return null
+        }
+        return ActivePayoutMethodsResponse(status = PayoutMethodStatus.ACTIVE)
     }
 
     @Deprecated("replaced by  `directDebitStatus`")

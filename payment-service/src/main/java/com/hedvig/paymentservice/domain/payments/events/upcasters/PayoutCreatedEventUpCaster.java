@@ -2,10 +2,10 @@ package com.hedvig.paymentservice.domain.payments.events.upcasters;
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
-import lombok.val;
 import org.axonframework.serialization.SimpleSerializedType;
 import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation;
 import org.axonframework.serialization.upcasting.event.SingleEventUpcaster;
+import org.dom4j.Element;
 
 public class PayoutCreatedEventUpCaster extends SingleEventUpcaster {
 
@@ -26,7 +26,7 @@ public class PayoutCreatedEventUpCaster extends SingleEventUpcaster {
         "1.0"),
         org.dom4j.Document.class,
         document -> {
-          val element = document.getRootElement();
+          Element element = document.getRootElement();
           element.addElement("category").setText(TransactionCategory.CLAIM.name());
           element.addElement("referenceId");
           element.addElement("note");

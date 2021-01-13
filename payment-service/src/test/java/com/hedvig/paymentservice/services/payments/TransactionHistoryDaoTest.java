@@ -81,11 +81,11 @@ public class TransactionHistoryDaoTest {
 
     for (int i = 0; i < count; i++) {
 
-      val m = new Member();
+        final Member m = new Member();
       m.setId("124");
       m.setDirectDebitStatus(DirectDebitStatus.CONNECTED);
 
-      val t = new Transaction();
+        final Transaction t = new Transaction();
       t.setId(UUID.randomUUID());
       t.setTransactionStatus(TransactionStatus.COMPLETED);
       t.setMember(m);

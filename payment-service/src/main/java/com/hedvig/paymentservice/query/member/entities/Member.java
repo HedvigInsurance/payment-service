@@ -56,16 +56,6 @@ public class Member {
     return this.transactions.get(transactionId);
   }
 
-  public Boolean isDirectDebitMandateActive() {
-    if (trustlyAccountNumber != null) {
-      return directDebitStatus.equals(DirectDebitStatus.CONNECTED);
-    }
-    if (adyenRecurringDetailReference != null) {
-      return payinMethodStatus.equals(PayinMethodStatus.ACTIVE);
-    }
-    return false;
-  }
-
   public String getId() {
     return this.id;
   }

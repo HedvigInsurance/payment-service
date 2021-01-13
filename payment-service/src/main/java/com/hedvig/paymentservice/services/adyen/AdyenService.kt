@@ -42,4 +42,5 @@ interface AdyenService {
     fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem)
     fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem)
     fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem)
+    fun handleAutoRescueNotification(adyenNotification: NotificationRequestItem)
 }

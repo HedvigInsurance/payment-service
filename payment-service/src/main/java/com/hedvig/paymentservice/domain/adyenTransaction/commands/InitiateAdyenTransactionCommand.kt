@@ -5,9 +5,9 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 data class InitiateAdyenTransactionCommand(
-  @TargetAggregateIdentifier
-  val transactionId: UUID,
-  val memberId: String,
-  val recurringDetailReference: String,
-  val amount: MonetaryAmount
+    @TargetAggregateIdentifier
+    val transactionId: UUID,
+    val memberId: String,
+    val recurringDetailReference: String,
+    val amount: MonetaryAmount
 )

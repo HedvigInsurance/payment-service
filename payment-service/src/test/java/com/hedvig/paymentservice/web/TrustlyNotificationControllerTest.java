@@ -1,5 +1,38 @@
 package com.hedvig.paymentservice.web;
 
+import com.google.gson.Gson;
+import com.hedvig.paymentService.trustly.NotificationHandler;
+import com.hedvig.paymentService.trustly.data.notification.Notification;
+import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
+import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
+import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
+import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
+import org.axonframework.commandhandling.gateway.CommandGateway;
+import org.axonframework.eventsourcing.DomainEventMessage;
+import org.axonframework.eventsourcing.eventstore.EventStore;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+
+import javax.transaction.Transactional;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.HEDVIG_ORDER_ID;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.TOLVANSSON_MEMBER_ID;
@@ -17,36 +50,6 @@ import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.google.gson.Gson;
-import com.hedvig.paymentService.trustly.NotificationHandler;
-import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
-import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
-import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent;
-import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.transaction.Transactional;
-import lombok.val;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.eventsourcing.eventstore.EventStore;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
-
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -55,117 +58,122 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @Transactional
 public class TrustlyNotificationControllerTest {
-  @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Autowired private Gson gson;
+    @Autowired
+    private Gson gson;
 
-  @Autowired private EventStore eventStore;
+    @Autowired
+    private EventStore eventStore;
 
-  @Autowired private CommandGateway commandGateway;
+    @Autowired
+    private CommandGateway commandGateway;
 
-  @MockBean private NotificationHandler notificationHandler;
+    @MockBean
+    private NotificationHandler notificationHandler;
 
-  @Test
-  public void givenAConfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnOk()
-    throws Exception {
-    commandGateway.sendAndWait(
-      new CreatePaymentOrderCommand(
-        HEDVIG_ORDER_ID,
-        UUID.fromString(TRANSACTION_ID),
-        TOLVANSSON_MEMBER_ID,
-        TRANSACTION_AMOUNT,
-        TRUSTLY_ACCOUNT_ID));
-    commandGateway.sendAndWait(
-      new PaymentResponseReceivedCommand(HEDVIG_ORDER_ID, TRANSACTION_URL, TRUSTLY_ORDER_ID));
+    @Test
+    public void givenAConfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnOk()
+        throws Exception {
+        commandGateway.sendAndWait(
+            new CreatePaymentOrderCommand(
+                HEDVIG_ORDER_ID,
+                UUID.fromString(TRANSACTION_ID),
+                TOLVANSSON_MEMBER_ID,
+                TRANSACTION_AMOUNT,
+                TRUSTLY_ACCOUNT_ID));
+        commandGateway.sendAndWait(
+            new PaymentResponseReceivedCommand(HEDVIG_ORDER_ID, TRANSACTION_URL, TRUSTLY_ORDER_ID));
 
-    val request = makeTrustlyCreditNotificationRequest();
-    given(notificationHandler.handleNotification(any())).willReturn(request);
+        final Notification request = makeTrustlyCreditNotificationRequest();
+        given(notificationHandler.handleNotification(any())).willReturn(request);
 
-    mockMvc
-      .perform(
-        post("/hooks/trustly/notifications")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(gson.toJson(request)))
-      .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(gson.toJson(request)))
+            .andExpect(status().isOk());
 
-    val orderEvents =
-      eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
-    assertThat(orderEvents, hasEvent(OrderCompletedEvent.class));
-  }
+        final List<? extends DomainEventMessage<?>> orderEvents =
+            eventStore.readEvents(HEDVIG_ORDER_ID.toString()).asStream().collect(Collectors.toList());
+        assertThat(orderEvents, hasEvent(OrderCompletedEvent.class));
+    }
 
-  @Test
-  @Ignore("Test not complete yet")
-  public void
-  givenAnUnconfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnSomething()
-    throws Exception {
-    commandGateway.sendAndWait(
-      new CreatePaymentOrderCommand(
-        HEDVIG_ORDER_ID,
-        UUID.fromString(TRANSACTION_ID),
-        TOLVANSSON_MEMBER_ID,
-        TRANSACTION_AMOUNT,
-        TRUSTLY_ACCOUNT_ID));
+    @Test
+    @Ignore("Test not complete yet")
+    public void
+    givenAnUnconfirmedTrustlyChargeOrder_whenReceivingNotification_thenShouldReturnSomething()
+        throws Exception {
+        commandGateway.sendAndWait(
+            new CreatePaymentOrderCommand(
+                HEDVIG_ORDER_ID,
+                UUID.fromString(TRANSACTION_ID),
+                TOLVANSSON_MEMBER_ID,
+                TRANSACTION_AMOUNT,
+                TRUSTLY_ACCOUNT_ID));
 
-    val request = makeTrustlyCreditNotificationRequest();
-    given(notificationHandler.handleNotification(any())).willReturn(request);
+        final Notification request = makeTrustlyCreditNotificationRequest();
+        given(notificationHandler.handleNotification(any())).willReturn(request);
 
-    mockMvc
-      .perform(
-        post("/hooks/trustly/notifications")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(gson.toJson(request)))
-      .andExpect(status().is5xxServerError());
-  }
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(gson.toJson(request)))
+            .andExpect(status().is5xxServerError());
+    }
 
-  @Test
-  public void
-  givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember()
-    throws Exception {
-    commandGateway.sendAndWait(new CreateOrderCommand(TOLVANSSON_MEMBER_ID, HEDVIG_ORDER_ID));
-    commandGateway.sendAndWait(
-      new SelectAccountResponseReceivedCommand(
-        HEDVIG_ORDER_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDER_ID));
+    @Test
+    public void
+    givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember()
+        throws Exception {
+        commandGateway.sendAndWait(new CreateOrderCommand(TOLVANSSON_MEMBER_ID, HEDVIG_ORDER_ID));
+        commandGateway.sendAndWait(
+            new SelectAccountResponseReceivedCommand(
+                HEDVIG_ORDER_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDER_ID));
 
-    val request = makeTrustlyAccountNotificationRequest();
-    given(notificationHandler.handleNotification(any())).willReturn(request);
+        final Notification request = makeTrustlyAccountNotificationRequest();
+        given(notificationHandler.handleNotification(any())).willReturn(request);
 
-    mockMvc
-      .perform(
-        post("/hooks/trustly/notifications")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(gson.toJson(request)))
-      .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(gson.toJson(request)))
+            .andExpect(status().isOk());
 
-    val memberEvents =
-      eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+        final List<? extends DomainEventMessage<?>> memberEvents =
+            eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
-    assertThat(memberEvents, hasEvent(MemberCreatedEvent.class));
-    assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
-  }
+        assertThat(memberEvents, hasEvent(MemberCreatedEvent.class));
+        assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
+    }
 
-  @Test
-  public void
-  givenAConfirmedTrustlyOrderAndAnExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldNotCreateMember()
-    throws Exception {
-    commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
-    commandGateway.sendAndWait(new CreateOrderCommand(TOLVANSSON_MEMBER_ID, HEDVIG_ORDER_ID));
-    commandGateway.sendAndWait(
-      new SelectAccountResponseReceivedCommand(
-        HEDVIG_ORDER_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDER_ID));
+    @Test
+    public void
+    givenAConfirmedTrustlyOrderAndAnExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldNotCreateMember()
+        throws Exception {
+        commandGateway.sendAndWait(new CreateMemberCommand(TOLVANSSON_MEMBER_ID));
+        commandGateway.sendAndWait(new CreateOrderCommand(TOLVANSSON_MEMBER_ID, HEDVIG_ORDER_ID));
+        commandGateway.sendAndWait(
+            new SelectAccountResponseReceivedCommand(
+                HEDVIG_ORDER_ID, TRUSTLY_IFRAME_URL, TRUSTLY_ORDER_ID));
 
-    val request = makeTrustlyAccountNotificationRequest();
-    given(notificationHandler.handleNotification(any())).willReturn(request);
+        final Notification request = makeTrustlyAccountNotificationRequest();
+        given(notificationHandler.handleNotification(any())).willReturn(request);
 
-    mockMvc
-      .perform(
-        post("/hooks/trustly/notifications")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(gson.toJson(request)))
-      .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/hooks/trustly/notifications")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(gson.toJson(request)))
+            .andExpect(status().isOk());
 
-    val memberEvents =
-      eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+        final List<? extends DomainEventMessage<?>> memberEvents =
+            eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
 
-    assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
-  }
+        assertThat(memberEvents, hasEvent(TrustlyAccountCreatedEvent.class));
+    }
 }

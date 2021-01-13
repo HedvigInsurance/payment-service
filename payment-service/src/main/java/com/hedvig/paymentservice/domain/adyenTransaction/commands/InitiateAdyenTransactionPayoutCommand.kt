@@ -5,10 +5,10 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 data class InitiateAdyenTransactionPayoutCommand(
-  @TargetAggregateIdentifier
-  val transactionId: UUID,
-  val memberId: String,
-  val shopperReference: String,
-  val amount: MonetaryAmount,
-  val email: String
+    @TargetAggregateIdentifier
+    val transactionId: UUID,
+    val memberId: String,
+    val shopperReference: String,
+    val amount: MonetaryAmount,
+    val email: String
 )
