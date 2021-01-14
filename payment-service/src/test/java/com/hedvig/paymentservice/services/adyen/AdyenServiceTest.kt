@@ -7,9 +7,11 @@ import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenFromNotificationRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
+import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
@@ -27,6 +29,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
+import java.math.BigDecimal
 import java.util.*
 
 @RunWith(SpringRunner::class)
@@ -205,6 +208,19 @@ class AdyenServiceTest {
         verify(exactly = 1) { commandGateway.sendAndWait(ofType(CancelAdyenTokenFromNotificationRegistrationCommand::class)) }
     }
 
+    @Test
+    fun `expect ReceiveAuthorisationAdyenTransactionCommand to be dispatched when a notification for successful payin are being handled`() {
+        val notification = makeNotificationRequestItem(isSuccessful = true)
+
+        every { adyenTransactionRepository.findById(any()) } returns Optional.of(makeAdyenTransaction())
+        every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.empty()
+        every { commandGateway.sendAndWait<ReceiveAuthorisationAdyenTransactionCommand>(any()) } returns null
+
+        adyenService.handleAuthorisationNotification(notification)
+
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(ReceiveAuthorisationAdyenTransactionCommand::class)) }
+    }
+
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
         val response = PaymentMethodsResponse()
 
@@ -245,5 +261,12 @@ class AdyenServiceTest {
         tokenRegistration.shopperReference = ""
 
         return tokenRegistration
+    }
+
+    private fun makeAdyenTransaction() = AdyenTransaction().apply {
+        transactionId = UUID.fromString("8C0A90BF-A8A4-4F2D-A68B-BA40B10C39FB");
+        memberId = "1234";
+        amount = BigDecimal.TEN;
+        currency = "SEK"
     }
 }
