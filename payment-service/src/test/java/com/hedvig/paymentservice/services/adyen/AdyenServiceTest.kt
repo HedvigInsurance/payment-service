@@ -7,7 +7,9 @@ import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenFromNotificationRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
+import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -221,6 +223,39 @@ class AdyenServiceTest {
         verify(exactly = 1) { commandGateway.sendAndWait(ofType(ReceiveAuthorisationAdyenTransactionCommand::class)) }
     }
 
+    @Test
+    fun `expect ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand to be dispatched when a notification for successful payin are being handled`() {
+        val notification = makeNotificationRequestItem(isSuccessful = false, isAutoRescue = true)
+
+        every { adyenTransactionRepository.findById(any()) } returns Optional.of(makeAdyenTransaction())
+        every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.empty()
+        every { commandGateway.sendAndWait<ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand>(any()) } returns null
+
+        adyenService.handleAuthorisationNotification(notification)
+
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand::class)) }
+    }
+
+    @Test
+    fun `expect ReceiveCancellationResponseAdyenTransactionCommand to be dispatched when a notification for successful payin are being handled`() {
+        val notification = makeNotificationRequestItem(isSuccessful = false, isAutoRescue = false)
+
+        every { adyenTransactionRepository.findById(any()) } returns Optional.of(makeAdyenTransaction())
+        every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.empty()
+        every { commandGateway.sendAndWait<ReceiveCancellationResponseAdyenTransactionCommand>(any()) } returns null
+
+        adyenService.handleAuthorisationNotification(notification)
+
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(ReceiveCancellationResponseAdyenTransactionCommand::class)) }
+    }
+
+    //ReceiveCancellationResponseAdyenTransactionCommand
+
+    //Test list
+    //1. PayinNotifcation flow
+    //2. PayoutMethodStatus method
+    //3.
+
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
         val response = PaymentMethodsResponse()
 
@@ -238,7 +273,8 @@ class AdyenServiceTest {
 
     private fun makeNotificationRequestItem(
         isSuccessful: Boolean,
-        merchantReference: String? = UUID.randomUUID().toString()
+        merchantReference: String? = UUID.randomUUID().toString(),
+            isAutoRescue: Boolean = false
     ) = NotificationRequestItem(
         amount = null,
         eventCode = "AUTHORISATION",
@@ -251,7 +287,7 @@ class AdyenServiceTest {
         success = isSuccessful,
         paymentMethod = "TRUSTLY",
         operations = null,
-        additionalData = null
+        additionalData = if (isAutoRescue) mapOf("retry.rescueScheduled" to "true", "retry.rescueReference" to "something", "retry.orderAttemptNumber" to "2") else null
     )
 
     private fun makeAdyenTokenRegistration(): AdyenTokenRegistration {

@@ -636,24 +636,21 @@ class AdyenServiceImpl(
     }
 
     private fun handleTokenRegistration(tokenRegistration: AdyenTokenRegistration, adyenNotification: NotificationRequestItem) {
-        if (adyenNotification.success) {
-                commandGateway.sendAndWait<Void>(
+        val command : Any = if (adyenNotification.success) {
                     AuthoriseAdyenTokenRegistrationFromNotificationCommand(
                         adyenTokenRegistrationId = tokenRegistration.adyenTokenRegistrationId,
                         memberId = tokenRegistration.memberId,
                         adyenNotification = adyenNotification,
                         shopperReference = tokenRegistration.shopperReference
                     )
-                )
-
         } else {
-            commandGateway.sendAndWait<Void>(
                 CancelAdyenTokenFromNotificationRegistrationCommand(
                     adyenTokenRegistrationId = tokenRegistration.adyenTokenRegistrationId,
                     memberId = tokenRegistration.memberId
                 )
-            )
         }
+
+        commandGateway.sendAndWait<Void>(command)
     }
 
     private fun createMember(memberId: String) {
