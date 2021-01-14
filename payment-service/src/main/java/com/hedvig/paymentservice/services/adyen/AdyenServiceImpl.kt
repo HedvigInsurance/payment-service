@@ -67,8 +67,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.util.Optional
 import java.util.UUID
 import javax.money.MonetaryAmount
@@ -86,8 +84,8 @@ class AdyenServiceImpl(
     val uuidGenerator: UUIDGenerator,
     val memberService: MemberService,
     val commandGateway: CommandGateway,
-    val adyenTokenRegistrationRepository: AdyenTokenRegistrationRepository,
-    val adyenTransactionRepository: AdyenTransactionRepository,
+    val tokenRegistrationRepository: AdyenTokenRegistrationRepository,
+    val transactionRepository: AdyenTransactionRepository,
     val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
     val adyenMerchantPicker: AdyenMerchantPicker,
     @param:Value("\${hedvig.adyen.allow3DS2}")
@@ -275,7 +273,7 @@ class AdyenServiceImpl(
             throw exception
         }
 
-        val listOfTokenRegistrations = adyenTokenRegistrationRepository.findByMemberId(memberId)
+        val listOfTokenRegistrations = tokenRegistrationRepository.findByMemberId(memberId)
 
         if (listOfTokenRegistrations.isNullOrEmpty()) {
             throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")
@@ -317,11 +315,12 @@ class AdyenServiceImpl(
         return response
     }
 
+    //Extra method for web
     override fun submitAdyenRedirection(
         request: SubmitAdyenRedirectionRequest,
         memberId: String
     ): SubmitAdyenRedirectionResponse {
-        val listOfTokenRegistrations = adyenTokenRegistrationRepository.findByMemberId(memberId)
+        val listOfTokenRegistrations = tokenRegistrationRepository.findByMemberId(memberId)
 
         if (listOfTokenRegistrations.isNullOrEmpty()) {
             throw RuntimeException("Cannot find latest adyen token [MemberId: $memberId]")
@@ -348,7 +347,7 @@ class AdyenServiceImpl(
     }
 
     override fun handleSettlementErrorNotification(adyenTransactionId: UUID) {
-        val transaction: AdyenTransaction = adyenTransactionRepository.findById(adyenTransactionId).orElseThrow()
+        val transaction: AdyenTransaction = transactionRepository.findById(adyenTransactionId).orElseThrow()
 
         commandGateway.sendAndWait<Void>(
             ReceiveCaptureFailureAdyenTransactionCommand(
@@ -388,9 +387,9 @@ class AdyenServiceImpl(
     override fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem) {
         val transactionId = UUID.fromString(adyenNotification.merchantReference!!)
 
-        val payinTransactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(transactionId)
+        val payinTransactionMaybe: Optional<AdyenTransaction> = transactionRepository.findById(transactionId)
 
-        val tokenRegistrationMaybe: Optional<AdyenTokenRegistration> = adyenTokenRegistrationRepository.findById(transactionId)
+        val tokenRegistrationMaybe: Optional<AdyenTokenRegistration> = tokenRegistrationRepository.findById(transactionId)
 
         when {
             payinTransactionMaybe.isPresent -> handlePayinAuthorizationNotification(adyenNotification)
@@ -402,7 +401,7 @@ class AdyenServiceImpl(
     override fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem) {
         val adyenTokenRegistrationId = UUID.fromString(adyenNotification.originalReference)
 
-        val tokenRegistrationMaybe = adyenTokenRegistrationRepository.findById(adyenTokenRegistrationId)
+        val tokenRegistrationMaybe = tokenRegistrationRepository.findById(adyenTokenRegistrationId)
 
         if (!tokenRegistrationMaybe.isPresent) {
             logger.info("Handle token registration - Could not find adyen token registration $adyenTokenRegistrationId")
@@ -607,7 +606,7 @@ class AdyenServiceImpl(
     ) {
         val adyenTransactionId = UUID.fromString(adyenNotification.merchantReference)
 
-        val transactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(adyenTransactionId)
+        val transactionMaybe: Optional<AdyenTransaction> = transactionRepository.findById(adyenTransactionId)
 
         if (!transactionMaybe.isPresent) {
             logger.error("Handle Authorisation -  Could find not Adyen transaction $adyenTransactionId")
