@@ -6,6 +6,7 @@ import com.adyen.service.Checkout
 import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenFromNotificationRegistrationCommand
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -187,7 +188,7 @@ class AdyenServiceTest {
 
         adyenService.handleAuthorisationNotification(notification)
 
-        verify(exactly = 1) { commandGateway.sendAndWait(any()) }
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(AuthoriseAdyenTokenRegistrationFromNotificationCommand::class))  }
     }
 
     @Test
@@ -197,11 +198,11 @@ class AdyenServiceTest {
 
         every { adyenTransactionRepository.findById(any()) } returns Optional.empty()
         every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.of(tokenRegistration)
-        every { commandGateway.sendAndWait<AuthoriseAdyenTokenRegistrationFromNotificationCommand>(any()) } returns null
+        every { commandGateway.sendAndWait<CancelAdyenTokenFromNotificationRegistrationCommand>(any()) } returns null
 
         adyenService.handleAuthorisationNotification(notification)
 
-        verify(exactly = 1) { commandGateway.sendAndWait(any()) }
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(CancelAdyenTokenFromNotificationRegistrationCommand::class)) }
     }
 
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
