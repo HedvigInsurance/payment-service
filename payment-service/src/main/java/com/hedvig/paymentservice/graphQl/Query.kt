@@ -9,6 +9,7 @@ import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterAccountProcessingStatus
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
@@ -98,9 +99,9 @@ class Query(
             return null
         }
 
-        val status = adyenService.getActivePayoutMethods(memberId) ?: return null
+        val status = adyenService.getLatestTokenRegistrationStatus(memberId) ?: return null
 
-        return ActivePayoutMethodsResponse(status = status)
+        return ActivePayoutMethodsResponse(status = PayoutMethodStatus.from(status))
     }
 
     @Deprecated("replaced by  `directDebitStatus`")

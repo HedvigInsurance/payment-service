@@ -26,6 +26,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
@@ -471,9 +472,14 @@ class AdyenServiceImpl(
         )
     }
 
-    override fun getActivePayoutMethods(memberId: String): PayoutMethodStatus? {
-        TODO("call")
-        return null
+    override fun getLatestTokenRegistrationStatus(memberId: String): AdyenTokenRegistrationStatus? {
+        val listOfTokens = tokenRegistrationRepository.findByMemberId(memberId)
+
+        val lastTokenization = listOfTokens
+            .filter { it.isForPayout == true }
+            .maxByOrNull { it.createdAt }
+
+        return lastTokenization?.tokenStatus
     }
 
     override fun startPayoutTransaction(

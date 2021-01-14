@@ -7,9 +7,11 @@ import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenFromNotificationRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -249,6 +251,25 @@ class AdyenServiceTest {
         verify(exactly = 1) { commandGateway.sendAndWait(ofType(ReceiveCancellationResponseAdyenTransactionCommand::class)) }
     }
 
+    @Test
+    fun`expect active when there is a authorized token for payouts`() {
+
+        every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf(makeAdyenTokenRegistration())
+
+        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+
+        assertThat(status).isEqualTo(AdyenTokenRegistrationStatus.AUTHORISED)
+    }
+    @Test
+    fun`expect null when there is a authorized token for payouts`() {
+
+        every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf()
+
+        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+
+        assertThat(status).isEqualTo(null)
+    }
+
     //ReceiveCancellationResponseAdyenTransactionCommand
 
     //Test list
@@ -290,11 +311,13 @@ class AdyenServiceTest {
         additionalData = if (isAutoRescue) mapOf("retry.rescueScheduled" to "true", "retry.rescueReference" to "something", "retry.orderAttemptNumber" to "2") else null
     )
 
-    private fun makeAdyenTokenRegistration(): AdyenTokenRegistration {
+    private fun makeAdyenTokenRegistration(status : AdyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED): AdyenTokenRegistration {
         val tokenRegistration = AdyenTokenRegistration()
         tokenRegistration.adyenTokenRegistrationId = UUID.fromString("CD076349-4454-432A-AD19-42C5C4A1396A")
         tokenRegistration.memberId = "MEMBER_ID"
         tokenRegistration.shopperReference = ""
+        tokenRegistration.isForPayout = true
+        tokenRegistration.tokenStatus = status
 
         return tokenRegistration
     }
