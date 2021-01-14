@@ -30,7 +30,6 @@ public class AdyenTokenRegistration {
     @Column(columnDefinition = "boolean default false")
     private boolean isForPayout;
     private String shopperReference;
-    private String bankName;
 
     public AdyenTokenRegistration() {
     }
@@ -99,10 +98,6 @@ public class AdyenTokenRegistration {
         return shopperReference;
     }
 
-    public String getBankName() { return bankName; }
-
-    public void setBankName(String bankName) { this.bankName = bankName; }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -115,8 +110,7 @@ public class AdyenTokenRegistration {
             Objects.equals(getPaymentDataFromAction(), that.getPaymentDataFromAction()) &&
             Objects.equals(getCreatedAt(), that.getCreatedAt()) &&
             Objects.equals(getUpdatedAt(), that.getUpdatedAt()) &&
-            Objects.equals(getShopperReference(), that.getShopperReference()) &&
-            Objects.equals(getBankName(), that.getBankName());
+            Objects.equals(getShopperReference(), that.getShopperReference());
     }
 
     @Override
@@ -129,7 +123,6 @@ public class AdyenTokenRegistration {
             getCreatedAt(),
             getUpdatedAt(),
             isForPayout,
-            getShopperReference(),
-            getBankName());
+            getShopperReference());
     }
 }

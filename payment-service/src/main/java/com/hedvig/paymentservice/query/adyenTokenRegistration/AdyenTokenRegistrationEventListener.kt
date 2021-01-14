@@ -100,7 +100,6 @@ class AdyenTokenRegistrationEventListener(
         }
 
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
-        tokenRegistration.bankName = e.notificationRequestItem.additionalData?.get(BANK_NAME)
     }
 
     @EventHandler
