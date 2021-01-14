@@ -40,6 +40,7 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
@@ -357,7 +358,7 @@ class AdyenServiceImpl(
         )
     }
 
-    override fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem) =
+    private fun handlePayinAuthorizationNotification(adyenNotification: NotificationRequestItem) =
         getPayinTransactionAndApplyCommand(adyenNotification) { transaction ->
 
             val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
@@ -383,6 +384,20 @@ class AdyenServiceImpl(
                 )
             }
         }
+
+    override fun handleAuthorisationNotification(adyenNotification: NotificationRequestItem) {
+        val transactionId = UUID.fromString(adyenNotification.merchantReference!!)
+
+        val payinTransactionMaybe: Optional<AdyenTransaction> = adyenTransactionRepository.findById(transactionId)
+
+        val tokenRegistrationMaybe: Optional<AdyenTokenRegistration> = adyenTokenRegistrationRepository.findById(transactionId)
+
+        when {
+            payinTransactionMaybe.isPresent -> handlePayinAuthorizationNotification(adyenNotification)
+            tokenRegistrationMaybe.isPresent -> handleTokenRegistration(tokenRegistrationMaybe.get(), adyenNotification)
+            else -> logger.error("Handle Authorisation -  Could find not Adyen transaction $transactionId")
+        }
+    }
 
     override fun handleRecurringContractNotification(adyenNotification: NotificationRequestItem) {
         val adyenTokenRegistrationId = UUID.fromString(adyenNotification.originalReference)
@@ -476,16 +491,9 @@ class AdyenServiceImpl(
         )
     }
 
-    override fun getActivePayoutMethods(memberId: String): ActivePaymentMethodsResponse? {
-        val activePaymentMethods = getActivePaymentMethodsResponse(memberId) ?: return null
-
-        val activePaymentMethodWithoutTrustly = includeOnlyTrustlyFromActivePayoutMethods(activePaymentMethods).first()
-
-        return ActivePaymentMethodsResponse(
-            storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(
-                activePaymentMethodWithoutTrustly
-            )
-        )
+    override fun getActivePayoutMethods(memberId: String): PayoutMethodStatus? {
+        TODO("call")
+        return null
     }
 
     override fun startPayoutTransaction(
@@ -626,25 +634,6 @@ class AdyenServiceImpl(
 
         val adyenTransaction = adyenTransactionMaybe.get()
         commandGateway.sendAndWait<Void>(getCommandFromTransaction(adyenTransaction))
-    }
-
-    private fun handlePayinAuthorizationNotification(transaction : AdyenTransaction, adyenNotification: NotificationRequestItem){
-        if (adyenNotification.success) {
-            commandGateway.sendAndWait<Void>(
-                ReceiveAuthorisationAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId
-                )
-            )
-        } else {
-            commandGateway.sendAndWait<Void>(
-                ReceiveCancellationResponseAdyenTransactionCommand(
-                    transactionId = transaction.transactionId,
-                    memberId = transaction.memberId,
-                    reason = adyenNotification.reason ?: "No reason provided"
-                )
-            )
-        }
     }
 
     private fun handleTokenRegistration(tokenRegistration: AdyenTokenRegistration, adyenNotification: NotificationRequestItem) {

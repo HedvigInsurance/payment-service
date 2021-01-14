@@ -6,6 +6,7 @@ import com.adyen.model.payout.ConfirmThirdPartyResponse
 import com.adyen.model.payout.SubmitResponse
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
@@ -22,7 +23,7 @@ interface AdyenService {
     fun tokenizePayoutDetails(request: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
     fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse
     fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse?
-    fun getActivePayoutMethods(memberId: String): ActivePaymentMethodsResponse?
+    fun getActivePayoutMethods(memberId: String): PayoutMethodStatus?
     fun submitAdditionalPaymentDetails(request: PaymentsDetailsRequest, memberId: String): AdyenPaymentsResponse
     fun submitAdyenRedirection(request: SubmitAdyenRedirectionRequest, memberId: String): SubmitAdyenRedirectionResponse
     fun fetchAdyenPublicKey(): String

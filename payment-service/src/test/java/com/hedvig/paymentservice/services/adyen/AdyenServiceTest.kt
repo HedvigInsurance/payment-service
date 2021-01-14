@@ -2,10 +2,11 @@ package com.hedvig.paymentservice.services.adyen
 
 import com.adyen.model.checkout.PaymentMethod
 import com.adyen.model.checkout.PaymentMethodsResponse
-import com.adyen.model.checkout.StoredPaymentMethod
 import com.adyen.service.Checkout
 import com.adyen.service.Payout
 import com.hedvig.paymentservice.common.UUIDGenerator
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.AuthoriseAdyenTokenRegistrationFromNotificationCommand
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
@@ -13,17 +14,19 @@ import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenMerchantInfo
 import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
+import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import com.neovisionaries.i18n.CountryCode
 import com.neovisionaries.i18n.CurrencyCode
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import jdk.nashorn.internal.ir.annotations.Ignore
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
+import java.util.*
 
 @RunWith(SpringRunner::class)
 class AdyenServiceTest {
@@ -174,38 +177,31 @@ class AdyenServiceTest {
     }
 
     @Test
-    @Ignore
-    fun `expect null active payout methods if the merchant account doesnt include trustly`() {
-        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
-            "account",
-            CountryCode.NO,
-            CurrencyCode.NOK
-        )
+    fun `expect a AuthoriseAdyenTokenRegistrationFromNotificationCommand to be dispatched when a notification for tokenization are being handled`() {
+        val notification = makeNotificationRequestItem(isSuccessful = true)
+        val tokenRegistration = makeAdyenTokenRegistration()
 
-        every { adyenCheckout.paymentMethods(any()) } returns
-            makeStoredPaymentMethods(isTrustlyIncluded = false)
+        every { adyenTransactionRepository.findById(any()) } returns Optional.empty()
+        every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.of(tokenRegistration)
+        every { commandGateway.sendAndWait<AuthoriseAdyenTokenRegistrationFromNotificationCommand>(any()) } returns null
 
-        val test = adyenService.getActivePayoutMethods("1234")
+        adyenService.handleAuthorisationNotification(notification)
 
-        assertThat(test?.storedPaymentMethodsDetails).isNull()
+        verify(exactly = 1) { commandGateway.sendAndWait(any()) }
     }
 
     @Test
-    @Ignore
-    fun `expect valid active payout methods if the merchant account includes trustly`() {
-        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
-            "account",
-            CountryCode.NO,
-            CurrencyCode.NOK
-        )
+    fun `expect a CancelAdyenTokenFromNotificationRegistrationCommand to be dispatched when a notification for failed tokenization are being handled`() {
+        val notification = makeNotificationRequestItem(isSuccessful = false)
+        val tokenRegistration = makeAdyenTokenRegistration()
 
-        every { adyenCheckout.paymentMethods(any()) } returns
-            makeStoredPaymentMethods()
+        every { adyenTransactionRepository.findById(any()) } returns Optional.empty()
+        every { adyenTokenRegistrationRepository.findById(any()) } returns Optional.of(tokenRegistration)
+        every { commandGateway.sendAndWait<AuthoriseAdyenTokenRegistrationFromNotificationCommand>(any()) } returns null
 
-        val test = adyenService.getActivePayoutMethods("1234")
+        adyenService.handleAuthorisationNotification(notification)
 
-        assertThat(test?.storedPaymentMethodsDetails).isNotNull
-        assertThat(test?.storedPaymentMethodsDetails?.brand).isEqualTo( "trustly")
+        verify(exactly = 1) { commandGateway.sendAndWait(any()) }
     }
 
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
@@ -223,20 +219,30 @@ class AdyenServiceTest {
         return response
     }
 
-    private fun makeStoredPaymentMethods(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
-        val response = PaymentMethodsResponse()
+    private fun makeNotificationRequestItem(
+        isSuccessful: Boolean,
+        merchantReference: String? = UUID.randomUUID().toString()
+    ) = NotificationRequestItem(
+        amount = null,
+        eventCode = "AUTHORISATION",
+        eventDate = "2021-02-17",
+        merchantAccountCode = "Hedvig",
+        merchantReference = merchantReference,
+        originalReference = "Original Reference",
+        pspReference = "PSP Reference",
+        reason = "reason",
+        success = isSuccessful,
+        paymentMethod = "TRUSTLY",
+        operations = null,
+        additionalData = null
+    )
 
-        val cardMethod = StoredPaymentMethod().apply { type = "scheme" }
-        val trustlyyMethod = StoredPaymentMethod().apply { type = "trustly" }
-        val applePayMethod = StoredPaymentMethod().apply { type = "applepay" }
+    private fun makeAdyenTokenRegistration(): AdyenTokenRegistration {
+        val tokenRegistration = AdyenTokenRegistration()
+        tokenRegistration.adyenTokenRegistrationId = UUID.fromString("CD076349-4454-432A-AD19-42C5C4A1396A")
+        tokenRegistration.memberId = "MEMBER_ID"
+        tokenRegistration.shopperReference = ""
 
-        val storedPaymentMethods : MutableList<StoredPaymentMethod>  = mutableListOf(cardMethod, applePayMethod)
-
-        if (isTrustlyIncluded)
-            storedPaymentMethods.add(trustlyyMethod)
-
-        response.storedPaymentMethods = storedPaymentMethods
-
-        return response
+        return tokenRegistration
     }
 }
