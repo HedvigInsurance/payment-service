@@ -16,7 +16,7 @@ class AdyenCheckoutConfig(
   val environment: Environment,
   @Value("\${hedvig.adyen.urlPrefix}")
   val prefix: String,
-  @Value("\${hedvig.adyen.apiKey.payout:AQEzgmDBbd+uOlwd9n6PwjBt9bPPaKhCAINLVnwY7n2viG9Mv+U97pUzneT0w6ZhX2OSrPTzEMFdWw2+5HzctViMSCJMYAc=-jriYoVu2pcIPFY79BY60BliXGd911j7x0owC5JKhrv8=-Kz5}?y9J%%%x{mhD")
+  @Value("\${hedvig.adyen.apiKey.payout")
   val apiPayoutKey: String,
   @Value("\${hedvig.adyen.apiKey.payout.confirmation")
   val apiPayoutConfirmationKey: String
