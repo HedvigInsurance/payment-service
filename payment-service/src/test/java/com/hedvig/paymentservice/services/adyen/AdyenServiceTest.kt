@@ -20,6 +20,7 @@ import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactio
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenMerchantInfo
+import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
 import com.neovisionaries.i18n.CountryCode
@@ -253,16 +254,21 @@ class AdyenServiceTest {
 
     @Test
     fun`expect active when there is a authorized token for payouts`() {
-
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
         every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf(makeAdyenTokenRegistration())
 
         val status = adyenService.getLatestTokenRegistrationStatus("1234")
 
-        assertThat(status).isEqualTo(AdyenTokenRegistrationStatus.AUTHORISED)
+        assertThat(status).isEqualTo(PayoutMethodStatus.ACTIVE)
     }
-    @Test
-    fun`expect null when there is a authorized token for payouts`() {
 
+    @Test
+    fun`expect null when there is a no token for payouts and its from a country without Adyen`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } throws NoMerchantAccountForMarket(AdyenMerchantPicker.Market.SWEDEN)
         every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf()
 
         val status = adyenService.getLatestTokenRegistrationStatus("1234")
@@ -270,12 +276,19 @@ class AdyenServiceTest {
         assertThat(status).isEqualTo(null)
     }
 
-    //ReceiveCancellationResponseAdyenTransactionCommand
+    @Test
+    fun`expect NEEDS_SETUP when there is a no token for payouts`() {
+        every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } returns AdyenMerchantInfo(
+            "account",
+            CountryCode.NO,
+            CurrencyCode.NOK
+        )
+        every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf()
 
-    //Test list
-    //1. PayinNotifcation flow
-    //2. PayoutMethodStatus method
-    //3.
+        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+
+        assertThat(status).isEqualTo(PayoutMethodStatus.NEEDS_SETUP)
+    }
 
     private fun makePaymentMethodResponse(isTrustlyIncluded: Boolean = true): PaymentMethodsResponse {
         val response = PaymentMethodsResponse()

@@ -472,14 +472,20 @@ class AdyenServiceImpl(
         )
     }
 
-    override fun getLatestTokenRegistrationStatus(memberId: String): AdyenTokenRegistrationStatus? {
+    override fun getLatestTokenRegistrationStatus(memberId: String): PayoutMethodStatus? {
+        try {
+            adyenMerchantPicker.getAdyenMerchantInfo(memberId)
+        } catch (e: NoMerchantAccountForMarket) {
+            return null
+        }
+
         val listOfTokens = tokenRegistrationRepository.findByMemberId(memberId)
 
         val lastTokenization = listOfTokens
             .filter { it.isForPayout == true }
-            .maxByOrNull { it.createdAt }
+            .maxByOrNull { it.createdAt } ?: return PayoutMethodStatus.NEEDS_SETUP
 
-        return lastTokenization?.tokenStatus
+        return PayoutMethodStatus.from(lastTokenization.tokenStatus)
     }
 
     override fun startPayoutTransaction(
