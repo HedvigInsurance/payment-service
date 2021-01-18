@@ -18,6 +18,7 @@ type Query {
     adyenPublicKey: String!
     """Returns all the available payouts methods before the client requests a payout tokenization"""
     availablePayoutMethods: AvailablePaymentMethodsResponse!
+    """Returns the active payout method which the member chose to tokenize"""
     activePayoutMethods: ActivePayoutMethodsResponse
 }
 
