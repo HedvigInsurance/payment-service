@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResetController {
   private static final String TRANSACTION_HISTORY_PROCESSING_GROUP = "TransactionHistory";
   private static final String MEMBER_RESET_PROCESSOR_NAME = "MemberEventsProcessorGroup";
+  private static final String TRUSTLY_SEGMENT_PROCESSOR_GROUP = "TrustlySegmentProcessorGroup";
 
   private EventProcessingConfiguration eventProcessingConfiguration;
 
@@ -41,6 +42,17 @@ public class ResetController {
         trackingEventProcessor.shutDown();
         trackingEventProcessor.resetTokens();
         trackingEventProcessor.start();
+      });
+  }
+
+  @PutMapping("trustlySegmentProcessorGroup")
+    public void resetTrustlySegmentProcessorGroup(){
+      eventProcessingConfiguration
+          .eventProcessor(TRUSTLY_SEGMENT_PROCESSOR_GROUP, TrackingEventProcessor.class)
+          .ifPresent(trackingEventProcessor -> {
+          trackingEventProcessor.shutDown();
+          trackingEventProcessor.resetTokens();
+          trackingEventProcessor.start();
       });
   }
 }
