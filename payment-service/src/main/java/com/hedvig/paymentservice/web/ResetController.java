@@ -51,7 +51,7 @@ public class ResetController {
           .eventProcessor(TRUSTLY_SEGMENT_PROCESSOR_GROUP, TrackingEventProcessor.class)
           .ifPresent(trackingEventProcessor -> {
           trackingEventProcessor.shutDown();
-          trackingEventProcessor.resetTokens();
+          trackingEventProcessor.resetTokens(StreamableMessageSource::createTailToken);
           trackingEventProcessor.start();
       });
   }
