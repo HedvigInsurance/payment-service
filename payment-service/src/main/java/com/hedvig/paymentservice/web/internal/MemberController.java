@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web.internal;
 
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus;
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration;
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository;
@@ -134,6 +135,21 @@ public class MemberController {
     public ResponseEntity<PayoutMethodStatusDTO> getPayoutMethodStatus(@PathVariable String memberId) {
         List<AdyenTokenRegistration> registrations = adyenTokenRegistrationRepository
             .findByMemberIdAndTokenStatusAndIsForPayoutIsTrue(memberId, AdyenTokenRegistrationStatus.AUTHORISED);
-        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, !registrations.isEmpty()));
+
+        if (!registrations.isEmpty()) {
+            return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
+        }
+
+        DirectDebitAccountOrderDTO latestOrder = bankAccountService.getLatestDirectDebitAccountOrder(memberId);
+        if (latestOrder != null) {
+            return ResponseEntity.ok(
+                new PayoutMethodStatusDTO(
+                    memberId,
+                    latestOrder.getDirectDebitStatus() == DirectDebitStatus.CONNECTED
+                )
+            );
+        }
+
+        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, false));
     }
 }
