@@ -13,6 +13,7 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PaymentMemberDTO;
+import com.hedvig.paymentservice.web.dtos.PayoutMethodStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,5 +122,10 @@ public class MemberController {
     public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(@PathVariable("memberIds") List<String> memberIds) {
         throw new RuntimeException("Deprecated: Attempted to call function /directDebitStatus/[{memberIds}]" +
             " on getDirectDebitStatuses");
+    }
+
+    @GetMapping("/{memberId}/payoutMethod/status")
+    public ResponseEntity<PayoutMethodStatusDTO> getPayoutMethodStatus(@PathVariable String memberId) {
+        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
     }
 }
