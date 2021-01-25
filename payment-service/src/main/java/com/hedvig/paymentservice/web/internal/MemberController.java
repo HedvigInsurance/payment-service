@@ -1,6 +1,9 @@
 package com.hedvig.paymentservice.web.internal;
 
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration;
+import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
@@ -29,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/_/members/")
@@ -39,14 +41,18 @@ public class MemberController {
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
     private final BankAccountService bankAccountService;
+    private final AdyenTokenRegistrationRepository adyenTokenRegistrationRepository;
 
     public MemberController(
         PaymentService paymentService,
         MemberRepository memberRepository,
-        BankAccountService bankAccountService) {
+        BankAccountService bankAccountService,
+        AdyenTokenRegistrationRepository adyenTokenRegistrationRepository
+    ) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
         this.bankAccountService = bankAccountService;
+        this.adyenTokenRegistrationRepository = adyenTokenRegistrationRepository;
     }
 
     @PostMapping(path = "{memberId}/charge")
@@ -126,6 +132,8 @@ public class MemberController {
 
     @GetMapping("/{memberId}/payoutMethod/status")
     public ResponseEntity<PayoutMethodStatusDTO> getPayoutMethodStatus(@PathVariable String memberId) {
-        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
+        List<AdyenTokenRegistration> registrations = adyenTokenRegistrationRepository
+            .findByMemberIdAndTokenStatusAndIsForPayoutIsTrue(memberId, AdyenTokenRegistrationStatus.AUTHORISED);
+        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, !registrations.isEmpty()));
     }
 }
