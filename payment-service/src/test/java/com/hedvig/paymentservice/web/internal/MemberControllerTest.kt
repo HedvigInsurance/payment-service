@@ -37,9 +37,9 @@ internal class MemberControllerTest {
             AdyenTokenRegistration() // An empty one should suffice
         )
 
-        val sut = create()
+        val cut = create()
 
-        val response = sut.getPayoutMethodStatus("mem").body!!
+        val response = cut.getPayoutMethodStatus("mem").body!!
 
         assertThat(response.activated).isTrue
     }
@@ -53,9 +53,9 @@ internal class MemberControllerTest {
             bankAccountService.getLatestDirectDebitAccountOrder(any())
         } returns DirectDebitAccountOrderDTO(UUID.randomUUID(), "mid", "aid", DirectDebitStatus.CONNECTED)
 
-        val sut = create()
+        val cut = create()
 
-        val response = sut.getPayoutMethodStatus("mem").body!!
+        val response = cut.getPayoutMethodStatus("mem").body!!
 
         assertThat(response.activated).isTrue
     }
@@ -69,9 +69,9 @@ internal class MemberControllerTest {
             bankAccountService.getLatestDirectDebitAccountOrder(any())
         } returns DirectDebitAccountOrderDTO(UUID.randomUUID(), "mid", "aid", null)
 
-        val sut = create()
+        val cut = create()
 
-        val response = sut.getPayoutMethodStatus("mem").body!!
+        val response = cut.getPayoutMethodStatus("mem").body!!
 
         assertThat(response.activated).isFalse
     }
