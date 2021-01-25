@@ -1,12 +1,11 @@
 package com.hedvig.paymentservice.web.internal;
 
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus;
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
-import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration;
-import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository;
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
+import com.hedvig.paymentservice.services.adyen.AdyenService;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
@@ -42,18 +41,18 @@ public class MemberController {
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
     private final BankAccountService bankAccountService;
-    private final AdyenTokenRegistrationRepository adyenTokenRegistrationRepository;
+    private final AdyenService adyenService;
 
     public MemberController(
         PaymentService paymentService,
         MemberRepository memberRepository,
         BankAccountService bankAccountService,
-        AdyenTokenRegistrationRepository adyenTokenRegistrationRepository
+        AdyenService adyenService
     ) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
         this.bankAccountService = bankAccountService;
-        this.adyenTokenRegistrationRepository = adyenTokenRegistrationRepository;
+        this.adyenService = adyenService;
     }
 
     @PostMapping(path = "{memberId}/charge")
@@ -133,21 +132,14 @@ public class MemberController {
 
     @GetMapping("/{memberId}/payoutMethod/status")
     public ResponseEntity<PayoutMethodStatusDTO> getPayoutMethodStatus(@PathVariable String memberId) {
-        List<AdyenTokenRegistration> registrations = adyenTokenRegistrationRepository
-            .findByMemberIdAndTokenStatusAndIsForPayoutIsTrue(memberId, AdyenTokenRegistrationStatus.AUTHORISED);
-
-        if (!registrations.isEmpty()) {
+        PayoutMethodStatus latestStatus = adyenService.getLatestPayoutTokenRegistrationStatus(memberId);
+        if (latestStatus == PayoutMethodStatus.ACTIVE) {
             return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
         }
 
         DirectDebitAccountOrderDTO latestOrder = bankAccountService.getLatestDirectDebitAccountOrder(memberId);
-        if (latestOrder != null) {
-            return ResponseEntity.ok(
-                new PayoutMethodStatusDTO(
-                    memberId,
-                    latestOrder.getDirectDebitStatus() == DirectDebitStatus.CONNECTED
-                )
-            );
+        if (latestOrder != null && latestOrder.getDirectDebitStatus() == DirectDebitStatus.CONNECTED) {
+            return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
         }
 
         return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, false));

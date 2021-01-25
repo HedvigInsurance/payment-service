@@ -472,7 +472,7 @@ class AdyenServiceImpl(
         )
     }
 
-    override fun getLatestTokenRegistrationStatus(memberId: String): PayoutMethodStatus? {
+    override fun getLatestPayoutTokenRegistrationStatus(memberId: String): PayoutMethodStatus? {
         try {
             adyenMerchantPicker.getAdyenMerchantInfo(memberId)
         } catch (e: NoMerchantAccountForMarket) {

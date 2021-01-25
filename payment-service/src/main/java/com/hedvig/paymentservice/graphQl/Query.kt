@@ -98,7 +98,7 @@ class Query(
             return null
         }
 
-        val status = adyenService.getLatestTokenRegistrationStatus(memberId) ?: return null
+        val status = adyenService.getLatestPayoutTokenRegistrationStatus(memberId) ?: return null
 
         return ActivePayoutMethodsResponse(status = status)
     }

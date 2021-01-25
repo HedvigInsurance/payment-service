@@ -261,7 +261,7 @@ class AdyenServiceTest {
         )
         every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf(makeAdyenTokenRegistration())
 
-        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+        val status = adyenService.getLatestPayoutTokenRegistrationStatus("1234")
 
         assertThat(status).isEqualTo(PayoutMethodStatus.ACTIVE)
     }
@@ -271,7 +271,7 @@ class AdyenServiceTest {
         every { adyenMerchantPicker.getAdyenMerchantInfo(any()) } throws NoMerchantAccountForMarket(AdyenMerchantPicker.Market.SWEDEN)
         every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf()
 
-        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+        val status = adyenService.getLatestPayoutTokenRegistrationStatus("1234")
 
         assertThat(status).isEqualTo(null)
     }
@@ -285,7 +285,7 @@ class AdyenServiceTest {
         )
         every { adyenTokenRegistrationRepository.findByMemberId(any()) } returns listOf()
 
-        val status = adyenService.getLatestTokenRegistrationStatus("1234")
+        val status = adyenService.getLatestPayoutTokenRegistrationStatus("1234")
 
         assertThat(status).isEqualTo(PayoutMethodStatus.NEEDS_SETUP)
     }
