@@ -4,6 +4,7 @@ import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.hedvig.graphql.commons.extensions.getEndUserIp
 import com.hedvig.graphql.commons.extensions.getToken
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
+import com.hedvig.paymentservice.graphQl.types.ActivePayoutMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsRequest
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
@@ -70,7 +71,8 @@ class Mutation(
     }
 
     return TokenizationResponse.TokenizationResponseFinished(
-      resultCode = adyenResponse.paymentsResponse.resultCode.value
+        resultCode = adyenResponse.paymentsResponse.resultCode.value,
+        activePayoutMethods = null
     )
   }
 
@@ -95,7 +97,9 @@ class Mutation(
     }
 
     return TokenizationResponse.TokenizationResponseFinished(
-      resultCode = adyenResponse.paymentsResponse.resultCode.value
+        resultCode = adyenResponse.paymentsResponse.resultCode.value,
+        activePayoutMethods = ActivePayoutMethodsResponse(
+            status = adyenService.getLatestTokenRegistrationStatus(memberId) ?: return null)
     )
   }
 

@@ -80,6 +80,7 @@ union TokenizationResponse = TokenizationResponseFinished | TokenizationResponse
 
 type TokenizationResponseFinished {
     resultCode: String!
+    activePayoutMethods: ActivePayoutMethodsResponse
 }
 
 type TokenizationResponseAction {

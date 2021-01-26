@@ -6,7 +6,8 @@ import com.adyen.model.checkout.CheckoutPaymentsAction
 sealed class TokenizationResponse() {
 
   data class TokenizationResponseFinished(
-    val resultCode: String
+    val resultCode: String,
+    val activePayoutMethods: ActivePayoutMethodsResponse?
   ) : TokenizationResponse()
 
   data class TokenizationResponseAction(
