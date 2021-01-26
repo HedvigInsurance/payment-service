@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenToken
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledFromNotificationEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationSetToPendingEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
@@ -100,6 +101,8 @@ class AdyenTokenRegistrationEventListener(
         }
 
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.AUTHORISED
+
+        adyenAdyenTokenRepository.save(tokenRegistration)
     }
 
     @EventHandler
@@ -112,6 +115,21 @@ class AdyenTokenRegistrationEventListener(
         }
 
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.CANCELLED
+
+        adyenAdyenTokenRepository.save(tokenRegistration)
+    }
+
+    @EventHandler
+    fun on(e: AdyenTokenRegistrationSetToPendingEvent) {
+        val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
+
+        if (!tokenRegistration.isForPayout) {
+            //We only care for payout tokens
+            return
+        }
+
+        tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
+        adyenAdyenTokenRepository.save(tokenRegistration)
     }
 
     companion object {

@@ -7,6 +7,7 @@ import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAIDOUT_R
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_DECLINE
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_EXPIRE
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PAYOUT_THIRDPARTY
+import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_PENDING
 import com.adyen.model.notification.NotificationRequestItem.EVENT_CODE_RECURRING_CONTRACT
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotification
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotificationRepository
@@ -44,6 +45,7 @@ class AdyenNotificationController(
                     EVENT_CODE_PAYOUT_EXPIRE -> adyenService.handlePayoutExpireNotification(item.notificationItem!!)
                     EVENT_CODE_PAIDOUT_REVERSED -> adyenService.handlePayoutPaidOutReservedNotification(item.notificationItem!!)
                     EVENT_CODE_AUTORESCUE -> adyenService.handleAutoRescueNotification(item.notificationItem!!)
+                    EVENT_CODE_PENDING -> adyenService.handlePendingNotification(item.notificationItem!!)
                     else -> throw IllegalArgumentException("NotificationItem with eventCode=${item.notificationItem?.eventCode} is not supported")
                 }
             } catch (exception: Exception) {

@@ -6,12 +6,14 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.SetAdyenTokenRegistrationToPendingFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledFromNotificationEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationSetToPendingEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
 import org.axonframework.commandhandling.CommandHandler
@@ -19,7 +21,7 @@ import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
-import java.util.UUID
+import java.util.*
 
 @Aggregate
 class AdyenTokenRegistration() {
@@ -121,6 +123,17 @@ class AdyenTokenRegistration() {
         )
     }
 
+    @CommandHandler
+    fun handle(cmd: SetAdyenTokenRegistrationToPendingFromNotificationCommand) {
+        apply(
+            AdyenTokenRegistrationSetToPendingEvent(
+                cmd.adyenTokenRegistrationId,
+                cmd.memberId
+            )
+        )
+    }
+
+
     @EventSourcingHandler
     fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
         this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
@@ -166,5 +179,12 @@ class AdyenTokenRegistration() {
         this.memberId = e.memberId
         this.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
         this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.CANCELLED
+    }
+
+    @EventSourcingHandler
+    fun on(e: AdyenTokenRegistrationSetToPendingEvent) {
+        this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
+        this.memberId = e.memberId
+        this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.PENDING
     }
 }

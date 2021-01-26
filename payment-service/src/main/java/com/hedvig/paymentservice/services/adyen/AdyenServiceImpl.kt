@@ -25,6 +25,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.SetAdyenTokenRegistrationToPendingFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
@@ -38,6 +39,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedFailed
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedReservedAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceivedSuccessfulAdyenPayoutTransactionFromNotificationCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.BrowserInfo
@@ -599,6 +601,23 @@ class AdyenServiceImpl(
                 orderAttemptNumber = adyenNotification.additionalData["retry.orderAttemptNumber"]?.toInt()
             )
         }
+
+    override fun handlePendingNotification(adyenNotification: NotificationRequestItem) {
+        val merchantReference = UUID.fromString(adyenNotification.merchantReference!!)
+
+        val tokenRegistrationMaybe: Optional<AdyenTokenRegistration> = tokenRegistrationRepository.findById(merchantReference)
+
+        if (!tokenRegistrationMaybe.isPresent){
+            throw RuntimeException("Handle Pending - Couldnt find token registration for merchantReference $merchantReference")
+        }
+
+        getAndApplyCommand {
+            SetAdyenTokenRegistrationToPendingFromNotificationCommand(
+                merchantReference,
+                tokenRegistrationMaybe.get().memberId
+            )
+        }
+    }
 
     private fun withTransaction(
         adyenNotification: NotificationRequestItem,
