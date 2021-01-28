@@ -1,15 +1,9 @@
 package com.hedvig.paymentservice.web;
 
-import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
-import com.hedvig.paymentservice.query.member.entities.Member;
-import com.hedvig.paymentservice.query.member.entities.MemberRepository;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService;
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo;
-import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO;
@@ -23,10 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.yaml.snakeyaml.error.Mark;
 
 import javax.validation.Valid;
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -35,16 +27,13 @@ public class DirectDebitController {
 
     private Logger logger = LoggerFactory.getLogger(DirectDebitController.class);
 
-    private MemberRepository memberRepository;
     private TrustlyService trustlyService;
     private BankAccountService bankAccountService;
 
     public DirectDebitController(
-        MemberRepository memberRepository,
         TrustlyService trustlyService,
         BankAccountService bankAccountService
     ) {
-        this.memberRepository = memberRepository;
         this.trustlyService = trustlyService;
         this.bankAccountService = bankAccountService;
     }
@@ -54,33 +43,9 @@ public class DirectDebitController {
     public ResponseEntity<DirectDebitStatusDTO> getDirectDebitStatus(
         @RequestHeader(name = "hedvig.token") String memberId
     ) {
-        logger.debug("Fetching status for member {}", memberId);
+        final PayinMethodStatus status = bankAccountService.getPayinMethodStatus(memberId);
 
-        Optional<Member> optionalMember = memberRepository.findById(memberId);
-
-        if (!optionalMember.isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Member member = optionalMember.get();
-
-       if (member.getAdyenRecurringDetailReference() != null) {
-            return ResponseEntity.ok(
-                new DirectDebitStatusDTO(
-                    memberId,
-                    member.getPayinMethodStatus() == PayinMethodStatus.ACTIVE
-                )
-            );
-        }
-
-        final DirectDebitAccountOrderDTO latestDirectDebitAccountOrder = bankAccountService.getLatestDirectDebitAccountOrder(memberId);
-
-        if (latestDirectDebitAccountOrder != null) {
-            return ResponseEntity.ok(new DirectDebitStatusDTO(memberId,
-                latestDirectDebitAccountOrder.getDirectDebitStatus() == DirectDebitStatus.CONNECTED));
-        }
-
-        return ResponseEntity.ok(new DirectDebitStatusDTO(memberId, false));
+        return ResponseEntity.ok(new DirectDebitStatusDTO(memberId, status == PayinMethodStatus.ACTIVE));
     }
 
     @PostMapping(path = "register")

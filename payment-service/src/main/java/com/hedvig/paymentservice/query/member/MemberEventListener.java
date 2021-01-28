@@ -141,41 +141,6 @@ public class MemberEventListener {
         memberRepository.save(member);
     }
 
-
-    @EventHandler
-    public void on(AdyenAccountCreatedEvent e) {
-        Optional<Member> member = memberRepository.findById(e.getMemberId());
-
-        if (!member.isPresent()) {
-            log.error("Could not find member");
-            return;
-        }
-
-        Member m = member.get();
-
-        m.setAdyenRecurringDetailReference(e.getRecurringDetailReference());
-        m.setPayinMethodStatus(PayinMethodStatus.Companion.fromAdyenAccountStatus(e.getAccountStatus()));
-
-        memberRepository.save(m);
-    }
-
-    @EventHandler
-    public void on(AdyenAccountUpdatedEvent e) {
-        Optional<Member> member = memberRepository.findById(e.getMemberId());
-
-        if (!member.isPresent()) {
-            log.error("Could not find member");
-            return;
-        }
-
-        Member m = member.get();
-
-        m.setAdyenRecurringDetailReference(e.getRecurringDetailReference());
-        m.setPayinMethodStatus(PayinMethodStatus.Companion.fromAdyenAccountStatus(e.getAccountStatus()));
-
-        memberRepository.save(m);
-    }
-
     @ResetHandler
     public void onReset() {
         memberRepository.deleteAll();
