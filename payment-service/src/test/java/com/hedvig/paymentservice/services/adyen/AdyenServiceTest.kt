@@ -12,6 +12,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTr
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -68,6 +69,9 @@ class AdyenServiceTest {
     lateinit var adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository
 
     @MockkBean
+    lateinit var adyenAccountRepository: AdyenAccountRepository
+
+    @MockkBean
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
 
@@ -87,6 +91,7 @@ class AdyenServiceTest {
             adyenTransactionRepository,
             adyenPayoutTransactionRepository,
             adyenMerchantPicker = adyenMerchantPicker,
+            adyenAccountRepository = adyenAccountRepository,
             allow3DS2 = true,
             adyenPublicKey = "",
             autoRescueScenario = null
