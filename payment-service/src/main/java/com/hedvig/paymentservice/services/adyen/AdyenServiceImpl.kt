@@ -46,6 +46,7 @@ import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransaction
@@ -89,6 +90,7 @@ class AdyenServiceImpl(
     val transactionRepository: AdyenTransactionRepository,
     val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
     val adyenMerchantPicker: AdyenMerchantPicker,
+    val adyenAccountRepository: AdyenAccountRepository,
     @param:Value("\${hedvig.adyen.allow3DS2}")
     val allow3DS2: Boolean,
     @param:Value("\${hedvig.adyen.public.key}")
@@ -407,13 +409,13 @@ class AdyenServiceImpl(
     }
 
     override fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse {
-        val member = memberRepository.findById(request.memberId).orElse(null)
+        val adyenAccount = adyenAccountRepository.findById(request.memberId).orElse(null)
             ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(member.adyenRecurringDetailReference == request.recurringDetailReference)
+        require(adyenAccount.recurringDetailReference == request.recurringDetailReference)
         {
-            "RecurringDetailReference mismatch [MemberId : ${member.id}] " +
-                "[MemberRecurringDetailReference: ${member.adyenRecurringDetailReference} " +
+            "RecurringDetailReference mismatch [MemberId : ${adyenAccount.memberId}] " +
+                "[MemberRecurringDetailReference: ${adyenAccount.recurringDetailReference} " +
                 "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
         }
 
