@@ -110,7 +110,7 @@ class Query(
             logger.error("registerAccountProcessingStatus - hedvig.token is missing")
             return null
         }
-        //Hack for fixing App until we can get a release out
+        // Hack for fixing App until we can get a release out
         return RegisterAccountProcessingStatus.CONFIRMED
     }
 
