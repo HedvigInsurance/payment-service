@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 class AdyenTokenRegistrationEventListener(
-    val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository,
-    val adyenAccountRepository: AdyenAccountRepository
+    val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository
 ) {
     @EventHandler
     fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
@@ -36,8 +35,6 @@ class AdyenTokenRegistrationEventListener(
         tokenRegistration.shopperReference = e.shopperReference
 
         adyenAdyenTokenRepository.save(tokenRegistration)
-
-        createOrUpdateAdyenAccount(e.memberId, e.adyenMerchantAccount)
     }
 
     @EventHandler
@@ -53,8 +50,6 @@ class AdyenTokenRegistrationEventListener(
         tokenRegistration.shopperReference = e.shopperReference
 
         adyenAdyenTokenRepository.save(tokenRegistration)
-
-        createOrUpdateAdyenAccount(e.memberId, e.adyenMerchantAccount)
     }
 
     @EventHandler
@@ -102,23 +97,6 @@ class AdyenTokenRegistrationEventListener(
         }
 
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.CANCELLED
-    }
-
-    private fun createOrUpdateAdyenAccount(memberId: String, merchantAccount: String) {
-        val accountMaybe = adyenAccountRepository.findById(memberId)
-
-        if (accountMaybe.isPresent) {
-            val account = accountMaybe.get()
-            account.merchantAccount = merchantAccount
-            adyenAccountRepository.save(account)
-        } else {
-            adyenAccountRepository.save(
-                AdyenAccount(
-                    memberId = memberId,
-                    merchantAccount = merchantAccount
-                )
-            )
-        }
     }
 
     companion object {

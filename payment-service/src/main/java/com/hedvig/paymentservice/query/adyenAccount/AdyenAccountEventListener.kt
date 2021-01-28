@@ -1,5 +1,7 @@
 package com.hedvig.paymentservice.query.adyenAccount
 
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationAuthorisedEvent
+import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent
@@ -15,18 +17,47 @@ class AdyenAccountEventListener(
 ) {
 
     @EventHandler
+    fun on(event: AdyenTokenRegistrationAuthorisedEvent) {
+        logger.info("AdyenTokenRegistrationAuthorisedEvent - Account created/updated [MemberId: ${event.memberId}] [MerchantAccount: ${event.adyenMerchantAccount}]")
+        createOrUpdateAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
+    }
+
+    @EventHandler
+    fun on(event: PendingAdyenTokenRegistrationCreatedEvent) {
+        logger.info("PendingAdyenTokenRegistrationCreatedEvent - Account created/updated [MemberId: ${event.memberId}] [MerchantAccount: ${event.adyenMerchantAccount}]")
+        createOrUpdateAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
+    }
+
+    @EventHandler
     fun on(event: AdyenAccountCreatedEvent) {
         logger.info("AdyenAccountCreatedEvent - [MemberId: ${event.memberId}] [Reference: ${event.recurringDetailReference}]")
-        createOrUpdateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
+        updateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
     @EventHandler
     fun on(event: AdyenAccountUpdatedEvent) {
         logger.info("AdyenAccountUpdatedEvent - [MemberId: ${event.memberId}] [Reference: ${event.recurringDetailReference}]")
-        createOrUpdateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
+        updateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
-    private fun createOrUpdateAndSave(
+    private fun createOrUpdateAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String) {
+        val accountMaybe = adyenAccountRepository.findById(memberId)
+
+        if (accountMaybe.isPresent) {
+            val account = accountMaybe.get()
+            account.merchantAccount = merchantAccount
+            adyenAccountRepository.save(account)
+        } else {
+            adyenAccountRepository.save(
+                AdyenAccount(
+                    memberId = memberId,
+                    merchantAccount = merchantAccount
+                )
+            )
+        }
+    }
+
+    private fun updateAndSave(
         memberId: String,
         recurringDetailReference: String,
         accountStatus: AdyenAccountStatus
