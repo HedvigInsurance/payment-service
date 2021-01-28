@@ -15,7 +15,10 @@ class MemberPayinMethodFilterServiceImpl(
         return when (market) {
             Market.NORWAY,
             Market.DENMARK -> {
-                adyenAccountRepository.findAllByMemberIdIn(memberIds).map { it.memberId }
+                adyenAccountRepository
+                    .findAllByMemberIdIn(memberIds)
+                    .filter { it.recurringDetailReference != null }
+                    .map { it.memberId }
             }
             Market.SWEDEN -> {
                 directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders()
@@ -23,19 +26,6 @@ class MemberPayinMethodFilterServiceImpl(
                     .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
                     .map { it.memberId }
             }
-        }
-    }
-
-    override fun debugMembersWithConnectedPayinMethodForMarket(market: Market): List<String> =
-    when (market) {
-        Market.NORWAY,
-        Market.DENMARK -> {
-            adyenAccountRepository.findAll().map { it.memberId }
-        }
-        Market.SWEDEN -> {
-            directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders()
-                .filter { it.directDebitStatus == DirectDebitStatus.CONNECTED }
-                .map { it.memberId }
         }
     }
 }

@@ -201,7 +201,8 @@ class MemberPayinFilterServiceTest {
     fun `if market is Norway and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
         every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
-                buildAdyenAccount()
+                buildAdyenAccount(),
+                buildAdyenAccount(withReference = false)
             )
 
 
@@ -218,7 +219,8 @@ class MemberPayinFilterServiceTest {
 
         every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
-                buildAdyenAccount()
+                buildAdyenAccount(),
+                buildAdyenAccount(withReference = false)
             )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
@@ -256,10 +258,10 @@ class MemberPayinFilterServiceTest {
         createdAt = createdAt
     )
 
-    private fun buildAdyenAccount(): AdyenAccount {
+    private fun buildAdyenAccount(withReference : Boolean = true): AdyenAccount {
         val account = AdyenAccount("123", "account" )
-        account.recurringDetailReference = "reference"
-        account.accountStatus = AdyenAccountStatus.AUTHORISED
+        account.recurringDetailReference = if (withReference) "reference" else null
+        account.accountStatus = if (withReference) AdyenAccountStatus.AUTHORISED else null
         return account
     }
 }
