@@ -8,6 +8,7 @@ import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsRequest
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
@@ -15,6 +16,7 @@ import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.AdyenService
+import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.trustly.TrustlyService
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo.Companion.fromMember
 import graphql.schema.DataFetchingEnvironment
@@ -86,9 +88,9 @@ class Mutation(
         }
 
         val adyenResponse = adyenService.tokenizePayoutDetails(
-            request,
-            memberId,
-            env.getEndUserIp()
+            request = request,
+            memberId = memberId,
+            endUserIp = env.getEndUserIp()
         )
 
         if (adyenResponse.paymentsResponse.action != null) {
@@ -98,7 +100,7 @@ class Mutation(
         return TokenizationResponse.TokenizationResponseFinished(
             resultCode = adyenResponse.paymentsResponse.resultCode.value,
             activePayoutMethods = ActivePayoutMethodsResponse(
-                status = adyenService.getLatestPayoutTokenRegistrationStatus(memberId) ?: return null
+                status = PayoutMethodStatus.from(adyenResponse.getResultCode())
             )
         )
     }
