@@ -5,7 +5,9 @@ import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistr
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromAdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -24,7 +26,8 @@ class BankAccountServiceImpl(
     private val memberRepository: MemberRepository,
     private val accountRegistrationRepository: AccountRegistrationRepository,
     private val productPricingService: ProductPricingService,
-    private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
+    private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository,
+    private val adyenAccountRepository: AdyenAccountRepository
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
@@ -74,14 +77,10 @@ class BankAccountServiceImpl(
     }
 
     override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
-        val memberMaybe = memberRepository.findById(memberId)
+        val adyenAccountMaybe = adyenAccountRepository.findById(memberId)
 
-        if (!memberMaybe.isPresent) return PayinMethodStatus.NEEDS_SETUP
-
-        val member = memberMaybe.get()
-
-        if (member.adyenRecurringDetailReference != null) {
-            return member.payinMethodStatus
+        if (adyenAccountMaybe.isPresent) {
+            return fromAdyenAccountStatus(adyenAccountMaybe.get().accountStatus)
         }
 
         return fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId))

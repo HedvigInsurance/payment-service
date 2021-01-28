@@ -2,6 +2,9 @@ package com.hedvig.paymentservice.services.memberPayinFilter
 
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
+import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.Member
@@ -28,7 +31,7 @@ import java.util.*
 @ContextConfiguration(classes = [PaymentServiceTestConfiguration::class])
 class MemberPayinFilterServiceTest {
     @MockkBean
-    lateinit var memberRepository: MemberRepository
+    lateinit var adyenAccountRepository: AdyenAccountRepository
 
     @Autowired
     lateinit var directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
@@ -37,7 +40,7 @@ class MemberPayinFilterServiceTest {
 
     @Before
     fun setup() {
-        classUnderTest = MemberPayinMethodFilterServiceImpl(memberRepository, directDebitAccountOrderRepository)
+        classUnderTest = MemberPayinMethodFilterServiceImpl(directDebitAccountOrderRepository, adyenAccountRepository)
     }
 
     @Test
@@ -198,44 +201,27 @@ class MemberPayinFilterServiceTest {
 
     @Test
     fun `if market is Norway and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
-        val withAdyenConnected = buildMemberEntity(
-            id = "123",
-            adyenRecurringDetailReference = "5463"
-        )
-        val withAdyenPending = buildMemberEntity(
-            id = "234",
-            adyenRecurringDetailReference = null
-        )
+        every { adyenAccountRepository.findAllByIdIn(listOf("123", "234")) } returns
+            listOf(
+                AdyenAccount("123", "reference", AdyenAccountStatus.AUTHORISED)
+            )
 
-        every { memberRepository.findAllByIdIn(listOf("123", "234")) } returns listOf(
-            withAdyenConnected,
-            withAdyenPending
-        )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
             Market.NORWAY
         )
-
         assertThat(result.size).isEqualTo(1)
         assertThat(result[0]).isEqualTo("123")
     }
 
     @Test
     fun `if market is Denmark and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
-        val withAdyenConnected = buildMemberEntity(
-            id = "123",
-            adyenRecurringDetailReference = "5463"
-        )
-        val withAdyenPending = buildMemberEntity(
-            id = "234",
-            adyenRecurringDetailReference = null
-        )
 
-        every { memberRepository.findAllByIdIn(listOf("123", "234")) } returns listOf(
-            withAdyenConnected,
-            withAdyenPending
-        )
+        every { adyenAccountRepository.findAllByIdIn(listOf("123", "234")) } returns
+            listOf(
+                AdyenAccount("123", "reference", AdyenAccountStatus.AUTHORISED)
+            )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
@@ -247,27 +233,14 @@ class MemberPayinFilterServiceTest {
     }
 
     @Test
-    fun `if members are null return empty list`() {
-        every { memberRepository.findAllByIdIn(listOf()) } returns emptyList()
+    fun `if adyen accounts are null and market is Norway return empty list`() {
+        every { adyenAccountRepository.findAllByIdIn(listOf()) } returns emptyList()
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf(), Market.NORWAY
         )
 
         assertThat(result).isEmpty()
-    }
-
-    private fun buildMemberEntity(
-        id: String = "321",
-        trustlyAccountNumber: String? = null,
-        adyenRecurringDetailReference: String? = null
-    ): Member {
-        val member = Member()
-        member.id = id
-        member.trustlyAccountNumber = trustlyAccountNumber
-        member.adyenRecurringDetailReference = adyenRecurringDetailReference
-
-        return member
     }
 
     private fun buildDirectDebitAccountOrder(

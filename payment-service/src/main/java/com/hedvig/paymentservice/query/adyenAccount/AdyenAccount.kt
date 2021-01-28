@@ -13,7 +13,8 @@ data class AdyenAccount(
     @Id
     val memberId: String,
     var recurringDetailReference: String,
-    var accountStatus: AdyenAccountStatus
+    var accountStatus: AdyenAccountStatus,
+    var adyenMerchantAccount: String
 ) {
     @field:CreationTimestamp
     @Column(updatable = false)
