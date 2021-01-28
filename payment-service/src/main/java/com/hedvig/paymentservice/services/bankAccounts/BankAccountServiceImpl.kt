@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.services.bankAccounts
 
-
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
@@ -14,7 +13,6 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.util.getNextChargeChargeDate
 import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
