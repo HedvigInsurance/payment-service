@@ -15,7 +15,7 @@ class MemberPayinMethodFilterServiceImpl(
         return when (market) {
             Market.NORWAY,
             Market.DENMARK -> {
-                adyenAccountRepository.findAllByIdIn(memberIds).map { it.memberId }
+                adyenAccountRepository.findAllByMemberIdIn(memberIds).map { it.memberId }
             }
             Market.SWEDEN -> {
                 directDebitAccountOrderRepository.findAllWithLatestDirectDebitAccountOrders()

@@ -12,10 +12,11 @@ import javax.persistence.Id
 data class AdyenAccount(
     @Id
     val memberId: String,
-    var recurringDetailReference: String,
-    var accountStatus: AdyenAccountStatus,
-    var adyenMerchantAccount: String
+    var merchantAccount: String
 ) {
+    var recurringDetailReference: String? = null
+    var accountStatus: AdyenAccountStatus? = null
+
     @field:CreationTimestamp
     @Column(updatable = false)
     lateinit var createdAt: Instant

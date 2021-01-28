@@ -16,30 +16,39 @@ class AdyenAccountEventListener(
 
     @EventHandler
     fun on(event: AdyenAccountCreatedEvent) {
+        logger.info("AdyenAccountCreatedEvent - [MemberId: ${event.memberId}] [Reference: ${event.recurringDetailReference}]")
         createOrUpdateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
     @EventHandler
     fun on(event: AdyenAccountUpdatedEvent) {
+        logger.info("AdyenAccountUpdatedEvent - [MemberId: ${event.memberId}] [Reference: ${event.recurringDetailReference}]")
         createOrUpdateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
-    private fun createOrUpdateAndSave(memberId: String, recurringDetailReference: String, accountStatus: AdyenAccountStatus) {
+    private fun createOrUpdateAndSave(
+        memberId: String,
+        recurringDetailReference: String,
+        accountStatus: AdyenAccountStatus
+    ) {
         val adyenAccountMaybe = adyenAccountRepository.findById(memberId)
 
-        val adyenAccount: AdyenAccount = if (adyenAccountMaybe.isPresent) {
-            val adyenAccountToUpdate = adyenAccountMaybe.get()
-            adyenAccountToUpdate.recurringDetailReference = recurringDetailReference
-            adyenAccountToUpdate.accountStatus = accountStatus
-            adyenAccountToUpdate
-        } else {
-            AdyenAccount(memberId, recurringDetailReference, accountStatus)
+        if (!adyenAccountMaybe.isPresent) {
+            throw IllegalStateException(
+                "Cannot find adyen account for member $memberId " +
+                    "[Reference: $recurringDetailReference] [Status: $accountStatus]"
+            )
         }
 
-        adyenAccountRepository.save(adyenAccount)
+        val adyenAccountToUpdate = adyenAccountMaybe.get()
+
+        adyenAccountToUpdate.recurringDetailReference = recurringDetailReference
+        adyenAccountToUpdate.accountStatus = accountStatus
+
+        adyenAccountRepository.save(adyenAccountToUpdate)
     }
 
     companion object {
-        val logger = LoggerFactory.getLogger(this::class.java)
+        val logger = LoggerFactory.getLogger(this::class.java)!!
     }
 }

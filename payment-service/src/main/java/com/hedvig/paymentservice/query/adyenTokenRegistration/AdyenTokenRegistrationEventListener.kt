@@ -7,6 +7,8 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenToken
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -19,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class AdyenTokenRegistrationEventListener(
     val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository,
-    val memberRepository: MemberRepository
+    val adyenAccountRepository: AdyenAccountRepository
 ) {
     @EventHandler
     fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
@@ -35,13 +37,7 @@ class AdyenTokenRegistrationEventListener(
 
         adyenAdyenTokenRepository.save(tokenRegistration)
 
-        val memberMaybe = memberRepository.findById(e.memberId)
-
-        if (memberMaybe.isPresent) {
-            val member = memberMaybe.get()
-            member.adyenMerchantAccount = e.adyenMerchantAccount
-            memberRepository.save(member)
-        }
+        createOrUpdateAdyenAccount(e.memberId, e.adyenMerchantAccount)
     }
 
     @EventHandler
@@ -58,13 +54,7 @@ class AdyenTokenRegistrationEventListener(
 
         adyenAdyenTokenRepository.save(tokenRegistration)
 
-        val memberMaybe = memberRepository.findById(e.memberId)
-
-        if (memberMaybe.isPresent) {
-            val member = memberMaybe.get()
-            member.adyenMerchantAccount = e.adyenMerchantAccount
-            memberRepository.save(member)
-        }
+        createOrUpdateAdyenAccount(e.memberId, e.adyenMerchantAccount)
     }
 
     @EventHandler
@@ -114,8 +104,24 @@ class AdyenTokenRegistrationEventListener(
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.CANCELLED
     }
 
+    private fun createOrUpdateAdyenAccount(memberId: String, merchantAccount: String) {
+        val accountMaybe = adyenAccountRepository.findById(memberId)
+
+        if (accountMaybe.isPresent) {
+            val account = accountMaybe.get()
+            account.merchantAccount = merchantAccount
+            adyenAccountRepository.save(account)
+        } else {
+            adyenAccountRepository.save(
+                AdyenAccount(
+                    memberId = memberId,
+                    merchantAccount = merchantAccount
+                )
+            )
+        }
+    }
+
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
-        const val BANK_NAME = "TBD"
     }
 }

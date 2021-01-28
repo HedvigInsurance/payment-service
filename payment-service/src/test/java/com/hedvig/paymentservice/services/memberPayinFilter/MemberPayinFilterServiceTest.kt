@@ -7,8 +7,6 @@ import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
-import com.hedvig.paymentservice.query.member.entities.Member
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterService
 import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterServiceImpl
@@ -201,9 +199,9 @@ class MemberPayinFilterServiceTest {
 
     @Test
     fun `if market is Norway and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
-        every { adyenAccountRepository.findAllByIdIn(listOf("123", "234")) } returns
+        every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
-                AdyenAccount("123", "reference", AdyenAccountStatus.AUTHORISED)
+                buildAdyenAccount()
             )
 
 
@@ -218,9 +216,9 @@ class MemberPayinFilterServiceTest {
     @Test
     fun `if market is Denmark and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
 
-        every { adyenAccountRepository.findAllByIdIn(listOf("123", "234")) } returns
+        every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
-                AdyenAccount("123", "reference", AdyenAccountStatus.AUTHORISED)
+                buildAdyenAccount()
             )
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
@@ -234,7 +232,7 @@ class MemberPayinFilterServiceTest {
 
     @Test
     fun `if adyen accounts are null and market is Norway return empty list`() {
-        every { adyenAccountRepository.findAllByIdIn(listOf()) } returns emptyList()
+        every { adyenAccountRepository.findAllByMemberIdIn(listOf()) } returns emptyList()
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf(), Market.NORWAY
@@ -257,4 +255,11 @@ class MemberPayinFilterServiceTest {
         directDebitStatus = directDebitStatus,
         createdAt = createdAt
     )
+
+    private fun buildAdyenAccount(): AdyenAccount {
+        val account = AdyenAccount("123", "account" )
+        account.recurringDetailReference = "reference"
+        account.accountStatus = AdyenAccountStatus.AUTHORISED
+        return account
+    }
 }

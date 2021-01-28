@@ -69,9 +69,6 @@ class AdyenServiceTest {
     lateinit var adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository
 
     @MockkBean
-    lateinit var adyenAccountRepository: AdyenAccountRepository
-
-    @MockkBean
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
     @MockkBean

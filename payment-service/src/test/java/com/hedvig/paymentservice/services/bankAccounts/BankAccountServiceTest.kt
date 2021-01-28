@@ -4,14 +4,12 @@ import com.google.common.collect.Lists
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
-import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
-import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
@@ -155,6 +153,8 @@ class BankAccountServiceTest {
     @Test
     fun `when neither adyen account or trustly account exists, expect PayinMethodStatus to be NEEDS_SETUP`() {
         every { adyenAccountRepository.findById(any()) } returns Optional.empty()
+        every { accountRegistrationRepository.findByMemberId(any()) } returns emptyList()
+        every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns emptyList()
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
             .isEqualTo(PayinMethodStatus.NEEDS_SETUP)
@@ -162,8 +162,12 @@ class BankAccountServiceTest {
 
     @Test
     fun `when a member exists, and payin provider is adyen, expect PayinMethodStatus to be ACTIVE`() {
+        val account = AdyenAccount(MEMBER_ID, "account")
+        account.recurringDetailReference = "reference"
+        account.accountStatus = AdyenAccountStatus.AUTHORISED
+
         every { adyenAccountRepository.findById(any()) } returns Optional.of(
-            AdyenAccount(MEMBER_ID, "reference", AdyenAccountStatus.AUTHORISED)
+            account
         )
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
@@ -174,7 +178,10 @@ class BankAccountServiceTest {
     fun `when a member exists, and payin provider is trustly, and latest order payment is PENDING expect PayinMethodStatus to be PENDING`() {
         every { adyenAccountRepository.findById(any()) } returns Optional.empty()
 
-        makeStub(directDebitStatus = DirectDebitStatus.PENDING, accountRegistrationStatus = AccountRegistrationStatus.IN_PROGRESS)
+        makeStub(
+            directDebitStatus = DirectDebitStatus.PENDING,
+            accountRegistrationStatus = AccountRegistrationStatus.IN_PROGRESS
+        )
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
             .isEqualTo(PayinMethodStatus.PENDING)
