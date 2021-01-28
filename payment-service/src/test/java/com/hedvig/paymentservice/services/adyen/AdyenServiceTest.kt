@@ -74,22 +74,24 @@ class AdyenServiceTest {
     @MockkBean
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
+    @MockkBean
+    lateinit var adyenAccountRepository: AdyenAccountRepository
 
     lateinit var adyenService: AdyenService
 
     @Before
     fun setup() {
         adyenService = AdyenServiceImpl(
-            adyenCheckout,
-            adyenPayout,
-            adyenPayout,
-            memberRepository,
-            uuidGenerator,
-            memberService,
-            commandGateway,
-            adyenTokenRegistrationRepository,
-            adyenTransactionRepository,
-            adyenPayoutTransactionRepository,
+            adyenCheckout = adyenCheckout,
+            adyenPayout = adyenPayout,
+            adyenPayoutConfirmation = adyenPayout,
+            memberRepository = memberRepository,
+            uuidGenerator = uuidGenerator,
+            memberService = memberService,
+            commandGateway = commandGateway,
+            tokenRegistrationRepository = adyenTokenRegistrationRepository,
+            transactionRepository = adyenTransactionRepository,
+            adyenPayoutTransactionRepository = adyenPayoutTransactionRepository,
             adyenMerchantPicker = adyenMerchantPicker,
             adyenAccountRepository = adyenAccountRepository,
             allow3DS2 = true,
