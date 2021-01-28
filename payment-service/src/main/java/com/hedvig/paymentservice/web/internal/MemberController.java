@@ -1,8 +1,11 @@
 package com.hedvig.paymentservice.web.internal;
 
+import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
+import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus;
 import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.query.member.entities.MemberRepository;
+import com.hedvig.paymentservice.services.adyen.AdyenService;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.payments.PaymentService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
@@ -13,6 +16,7 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest;
 import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PaymentMemberDTO;
+import com.hedvig.paymentservice.web.dtos.PayoutMethodStatusDTO;
 import com.hedvig.paymentservice.web.dtos.PayoutRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/_/members/")
@@ -38,14 +41,18 @@ public class MemberController {
     private final PaymentService paymentService;
     private final MemberRepository memberRepository;
     private final BankAccountService bankAccountService;
+    private final AdyenService adyenService;
 
     public MemberController(
         PaymentService paymentService,
         MemberRepository memberRepository,
-        BankAccountService bankAccountService) {
+        BankAccountService bankAccountService,
+        AdyenService adyenService
+    ) {
         this.paymentService = paymentService;
         this.memberRepository = memberRepository;
         this.bankAccountService = bankAccountService;
+        this.adyenService = adyenService;
     }
 
     @PostMapping(path = "{memberId}/charge")
@@ -121,5 +128,20 @@ public class MemberController {
     public ResponseEntity<List<DirectDebitStatusDTO>> getDirectDebitStatuses(@PathVariable("memberIds") List<String> memberIds) {
         throw new RuntimeException("Deprecated: Attempted to call function /directDebitStatus/[{memberIds}]" +
             " on getDirectDebitStatuses");
+    }
+
+    @GetMapping("/{memberId}/payoutMethod/status")
+    public ResponseEntity<PayoutMethodStatusDTO> getPayoutMethodStatus(@PathVariable String memberId) {
+        PayoutMethodStatus latestStatus = adyenService.getLatestPayoutTokenRegistrationStatus(memberId);
+        if (latestStatus == PayoutMethodStatus.ACTIVE) {
+            return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
+        }
+
+        DirectDebitAccountOrderDTO latestOrder = bankAccountService.getLatestDirectDebitAccountOrder(memberId);
+        if (latestOrder != null && latestOrder.getDirectDebitStatus() == DirectDebitStatus.CONNECTED) {
+            return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, true));
+        }
+
+        return ResponseEntity.ok(new PayoutMethodStatusDTO(memberId, false));
     }
 }
