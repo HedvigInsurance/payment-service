@@ -6,6 +6,8 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.Instant
 import javax.persistence.Column
 import javax.persistence.Entity
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 import javax.persistence.Id
 
 @Entity
@@ -15,6 +17,8 @@ data class AdyenAccount(
     var merchantAccount: String
 ) {
     var recurringDetailReference: String? = null
+
+    @Enumerated(EnumType.STRING)
     var accountStatus: AdyenAccountStatus? = null
 
     @field:CreationTimestamp
