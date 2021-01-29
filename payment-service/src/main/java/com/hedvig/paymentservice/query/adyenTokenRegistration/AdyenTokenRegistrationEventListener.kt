@@ -7,11 +7,8 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenToken
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

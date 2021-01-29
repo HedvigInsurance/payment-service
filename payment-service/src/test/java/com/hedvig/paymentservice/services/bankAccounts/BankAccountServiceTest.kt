@@ -6,7 +6,7 @@ import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
@@ -162,7 +162,7 @@ class BankAccountServiceTest {
 
     @Test
     fun `when a member exists, and payin provider is adyen, expect PayinMethodStatus to be ACTIVE`() {
-        val account = AdyenAccount(MEMBER_ID, "account")
+        val account = MemberAdyenAccount(MEMBER_ID, "account")
         account.recurringDetailReference = "reference"
         account.accountStatus = AdyenAccountStatus.AUTHORISED
 

@@ -11,7 +11,7 @@ import javax.persistence.Enumerated
 import javax.persistence.Id
 
 @Entity
-data class AdyenAccount(
+data class MemberAdyenAccount(
     @Id
     val memberId: String,
     var merchantAccount: String

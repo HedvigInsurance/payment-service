@@ -49,7 +49,7 @@ class AdyenAccountEventListener(
             adyenAccountRepository.save(account)
         } else {
             adyenAccountRepository.save(
-                AdyenAccount(
+                MemberAdyenAccount(
                     memberId = memberId,
                     merchantAccount = merchantAccount
                 )

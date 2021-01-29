@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.services.adyen.util
 
 import com.hedvig.paymentservice.configuration.MerchantAccounts
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -70,7 +70,7 @@ class AdyenMerchantPickerTest() {
 
     @Test
     fun `Given only payment-service can extract the market, get the market info from member entity`() {
-        val account = AdyenAccount("1234", "HedvigTestDenmark")
+        val account = MemberAdyenAccount("1234", "HedvigTestDenmark")
 
         every { adyenAccountRepository.findById(any()) } returns Optional.of(account)
 

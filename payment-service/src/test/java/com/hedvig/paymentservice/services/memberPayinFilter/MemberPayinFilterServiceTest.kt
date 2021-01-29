@@ -3,7 +3,7 @@ package com.hedvig.paymentservice.services.memberPayinFilter
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
@@ -258,8 +258,8 @@ class MemberPayinFilterServiceTest {
         createdAt = createdAt
     )
 
-    private fun buildAdyenAccount(withReference : Boolean = true): AdyenAccount {
-        val account = AdyenAccount("123", "account" )
+    private fun buildAdyenAccount(withReference : Boolean = true): MemberAdyenAccount {
+        val account = MemberAdyenAccount("123", "account" )
         account.recurringDetailReference = if (withReference) "reference" else null
         account.accountStatus = if (withReference) AdyenAccountStatus.AUTHORISED else null
         return account

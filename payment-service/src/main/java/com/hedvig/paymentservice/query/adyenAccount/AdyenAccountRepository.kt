@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository
 
 
 @Repository
-interface AdyenAccountRepository : JpaRepository<AdyenAccount, String> {
-    fun findAllByMemberIdIn(ids: List<String>): List<AdyenAccount>
+interface AdyenAccountRepository : JpaRepository<MemberAdyenAccount, String> {
+    fun findAllByMemberIdIn(ids: List<String>): List<MemberAdyenAccount>
 }
