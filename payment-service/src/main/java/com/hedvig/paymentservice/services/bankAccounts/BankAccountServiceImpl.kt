@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.services.bankAccounts
 
-
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
