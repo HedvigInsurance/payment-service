@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
-@ProcessingGroup("AdyenAccount")
-class AdyenAccountEventListener(
+@ProcessingGroup("MemberAdyenAccount")
+class MemberAdyenAccountEventListener(
     private val memberAdyenAccountRepository: MemberAdyenAccountRepository
 ) {
 
@@ -40,20 +40,24 @@ class AdyenAccountEventListener(
         updateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
-    private fun createOrUpdateMemberAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String) {
+    private fun createOrUpdateMemberAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String?) {
         val accountMaybe = memberAdyenAccountRepository.findById(memberId)
+
+        logger.info("CreateMerchantInfo - [MemberId: ${memberId}] [Account: ${merchantAccount}]")
 
         if (accountMaybe.isPresent) {
             val account = accountMaybe.get()
-            account.merchantAccount = merchantAccount
+            account.merchantAccount = merchantAccount ?: HEDVIG_ABCOM
             memberAdyenAccountRepository.save(account)
+            logger.info("Account updated - [MemberId: ${memberId}] [Account: ${account.merchantAccount}]")
         } else {
             memberAdyenAccountRepository.save(
                 MemberAdyenAccount(
                     memberId = memberId,
-                    merchantAccount = merchantAccount
+                    merchantAccount = merchantAccount ?: HEDVIG_ABCOM
                 )
             )
+            logger.info("Account created - [MemberId: ${memberId}] [Account: ${merchantAccount ?: HEDVIG_ABCOM}]")
         }
     }
 
@@ -81,5 +85,6 @@ class AdyenAccountEventListener(
 
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
+        const val HEDVIG_ABCOM = "HedvigABCOM"
     }
 }
