@@ -4,7 +4,7 @@ import com.hedvig.paymentservice.PaymentServiceTestConfiguration
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
@@ -29,7 +29,7 @@ import java.util.*
 @ContextConfiguration(classes = [PaymentServiceTestConfiguration::class])
 class MemberPayinFilterServiceTest {
     @MockkBean
-    lateinit var adyenAccountRepository: AdyenAccountRepository
+    lateinit var memberAdyenAccountRepository: MemberAdyenAccountRepository
 
     @Autowired
     lateinit var directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
@@ -38,7 +38,7 @@ class MemberPayinFilterServiceTest {
 
     @Before
     fun setup() {
-        classUnderTest = MemberPayinMethodFilterServiceImpl(directDebitAccountOrderRepository, adyenAccountRepository)
+        classUnderTest = MemberPayinMethodFilterServiceImpl(directDebitAccountOrderRepository, memberAdyenAccountRepository)
     }
 
     @Test
@@ -199,7 +199,7 @@ class MemberPayinFilterServiceTest {
 
     @Test
     fun `if market is Norway and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
-        every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
+        every { memberAdyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
                 buildAdyenAccount(),
                 buildAdyenAccount(withReference = false)
@@ -217,7 +217,7 @@ class MemberPayinFilterServiceTest {
     @Test
     fun `if market is Denmark and one member has Adyen connected and one member does not have Adyen connected only return member with Adyen connected`() {
 
-        every { adyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
+        every { memberAdyenAccountRepository.findAllByMemberIdIn(listOf("123", "234")) } returns
             listOf(
                 buildAdyenAccount(),
                 buildAdyenAccount(withReference = false)
@@ -234,7 +234,7 @@ class MemberPayinFilterServiceTest {
 
     @Test
     fun `if adyen accounts are null and market is Norway return empty list`() {
-        every { adyenAccountRepository.findAllByMemberIdIn(listOf()) } returns emptyList()
+        every { memberAdyenAccountRepository.findAllByMemberIdIn(listOf()) } returns emptyList()
 
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf(), Market.NORWAY

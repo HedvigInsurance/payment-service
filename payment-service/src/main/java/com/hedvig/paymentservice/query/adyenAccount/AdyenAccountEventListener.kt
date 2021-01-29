@@ -13,19 +13,19 @@ import org.springframework.stereotype.Component
 @Component
 @ProcessingGroup("AdyenAccount")
 class AdyenAccountEventListener(
-    private val adyenAccountRepository: AdyenAccountRepository
+    private val memberAdyenAccountRepository: MemberAdyenAccountRepository
 ) {
 
     @EventHandler
     fun on(event: AdyenTokenRegistrationAuthorisedEvent) {
         logger.info("AdyenTokenRegistrationAuthorisedEvent - Account created/updated [MemberId: ${event.memberId}] [MerchantAccount: ${event.adyenMerchantAccount}]")
-        createOrUpdateAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
+        createOrUpdateMemberAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
     }
 
     @EventHandler
     fun on(event: PendingAdyenTokenRegistrationCreatedEvent) {
         logger.info("PendingAdyenTokenRegistrationCreatedEvent - Account created/updated [MemberId: ${event.memberId}] [MerchantAccount: ${event.adyenMerchantAccount}]")
-        createOrUpdateAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
+        createOrUpdateMemberAdyenAccountWithMerchantInfo(event.memberId, event.adyenMerchantAccount)
     }
 
     @EventHandler
@@ -40,15 +40,15 @@ class AdyenAccountEventListener(
         updateAndSave(event.memberId, event.recurringDetailReference, event.accountStatus)
     }
 
-    private fun createOrUpdateAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String) {
-        val accountMaybe = adyenAccountRepository.findById(memberId)
+    private fun createOrUpdateMemberAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String) {
+        val accountMaybe = memberAdyenAccountRepository.findById(memberId)
 
         if (accountMaybe.isPresent) {
             val account = accountMaybe.get()
             account.merchantAccount = merchantAccount
-            adyenAccountRepository.save(account)
+            memberAdyenAccountRepository.save(account)
         } else {
-            adyenAccountRepository.save(
+            memberAdyenAccountRepository.save(
                 MemberAdyenAccount(
                     memberId = memberId,
                     merchantAccount = merchantAccount
@@ -62,7 +62,7 @@ class AdyenAccountEventListener(
         recurringDetailReference: String,
         accountStatus: AdyenAccountStatus
     ) {
-        val adyenAccountMaybe = adyenAccountRepository.findById(memberId)
+        val adyenAccountMaybe = memberAdyenAccountRepository.findById(memberId)
 
         if (!adyenAccountMaybe.isPresent) {
             throw IllegalStateException(
@@ -76,7 +76,7 @@ class AdyenAccountEventListener(
         adyenAccountToUpdate.recurringDetailReference = recurringDetailReference
         adyenAccountToUpdate.accountStatus = accountStatus
 
-        adyenAccountRepository.save(adyenAccountToUpdate)
+        memberAdyenAccountRepository.save(adyenAccountToUpdate)
     }
 
     companion object {

@@ -2,7 +2,7 @@ package com.hedvig.paymentservice.services.adyen.util
 
 import com.hedvig.paymentservice.configuration.MerchantAccounts
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractMarketInfo
@@ -37,7 +37,7 @@ class AdyenMerchantPickerTest() {
     lateinit var merchantAccounts: MerchantAccounts
 
     @MockkBean
-    lateinit var adyenAccountRepository: AdyenAccountRepository
+    lateinit var memberAdyenAccountRepository: MemberAdyenAccountRepository
 
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
@@ -47,11 +47,11 @@ class AdyenMerchantPickerTest() {
             memberService = memberService,
             underwriterService = underwriterService,
             productPricingService = productPricingService,
-            adyenAccountRepository = adyenAccountRepository,
+            memberAdyenAccountRepository = memberAdyenAccountRepository,
             merchantAccounts = makeMerchantAccount()
         )
 
-        every { adyenAccountRepository.findById(any()) } returns Optional.empty()
+        every { memberAdyenAccountRepository.findById(any()) } returns Optional.empty()
     }
 
     @Test
@@ -72,7 +72,7 @@ class AdyenMerchantPickerTest() {
     fun `Given only payment-service can extract the market, get the market info from member entity`() {
         val account = MemberAdyenAccount("1234", "HedvigTestDenmark")
 
-        every { adyenAccountRepository.findById(any()) } returns Optional.of(account)
+        every { memberAdyenAccountRepository.findById(any()) } returns Optional.of(account)
 
         val x = adyenMerchantPicker.getAdyenMerchantInfo("1234")
 

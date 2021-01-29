@@ -7,7 +7,7 @@ import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -42,7 +42,7 @@ class BankAccountServiceTest {
     lateinit var directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
 
     @MockkBean
-    lateinit var adyenAccountRepository: AdyenAccountRepository
+    lateinit var adyenAccountRepository: MemberAdyenAccountRepository
 
     lateinit var bankAccountService: BankAccountService
 

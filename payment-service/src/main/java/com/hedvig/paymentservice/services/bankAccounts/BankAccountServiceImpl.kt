@@ -7,7 +7,7 @@ import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromAdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus
-import com.hedvig.paymentservice.query.adyenAccount.AdyenAccountRepository
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -16,7 +16,6 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.util.getNextChargeChargeDate
 import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
@@ -27,7 +26,7 @@ class BankAccountServiceImpl(
     private val accountRegistrationRepository: AccountRegistrationRepository,
     private val productPricingService: ProductPricingService,
     private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository,
-    private val adyenAccountRepository: AdyenAccountRepository
+    private val memberAdyenAccountRepository: MemberAdyenAccountRepository
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
@@ -77,7 +76,7 @@ class BankAccountServiceImpl(
     }
 
     override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
-        val adyenAccountMaybe = adyenAccountRepository.findById(memberId)
+        val adyenAccountMaybe = memberAdyenAccountRepository.findById(memberId)
 
         if (adyenAccountMaybe.isPresent) {
             return fromAdyenAccountStatus(adyenAccountMaybe.get().accountStatus)
