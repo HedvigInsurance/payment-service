@@ -408,13 +408,13 @@ class AdyenServiceImpl(
     }
 
     override fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse {
-        val adyenAccount = memberAdyenAccountRepository.findById(request.memberId).orElse(null)
+        val memberAdyenAccount = memberAdyenAccountRepository.findById(request.memberId).orElse(null)
             ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(adyenAccount.recurringDetailReference == request.recurringDetailReference)
+        require(memberAdyenAccount.recurringDetailReference == request.recurringDetailReference)
         {
-            "RecurringDetailReference mismatch [MemberId : ${adyenAccount.memberId}] " +
-                "[MemberRecurringDetailReference: ${adyenAccount.recurringDetailReference} " +
+            "RecurringDetailReference mismatch [MemberId : ${memberAdyenAccount.memberId}] " +
+                "[MemberRecurringDetailReference: ${memberAdyenAccount.recurringDetailReference} " +
                 "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
         }
 
