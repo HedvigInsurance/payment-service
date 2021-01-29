@@ -3,12 +3,13 @@ package com.hedvig.paymentservice.services.bankAccounts
 import com.google.common.collect.Lists
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
-import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
+import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
-import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
@@ -40,6 +41,9 @@ class BankAccountServiceTest {
     @MockkBean
     lateinit var directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
 
+    @MockkBean
+    lateinit var adyenAccountRepository: MemberAdyenAccountRepository
+
     lateinit var bankAccountService: BankAccountService
 
     @Before
@@ -49,7 +53,8 @@ class BankAccountServiceTest {
                 memberRepository,
                 accountRegistrationRepository,
                 productPricingService,
-                directDebitAccountOrderRepository
+                directDebitAccountOrderRepository,
+                adyenAccountRepository
             )
     }
 
@@ -146,8 +151,10 @@ class BankAccountServiceTest {
     }
 
     @Test
-    fun `when no member exists, expect PayinMethodStatus to be NEEDS_SETUP`() {
-        every { memberRepository.findById(any()) } returns Optional.empty()
+    fun `when neither adyen account or trustly account exists, expect PayinMethodStatus to be NEEDS_SETUP`() {
+        every { adyenAccountRepository.findById(any()) } returns Optional.empty()
+        every { accountRegistrationRepository.findByMemberId(any()) } returns emptyList()
+        every { directDebitAccountOrderRepository.findAllByMemberId(any()) } returns emptyList()
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
             .isEqualTo(PayinMethodStatus.NEEDS_SETUP)
@@ -155,7 +162,13 @@ class BankAccountServiceTest {
 
     @Test
     fun `when a member exists, and payin provider is adyen, expect PayinMethodStatus to be ACTIVE`() {
-        every { memberRepository.findById(any()) } returns Optional.of(makeMember(payinProvider = PayinProvider.ADYEN))
+        val account = MemberAdyenAccount(MEMBER_ID, "account")
+        account.recurringDetailReference = "reference"
+        account.accountStatus = AdyenAccountStatus.AUTHORISED
+
+        every { adyenAccountRepository.findById(any()) } returns Optional.of(
+            account
+        )
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
             .isEqualTo(PayinMethodStatus.ACTIVE)
@@ -163,9 +176,12 @@ class BankAccountServiceTest {
 
     @Test
     fun `when a member exists, and payin provider is trustly, and latest order payment is PENDING expect PayinMethodStatus to be PENDING`() {
-        every { memberRepository.findById(any()) } returns Optional.of(makeMember(payinProvider = PayinProvider.TRUSTLY))
+        every { adyenAccountRepository.findById(any()) } returns Optional.empty()
 
-        makeStub(directDebitStatus = DirectDebitStatus.PENDING, accountRegistrationStatus = AccountRegistrationStatus.IN_PROGRESS)
+        makeStub(
+            directDebitStatus = DirectDebitStatus.PENDING,
+            accountRegistrationStatus = AccountRegistrationStatus.IN_PROGRESS
+        )
 
         assertThat(bankAccountService.getPayinMethodStatus(MEMBER_ID))
             .isEqualTo(PayinMethodStatus.PENDING)
@@ -192,16 +208,6 @@ class BankAccountServiceTest {
         } else {
             every { accountRegistrationRepository.findByMemberId(any()) } returns emptyList()
         }
-    }
-
-    private fun makeMember(
-        payinProvider: PayinProvider = PayinProvider.TRUSTLY
-    ): Member {
-        val member = Member()
-        member.id = MEMBER_ID
-        member.adyenRecurringDetailReference = if (payinProvider == PayinProvider.ADYEN) "reference" else null
-        member.payinMethodStatus = if (payinProvider == PayinProvider.ADYEN) PayinMethodStatus.ACTIVE else null
-        return member
     }
 
     private fun makeAccountRegistration(

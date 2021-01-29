@@ -83,7 +83,6 @@ public class TransactionHistoryDaoTest {
 
         final Member m = new Member();
       m.setId("124");
-      m.setDirectDebitStatus(DirectDebitStatus.CONNECTED);
 
         final Transaction t = new Transaction();
       t.setId(UUID.randomUUID());

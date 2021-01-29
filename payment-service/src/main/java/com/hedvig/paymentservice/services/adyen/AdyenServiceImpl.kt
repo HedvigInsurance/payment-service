@@ -26,7 +26,6 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
@@ -46,6 +45,7 @@ import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransaction
@@ -89,6 +89,7 @@ class AdyenServiceImpl(
     val transactionRepository: AdyenTransactionRepository,
     val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
     val adyenMerchantPicker: AdyenMerchantPicker,
+    val memberAdyenAccountRepository: MemberAdyenAccountRepository,
     @param:Value("\${hedvig.adyen.allow3DS2}")
     val allow3DS2: Boolean,
     @param:Value("\${hedvig.adyen.public.key}")
@@ -407,13 +408,13 @@ class AdyenServiceImpl(
     }
 
     override fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse {
-        val member = memberRepository.findById(request.memberId).orElse(null)
+        val memberAdyenAccount = memberAdyenAccountRepository.findById(request.memberId).orElse(null)
             ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(member.adyenRecurringDetailReference == request.recurringDetailReference)
+        require(memberAdyenAccount.recurringDetailReference == request.recurringDetailReference)
         {
-            "RecurringDetailReference mismatch [MemberId : ${member.id}] " +
-                "[MemberRecurringDetailReference: ${member.adyenRecurringDetailReference} " +
+            "RecurringDetailReference mismatch [MemberId : ${memberAdyenAccount.memberId}] " +
+                "[MemberRecurringDetailReference: ${memberAdyenAccount.recurringDetailReference} " +
                 "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
         }
 

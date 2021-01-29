@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.services.adyen.util
 
 import com.hedvig.paymentservice.configuration.MerchantAccounts
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.serviceIntergration.underwriterClient.UnderwriterService
@@ -15,11 +15,11 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market a
 
 @Component
 class AdyenMerchantPicker(
-  val memberService: MemberService,
-  val underwriterService: UnderwriterService,
-  val productPricingService: ProductPricingService,
-  val memberRepository: MemberRepository,
-  val merchantAccounts: MerchantAccounts
+    val memberService: MemberService,
+    val underwriterService: UnderwriterService,
+    val productPricingService: ProductPricingService,
+    val memberAdyenAccountRepository: MemberAdyenAccountRepository,
+    val merchantAccounts: MerchantAccounts
 ) {
   @Throws(NoMerchantAccountForMarket::class)
   fun getAdyenMerchantInfo(memberId: String): AdyenMerchantInfo  {
@@ -37,13 +37,13 @@ class AdyenMerchantPicker(
   }
 
   private fun getMerchantFromMember(memberId: String): Market? {
-    val memberMaybe = memberRepository.findById(memberId)
+    val accountMaybe = memberAdyenAccountRepository.findById(memberId)
 
-    if (!memberMaybe.isPresent) return null
+    if (!accountMaybe.isPresent) return null
 
-    val member = memberMaybe.get()
+    val account = accountMaybe.get()
 
-    return member.adyenMerchantAccount?.let { adyenMerchantAccount ->
+    return account.merchantAccount?.let { adyenMerchantAccount ->
       Market.valueOf(
         merchantAccounts.merchantAccounts!!
           .filterValues { it == adyenMerchantAccount }.keys.first()

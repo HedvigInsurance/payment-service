@@ -12,6 +12,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTr
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -70,23 +71,26 @@ class AdyenServiceTest {
     @MockkBean
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
+    @MockkBean
+    lateinit var memberAdyenAccountRepository: MemberAdyenAccountRepository
 
     lateinit var adyenService: AdyenService
 
     @Before
     fun setup() {
         adyenService = AdyenServiceImpl(
-            adyenCheckout,
-            adyenPayout,
-            adyenPayout,
-            memberRepository,
-            uuidGenerator,
-            memberService,
-            commandGateway,
-            adyenTokenRegistrationRepository,
-            adyenTransactionRepository,
-            adyenPayoutTransactionRepository,
+            adyenCheckout = adyenCheckout,
+            adyenPayout = adyenPayout,
+            adyenPayoutConfirmation = adyenPayout,
+            memberRepository = memberRepository,
+            uuidGenerator = uuidGenerator,
+            memberService = memberService,
+            commandGateway = commandGateway,
+            tokenRegistrationRepository = adyenTokenRegistrationRepository,
+            transactionRepository = adyenTransactionRepository,
+            adyenPayoutTransactionRepository = adyenPayoutTransactionRepository,
             adyenMerchantPicker = adyenMerchantPicker,
+            memberAdyenAccountRepository = memberAdyenAccountRepository,
             allow3DS2 = true,
             adyenPublicKey = "",
             autoRescueScenario = null

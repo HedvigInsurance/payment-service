@@ -14,17 +14,18 @@ import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.lang.RuntimeException
 
 @Component
 @Transactional
 class AdyenTokenRegistrationEventListener(
-    val adyenAdyenTokenRepository: AdyenTokenRegistrationRepository,
-    val memberRepository: MemberRepository
+    val memberRepository: MemberRepository,
+    val adyenTokenRepository: AdyenTokenRegistrationRepository
 ) {
     @EventHandler
     fun on(e: AdyenTokenRegistrationAuthorisedEvent) {
         val tokenRegistration =
-            adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElse(AdyenTokenRegistration())
+            adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElse(AdyenTokenRegistration())
 
         tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
         tokenRegistration.memberId = e.memberId
@@ -33,7 +34,9 @@ class AdyenTokenRegistrationEventListener(
         tokenRegistration.isForPayout = e.isPayoutSetup
         tokenRegistration.shopperReference = e.shopperReference
 
-        adyenAdyenTokenRepository.save(tokenRegistration)
+        adyenTokenRepository.save(tokenRegistration)
+
+        //  todo: remove once verified adyenTokenRepository works
 
         val memberMaybe = memberRepository.findById(e.memberId)
 
@@ -56,8 +59,9 @@ class AdyenTokenRegistrationEventListener(
         tokenRegistration.isForPayout = e.isPayoutSetup
         tokenRegistration.shopperReference = e.shopperReference
 
-        adyenAdyenTokenRepository.save(tokenRegistration)
+        adyenTokenRepository.save(tokenRegistration)
 
+//        todo: remove once verified adyenTokenRepository works
         val memberMaybe = memberRepository.findById(e.memberId)
 
         if (memberMaybe.isPresent) {
@@ -69,30 +73,30 @@ class AdyenTokenRegistrationEventListener(
 
     @EventHandler
     fun on(e: PendingAdyenTokenRegistrationUpdatedEvent) {
-        val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
+        val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         tokenRegistration.memberId = e.memberId
         tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.PENDING
 
-        adyenAdyenTokenRepository.save(tokenRegistration)
+        adyenTokenRepository.save(tokenRegistration)
     }
 
     @EventHandler
     fun on(e: AdyenTokenRegistrationCanceledEvent) {
-        val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
+        val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         tokenRegistration.adyenTokenRegistrationId = e.adyenTokenRegistrationId
         tokenRegistration.memberId = e.memberId
         tokenRegistration.recurringDetailReference = e.adyenPaymentsResponse.getRecurringDetailReference()
         tokenRegistration.tokenStatus = AdyenTokenRegistrationStatus.CANCELLED
 
-        adyenAdyenTokenRepository.save(tokenRegistration)
+        adyenTokenRepository.save(tokenRegistration)
     }
 
     @EventHandler
     fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
-        val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
+        val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         if (!tokenRegistration.isForPayout) {
             //We only care for payout tokens
@@ -104,7 +108,7 @@ class AdyenTokenRegistrationEventListener(
 
     @EventHandler
     fun on(e: AdyenTokenRegistrationCanceledFromNotificationEvent) {
-        val tokenRegistration = adyenAdyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
+        val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         if (!tokenRegistration.isForPayout) {
             //We only care for payout tokens
@@ -116,6 +120,5 @@ class AdyenTokenRegistrationEventListener(
 
     companion object {
         val logger = LoggerFactory.getLogger(this::class.java)!!
-        const val BANK_NAME = "TBD"
     }
 }

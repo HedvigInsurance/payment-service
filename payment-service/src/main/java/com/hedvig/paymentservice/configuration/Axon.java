@@ -60,6 +60,10 @@ public class Axon {
           TrackingEventProcessorConfiguration
               .forSingleThreadedProcessing()
               .andInitialTrackingToken(StreamableMessageSource::createTailToken));
-  }
 
+      config.registerTrackingEventProcessor("MemberAdyenAccount", trackingConfig ->
+          TrackingEventProcessorConfiguration
+              .forSingleThreadedProcessing()
+              .andInitialTrackingToken(StreamableMessageSource::createTailToken));
+  }
 }
