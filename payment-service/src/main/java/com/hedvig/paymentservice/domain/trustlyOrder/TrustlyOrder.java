@@ -56,18 +56,18 @@ public class TrustlyOrder {
     }
 
     @CommandHandler
-    public void handle(CreateOrderCommand command) {
+    public TrustlyOrder(CreateOrderCommand command) {
         apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
     }
 
     @CommandHandler
-    public void handle(CreatePaymentOrderCommand command) {
+    public TrustlyOrder(CreatePaymentOrderCommand command) {
         apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
         apply(new ExternalTransactionIdAssignedEvent(command.getHedvigOrderId(), command.getTransactionId(), command.getMemberId()));
     }
 
     @CommandHandler
-    public void handle(CreatePayoutOrderCommand command) {
+    public TrustlyOrder(CreatePayoutOrderCommand command) {
         apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
         apply(new ExternalTransactionIdAssignedEvent(command.getHedvigOrderId(), command.getTransactionId(), command.getMemberId()));
     }
