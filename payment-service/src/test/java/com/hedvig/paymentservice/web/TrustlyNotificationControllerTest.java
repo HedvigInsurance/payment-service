@@ -127,8 +127,7 @@ public class TrustlyNotificationControllerTest {
 
     @Test
     public void
-    givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember()
-        throws Exception {
+    givenAConfirmedTrustlyOrderAndANonExistingMember_whenRecevingNotification_thenShouldReturnOkAndShouldCreateMember() throws Exception {
         commandGateway.sendAndWait(new CreateOrderCommand(TOLVANSSON_MEMBER_ID, HEDVIG_ORDER_ID));
         commandGateway.sendAndWait(
             new SelectAccountResponseReceivedCommand(
