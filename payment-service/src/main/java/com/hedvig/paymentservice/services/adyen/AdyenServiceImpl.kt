@@ -109,7 +109,7 @@ class AdyenServiceImpl(
         val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
         response.paymentMethods = includeOnlyTrustlyFromAvailablePayoutMethods(response.paymentMethods)
         if (!allowTrustlyPayouts) {
-            excludeTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+            response.paymentMethods = excludeTrustlyFromAvailablePayoutMethods(response.paymentMethods)
         }
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
