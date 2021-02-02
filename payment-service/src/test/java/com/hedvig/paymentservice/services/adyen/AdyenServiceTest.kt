@@ -92,6 +92,7 @@ class AdyenServiceTest {
             adyenMerchantPicker = adyenMerchantPicker,
             memberAdyenAccountRepository = memberAdyenAccountRepository,
             allow3DS2 = true,
+            allowTrustlyPayouts = true,
             adyenPublicKey = "",
             autoRescueScenario = null
         )
