@@ -23,6 +23,7 @@ import com.hedvig.paymentservice.domain.accountRegistration.commands.CreateAccou
 import com.hedvig.paymentservice.domain.accountRegistration.commands.ReceiveAccountRegistrationCancellationCommand
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
+import com.hedvig.paymentservice.domain.payments.enums.Carrier
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand
@@ -213,7 +214,14 @@ class TrustlyService(
         try {
             val trustlyRequest = createPayoutRequest(hedvigOrderId, request)
 
-            val account = if (request.category == TransactionCategory.CLAIM && useClaimsAccount) Account.CLAIM else Account.PREMIUM
+            val account = when (request.category) {
+                TransactionCategory.CLAIM -> when (request.carrier) {
+                    Carrier.HDI -> Account.CLAIM
+                    Carrier.HEDVIG -> Account.CLAIM_X
+                    else -> throw IllegalArgumentException("Cannot start a claim payout order for claim without a carrier")
+                }
+                else -> Account.PREMIUM
+            }
 
             val response = api.sendRequest(trustlyRequest, account)
 

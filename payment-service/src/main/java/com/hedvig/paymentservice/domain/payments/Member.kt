@@ -43,6 +43,7 @@ import org.axonframework.eventhandling.Timestamp
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.util.*
 import javax.money.MonetaryAmount
@@ -142,6 +143,9 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreatePayoutCommand): Boolean {
+        require(command.category != TransactionCategory.CLAIM || command.carrier != null) {
+            throw IllegalArgumentException("Illegal to create a claim payout without carrier (memberId=$memberId)")
+        }
         getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
             apply(
                 PayoutCreatedEvent(
@@ -160,7 +164,8 @@ class Member() {
                     note = command.note,
                     handler = command.handler,
                     adyenShopperReference = null,
-                    email = command.email
+                    email = command.email,
+                    carrier = command.carrier
                 )
             )
             return true
@@ -183,7 +188,8 @@ class Member() {
                 handler = command.handler,
                 adyenShopperReference = account.shopperReference,
                 trustlyAccountId = null,
-                email = command.email
+                email = command.email,
+                carrier = command.carrier
             )
             return true
         }

@@ -1,19 +1,19 @@
 package com.hedvig.paymentservice.services.payments;
 
 import com.hedvig.paymentservice.common.UUIDGenerator;
-import com.hedvig.paymentservice.domain.payments.TransactionCategory;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand;
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand;
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.services.Helpers;
-import com.hedvig.paymentservice.services.payments.dto.*;
-
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
+import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
+import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.model.AggregateNotFoundException;
 import org.slf4j.Logger;
@@ -51,37 +51,13 @@ public class PaymentService {
                     request.getCreatedBy()
                 ));
         } catch (AggregateNotFoundException exception) {
-            logger.error("No aggregate found for member" + request.getMemberId() +  "assume member has not connected their direct debit or card");
+            logger.error("No aggregate found for member" + request.getMemberId() + "assume member has not connected their direct debit or card");
             return new ChargeMemberResult(
                 transactionId,
                 ChargeMemberResultType.NO_PAYIN_METHOD_FOUND
             );
         }
     }
-
-    @Deprecated
-    public boolean payoutMember(PayoutMemberRequest request) {
-        UUID transactionId = uuidGenerator.generateRandom();
-        return commandGateway.sendAndWait(
-            new CreatePayoutCommand(
-                request.getMemberId(),
-                request.getAddress(),
-                request.getCountryCode(),
-                request.getDateOfBirth(),
-                request.getFirstName(),
-                request.getLastName(),
-                transactionId,
-                request.getAmount(),
-                Instant.now(),
-                TransactionCategory.CLAIM,
-                null,
-                null,
-                null,
-                null
-            )
-        );
-    }
-
 
     public Optional<UUID> payoutMember(String memberId, Member member, PayoutMemberRequestDTO request) {
         UUID transactionId = uuidGenerator.generateRandom();
@@ -100,7 +76,8 @@ public class PaymentService {
                 request.getReferenceId(),
                 request.getNote(),
                 request.getHandler(),
-                member.getEmail()
+                member.getEmail(),
+                request.getCarrier()
             )
         );
 

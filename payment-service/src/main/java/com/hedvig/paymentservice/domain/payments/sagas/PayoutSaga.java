@@ -56,7 +56,9 @@ public class PayoutSaga {
                     event.getDateOfBirth(),
                     event.getFirstName(),
                     event.getLastName(),
-                    event.getCategory()),
+                    event.getCategory(),
+                    event.getCarrier()
+                ),
                 hedvigOrderId
             );
             return;

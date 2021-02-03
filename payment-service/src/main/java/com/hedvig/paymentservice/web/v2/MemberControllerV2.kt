@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web.v2
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
+import com.hedvig.paymentservice.domain.payments.enums.Carrier
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.SanctionStatus
@@ -56,17 +57,11 @@ class MemberControllerV2(
     @PostMapping(path = ["{memberId}/payout"])
     fun payoutMember(
         @PathVariable memberId: String,
-        @RequestParam(
-            name = "category",
-            required = false,
-            defaultValue = "CLAIM"
-        ) category: TransactionCategory,
-        @RequestParam(
-            name = "referenceId",
-            required = false
-        ) referenceId: String?,
+        @RequestParam(required = false, defaultValue = "CLAIM") category: TransactionCategory,
+        @RequestParam(required = false) referenceId: String?,
         @RequestParam(name = "note", required = false) note: String?,
         @RequestParam(name = "handler", required = false) handler: String?,
+        @RequestParam(required = false) carrier: Carrier?,
         @RequestBody request: PayoutRequestDTO
     ): ResponseEntity<UUID> {
         if (category != TransactionCategory.CLAIM &&
@@ -93,11 +88,15 @@ class MemberControllerV2(
         }
 
         val payoutMemberRequest = PayoutMemberRequestDTO(
-            request.amount,
-            category,
-            referenceId,
-            note,
-            handler
+            amount = request.amount,
+            category = category,
+            referenceId = referenceId,
+            note = note,
+            handler = handler,
+            carrier = when (carrier) {
+                null -> if (category == TransactionCategory.CLAIM) Carrier.HDI else null // TODO: FIXME remove this logic once carrier is sent from claims-service
+                else -> carrier
+            }
         )
         val result = paymentService.payoutMember(memberId, member, payoutMemberRequest)
 
