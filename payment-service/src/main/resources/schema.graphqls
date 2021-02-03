@@ -55,6 +55,12 @@ enum TokenizationChannel{
     WEB
 }
 
+enum TokenizationResultType {
+    AUTHORISED
+    PENDING
+    FAILED
+}
+
 input BrowserInfo{
     userAgent: String!
     acceptHeader: String!
@@ -80,7 +86,7 @@ union TokenizationResponse = TokenizationResponseFinished | TokenizationResponse
 
 type TokenizationResponseFinished {
     resultCode: String!
-    activePayoutMethods: ActivePayoutMethodsResponse
+    tokenizationResult: TokenizationResultType!
 }
 
 type TokenizationResponseAction {
@@ -91,6 +97,7 @@ union AdditionalPaymentsDetailsResponse = AdditionalPaymentsDetailsResponseFinis
 
 type AdditionalPaymentsDetailsResponseFinished {
     resultCode: String!
+    tokenizationResult: TokenizationResultType!
 }
 
 type AdditionalPaymentsDetailsResponseAction {
@@ -132,6 +139,7 @@ enum PayinMethodStatus{
     PENDING
     NEEDS_SETUP
 }
+
 enum DirectDebitStatus {
     ACTIVE
     PENDING
