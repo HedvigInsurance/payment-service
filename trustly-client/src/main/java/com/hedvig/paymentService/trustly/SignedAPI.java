@@ -66,10 +66,20 @@ public class SignedAPI {
     final String usernamePremium,
     final String passwordPremium,
     final String usernameClaim,
-    final String passwordClaim
+    final String passwordClaim,
+    final String usernameClaimX,
+    final String passwordClaimX
   )
     throws URISyntaxException {
-    init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, false);
+    init(privateKeyPath,
+      keyPassword,
+      usernamePremium,
+      passwordPremium,
+      usernameClaim,
+      passwordClaim,
+      usernameClaimX,
+      passwordClaimX,
+      false);
   }
 
   /**
@@ -85,11 +95,22 @@ public class SignedAPI {
     final String passwordPremium,
     final String usernameClaim,
     final String passwordClaim,
-    final boolean testEnvironment)
+    final String usernameClaimX,
+    final String passwordClaimX,
+    final boolean testEnvironment
+  )
     throws URISyntaxException {
     setEnvironment(testEnvironment);
     try {
-      signatureHandler.init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, testEnvironment);
+      signatureHandler.init(privateKeyPath,
+        keyPassword,
+        usernamePremium,
+        passwordPremium,
+        usernameClaim,
+        passwordClaim,
+        usernameClaimX,
+        passwordClaimX,
+        testEnvironment);
     } catch (final KeyException e) {
       e.printStackTrace();
     }
@@ -108,6 +129,9 @@ public class SignedAPI {
   public Response sendRequest(final Request request, final Account account) {
     final Gson gson = new GsonBuilder().serializeNulls().create();
 
+    if (account == Account.CLAIM_X) {
+      signatureHandler.insertClaimXAccountCredentials(request);
+    }
     if (account == Account.CLAIM) {
       signatureHandler.insertClaimAccountCredentials(request);
     } else {

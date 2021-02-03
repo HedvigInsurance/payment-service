@@ -34,7 +34,6 @@ import com.hedvig.paymentService.trustly.data.request.RequestData;
 import com.hedvig.paymentService.trustly.data.response.ErrorBody;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -71,6 +70,9 @@ public class SignatureHandler {
   private String usernameClaim;
   private String passwordClaim;
 
+  private String usernameClaimX;
+  private String passwordClaimX;
+
   public static SignatureHandler getInstance() {
     if (instance == null) {
       instance = new SignatureHandler();
@@ -85,12 +87,17 @@ public class SignatureHandler {
     final String passwordPremium,
     final String usernameClaim,
     final String passwordClaim,
-    final boolean testEnvironment)
+    final String usernameClaimX,
+    final String passwordClaimX,
+    final boolean testEnvironment
+  )
     throws KeyException, URISyntaxException {
     this.usernamePremium = usernamePremium;
     this.passwordPremium = passwordPremium;
     this.usernameClaim = usernameClaim;
     this.passwordClaim = passwordClaim;
+    this.usernameClaim = usernameClaimX;
+    this.passwordClaim = passwordClaimX;
 
     keyChain = new KeyChain(testEnvironment);
     keyChain.loadMerchantPrivateKey(privateKeyPath, keyPassword);
@@ -109,6 +116,11 @@ public class SignatureHandler {
   public void insertClaimAccountCredentials(final Request request) {
     request.getParams().getData().setUsername(usernameClaim);
     request.getParams().getData().setPassword(passwordClaim);
+  }
+
+  public void insertClaimXAccountCredentials(final Request request) {
+    request.getParams().getData().setUsername(usernameClaimX);
+    request.getParams().getData().setPassword(passwordClaimX);
   }
 
   /**
