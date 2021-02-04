@@ -29,7 +29,7 @@ type Mutation {
     tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
     """Tokenize payout details per member in order to be used in future and returns the status"""
     tokenizePayoutDetails (req: TokenizationRequest) : TokenizationResponse
-    """Submite additional payment details"""
+    """Submit additional payment details"""
     submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
     submitAdyenRedirection(req: SubmitAdyenRedirectionRequest): SubmitAdyenRedirectionResponse!
 }
@@ -56,7 +56,7 @@ enum TokenizationChannel{
 }
 
 enum TokenizationResultType {
-    AUTHORISED
+    COMPLETED
     PENDING
     FAILED
 }
