@@ -68,27 +68,6 @@ public class MemberController {
         return ResponseEntity.accepted().body("");
     }
 
-    @Deprecated
-    @PostMapping(path = "{memberId}/payout")
-    public ResponseEntity<?> payoutMember(
-        @PathVariable String memberId, @RequestBody PayoutRequest request) {
-        PayoutMemberRequest payoutMemberRequest =
-            new PayoutMemberRequest(
-                memberId,
-                request.getAmount(),
-                request.getAddress(),
-                request.getCountryCode(),
-                request.getDateOfBirth(),
-                request.getFirstName(),
-                request.getLastName());
-
-        boolean res = paymentService.payoutMember(payoutMemberRequest);
-        if (res == false) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
-        }
-        return ResponseEntity.accepted().body("");
-    }
-
     @PostMapping(path = "{memberId}/create")
     public ResponseEntity<?> createMember(@PathVariable String memberId) {
         paymentService.createMember(memberId);
