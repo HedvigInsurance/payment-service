@@ -7,9 +7,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderC
 import com.hedvig.paymentservice.services.adyen.AdyenService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest;
-
 import java.util.UUID;
-
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventhandling.saga.EndSaga;
 import org.axonframework.eventhandling.saga.SagaEventHandler;
@@ -19,65 +17,64 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Saga
 public class PayoutSaga {
-  @Autowired
-  transient CommandGateway commandGateway;
-  @Autowired
-  transient TrustlyService trustlyService;
-  @Autowired
-  transient AdyenService adyenService;
-  @Autowired
-  transient UUIDGenerator uuidGenerator;
+    @Autowired
+    transient CommandGateway commandGateway;
+    @Autowired
+    transient TrustlyService trustlyService;
+    @Autowired
+    transient AdyenService adyenService;
+    @Autowired
+    transient UUIDGenerator uuidGenerator;
 
-  @StartSaga
-  @SagaEventHandler(associationProperty = "memberId")
-  @EndSaga
-  public void on(PayoutCreatedEvent e) {
-    if (e.getTrustlyAccountId() != null) {
-        final UUID hedvigOrderId =
-            (UUID)
-                commandGateway.sendAndWait(
-                    new CreatePayoutOrderCommand(
-                        uuidGenerator.generateRandom(),
-                        e.getTransactionId(),
-                        e.getMemberId(),
-                        e.getAmount(),
-                        e.getTrustlyAccountId(),
-                        e.getAddress(),
-                        e.getCountryCode(),
-                        e.getDateOfBirth(),
-                        e.getFirstName(),
-                        e.getLastName()
-                    )
-                );
+    @StartSaga
+    @SagaEventHandler(associationProperty = "memberId")
+    @EndSaga
+    public void on(PayoutCreatedEvent event) {
+        if (event.getTrustlyAccountId() != null) {
+            final UUID hedvigOrderId = commandGateway.sendAndWait(
+                new CreatePayoutOrderCommand(
+                    uuidGenerator.generateRandom(),
+                    event.getTransactionId(),
+                    event.getMemberId(),
+                    event.getAmount(),
+                    event.getTrustlyAccountId(),
+                    event.getAddress(),
+                    event.getCountryCode(),
+                    event.getDateOfBirth(),
+                    event.getFirstName(),
+                    event.getLastName()
+                )
+            );
 
-      trustlyService.startPayoutOrder(
-        new PayoutRequest(
-          e.getMemberId(),
-          e.getAmount(),
-          e.getTrustlyAccountId(),
-          e.getAddress(),
-          e.getCountryCode(),
-          e.getDateOfBirth(),
-          e.getFirstName(),
-          e.getLastName(),
-          e.getCategory()),
-        hedvigOrderId);
-      return;
+            trustlyService.startPayoutOrder(
+                new PayoutRequest(
+                    event.getMemberId(),
+                    event.getAmount(),
+                    event.getTrustlyAccountId(),
+                    event.getAddress(),
+                    event.getCountryCode(),
+                    event.getDateOfBirth(),
+                    event.getFirstName(),
+                    event.getLastName(),
+                    event.getCategory()),
+                hedvigOrderId
+            );
+            return;
+        }
+
+        if (event.getAdyenShopperReference() != null) {
+            commandGateway.sendAndWait(
+                new InitiateAdyenTransactionPayoutCommand(
+                    event.getTransactionId(),
+                    event.getMemberId(),
+                    event.getAdyenShopperReference(),
+                    event.getAmount(),
+                    event.getEmail() != null ? event.getEmail() : ""
+                )
+            );
+            return;
+        }
+
+        throw new RuntimeException("Payout event must have either 'trustlyAccountId' or 'adyenShopperReference' [event: " + event.toString() + "]");
     }
-
-    if (e.getAdyenShopperReference() != null) {
-      commandGateway.sendAndWait(
-        new InitiateAdyenTransactionPayoutCommand(
-          e.getTransactionId(),
-          e.getMemberId(),
-          e.getAdyenShopperReference(),
-          e.getAmount(),
-            e.getEmail() != null ? e.getEmail() : ""
-        )
-      );
-      return;
-    }
-
-    throw new RuntimeException("Payout event must have either 'trustlyAccountId' or 'adyenShopperReference' [event: " + e.toString() + "]");
-  }
 }

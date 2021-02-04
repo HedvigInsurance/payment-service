@@ -1,207 +1,231 @@
 package com.hedvig.paymentservice.domain.trustlyOrder;
 
+import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
 import com.hedvig.paymentService.trustly.data.response.Error;
-import com.hedvig.paymentservice.domain.trustlyOrder.commands.*;
-import com.hedvig.paymentservice.domain.trustlyOrder.events.*;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.AccountNotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CancelNotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreateOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePaymentOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreditNotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentErrorReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PaymentResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PayoutErrorReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.PendingNotificationReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.commands.TrustlyPayoutResponseReceivedCommand;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.CreditNotificationReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.ExternalTransactionIdAssignedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.NotificationReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderAssignedTrustlyIdEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCompletedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCreatedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentErrorReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PaymentResponseReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PayoutErrorReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PayoutResponseReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.PendingNotificationReceivedEvent;
+import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
 import org.axonframework.spring.stereotype.Aggregate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.UUID;
-
-import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
-
 @Slf4j
 @Aggregate
 public class TrustlyOrder {
 
-  @AggregateIdentifier
-  private UUID id;
-  private String trustlyOrderId;
-  private OrderType orderType;
-  private OrderState orderState;
-  private String memberId;
-  private UUID externalTransactionId;
-  private List<Error> errors = new ArrayList<Error>();
-  private TreeSet<String> handledNotifications = new TreeSet<>();
+    @AggregateIdentifier
+    private UUID id;
+    private String trustlyOrderId;
+    private OrderType orderType;
+    private OrderState orderState;
+    private String memberId;
+    private UUID externalTransactionId;
+    private List<Error> errors = new ArrayList<Error>();
+    private TreeSet<String> handledNotifications = new TreeSet<>();
 
-  public TrustlyOrder() {
-  }
-
-  @CommandHandler
-  public TrustlyOrder(CreateOrderCommand cmd) {
-    apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
-  }
-
-  @CommandHandler
-  public TrustlyOrder(CreatePaymentOrderCommand cmd) {
-    apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
-    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId(), cmd.getMemberId()));
-  }
-
-  @CommandHandler
-  public TrustlyOrder(CreatePayoutOrderCommand cmd) {
-    apply(new OrderCreatedEvent(cmd.getHedvigOrderId(), cmd.getMemberId()));
-    apply(new ExternalTransactionIdAssignedEvent(cmd.getHedvigOrderId(), cmd.getTransactionId(), cmd.getMemberId()));
-  }
-
-  @CommandHandler
-  public void cmd(SelectAccountResponseReceivedCommand cmd) {
-    apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
-    apply(new SelectAccountResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getIframeUrl()));
-  }
-
-  @CommandHandler
-  public void cmd(PaymentResponseReceivedCommand cmd) {
-    apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
-    apply(new PaymentResponseReceivedEvent(cmd.getHedvigOrderId(), cmd.getUrl()));
-  }
-
-  @CommandHandler
-  public void cmd(TrustlyPayoutResponseReceivedCommand cmd) {
-    apply(new OrderAssignedTrustlyIdEvent(cmd.getHedvigOrderId(), cmd.getTrustlyOrderId()));
-    apply(
-      new PayoutResponseReceivedEvent(
-        cmd.getHedvigOrderId(), memberId, cmd.getAmount(), externalTransactionId));
-  }
-
-  @CommandHandler
-  public void cmd(PaymentErrorReceivedCommand cmd) {
-    apply(new PaymentErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
-  }
-
-  @CommandHandler
-  public void cmd(PayoutErrorReceivedCommand cmd) {
-    apply(new PayoutErrorReceivedEvent(cmd.getHedvigOrderId(), cmd.getError()));
-  }
-
-  @CommandHandler
-  public void cmd(AccountNotificationReceivedCommand cmd) {
-    if (handledNotifications.contains(cmd.getNotificationId())) {
-      return;
+    public TrustlyOrder() {
     }
 
-    apply(
-      new AccountNotificationReceivedEvent(
-        this.id,
-        this.memberId,
-        cmd.getNotificationId(),
-        cmd.getTrustlyOrderId(),
-        cmd.getAccountId(),
-        cmd.getAddress(),
-        cmd.getBank(),
-        cmd.getCity(),
-        cmd.getClearingHouse(),
-        cmd.getDescriptor(),
-        cmd.getDirectDebitMandateActivated(),
-        cmd.getLastDigits(),
-        cmd.getName(),
-        cmd.getPersonId(),
-        cmd.getZipCode()));
-    markOrderComplete();
-  }
-
-  @CommandHandler
-  public void cmd(CancelNotificationReceivedCommand cmd) {
-    apply(new OrderCanceledEvent(this.id));
-  }
-
-  @CommandHandler
-  public void cmd(PendingNotificationReceivedCommand cmd) {
-    apply(
-      new PendingNotificationReceivedEvent(
-        cmd.getHedvigOrderId(),
-        cmd.getNotificationId(),
-        cmd.getTrustlyOrderId(),
-        cmd.getAmount(),
-        cmd.getMemberId(),
-        cmd.getTimestamp()));
-  }
-
-  @CommandHandler
-  public void cmd(CreditNotificationReceivedCommand cmd) {
-    apply(
-      new CreditNotificationReceivedEvent(
-        this.id,
-        this.externalTransactionId,
-        cmd.getNotificationId(),
-        cmd.getTrustlyOrderId(),
-        cmd.getMemberId(),
-        cmd.getAmount(),
-        cmd.getTimestamp(),
-        this.orderType));
-
-    markOrderComplete();
-  }
-
-  private void markOrderComplete() {
-    if (orderState == OrderState.CONFIRMED) {
-      apply(new OrderCompletedEvent(this.id));
+    @CommandHandler
+    public TrustlyOrder(CreateOrderCommand command) {
+        apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
     }
-  }
 
-  @EventSourcingHandler
-  public void on(OrderCreatedEvent e) {
-    this.id = e.getHedvigOrderId();
-    this.memberId = e.getMemberId();
-  }
+    @CommandHandler
+    public TrustlyOrder(CreatePaymentOrderCommand command) {
+        apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
+        apply(new ExternalTransactionIdAssignedEvent(command.getHedvigOrderId(), command.getTransactionId(), command.getMemberId()));
+    }
 
-  @EventSourcingHandler
-  public void on(OrderAssignedTrustlyIdEvent e) {
-    this.trustlyOrderId = e.getTrustlyOrderId();
-    this.orderState = OrderState.CONFIRMED;
-  }
+    @CommandHandler
+    public TrustlyOrder(CreatePayoutOrderCommand command) {
+        apply(new OrderCreatedEvent(command.getHedvigOrderId(), command.getMemberId()));
+        apply(new ExternalTransactionIdAssignedEvent(command.getHedvigOrderId(), command.getTransactionId(), command.getMemberId()));
+    }
 
-  @EventSourcingHandler
-  public void on(SelectAccountResponseReceivedEvent e) {
+    @CommandHandler
+    public void handle(SelectAccountResponseReceivedCommand command) {
+        apply(new OrderAssignedTrustlyIdEvent(command.getHedvigOrderId(), command.getTrustlyOrderId()));
+        apply(new SelectAccountResponseReceivedEvent(command.getHedvigOrderId(), command.getIframeUrl()));
+    }
 
-    this.orderType = OrderType.SELECT_ACCOUNT;
-    this.orderState = OrderState.STARTED;
-  }
+    @CommandHandler
+    public void handle(PaymentResponseReceivedCommand command) {
+        apply(new OrderAssignedTrustlyIdEvent(command.getHedvigOrderId(), command.getTrustlyOrderId()));
+        apply(new PaymentResponseReceivedEvent(command.getHedvigOrderId(), command.getUrl()));
+    }
 
-  @EventSourcingHandler
-  public void on(PaymentResponseReceivedEvent e) {
-    this.orderType = OrderType.CHARGE;
-  }
+    @CommandHandler
+    public void handle(TrustlyPayoutResponseReceivedCommand command) {
+        apply(new OrderAssignedTrustlyIdEvent(command.getHedvigOrderId(), command.getTrustlyOrderId()));
+        apply(
+            new PayoutResponseReceivedEvent(
+                command.getHedvigOrderId(), memberId, command.getAmount(), externalTransactionId));
+    }
 
-  @EventSourcingHandler
-  public void on(PayoutResponseReceivedEvent e) {
-    orderType = OrderType.ACCOUNT_PAYOUT;
-  }
+    @CommandHandler
+    public void handle(PaymentErrorReceivedCommand command) {
+        apply(new PaymentErrorReceivedEvent(command.getHedvigOrderId(), command.getError()));
+    }
 
-  @EventSourcingHandler
-  public void on(PaymentErrorReceivedEvent e) {
-    this.orderType = OrderType.CHARGE;
-    this.errors.add(e.getError());
-  }
+    @CommandHandler
+    public void handle(PayoutErrorReceivedCommand command) {
+        apply(new PayoutErrorReceivedEvent(command.getHedvigOrderId(), command.getError()));
+    }
 
-  @EventSourcingHandler
-  public void on(OrderCompletedEvent e) {
-    this.orderState = OrderState.COMPLETE;
-  }
+    @CommandHandler
+    public void handle(AccountNotificationReceivedCommand command) {
+        if (handledNotifications.contains(command.getNotificationId())) {
+            return;
+        }
 
-  @EventSourcingHandler
-  public void on(OrderCanceledEvent e) {
-    this.orderState = OrderState.CANCELED;
-  }
+        apply(
+            new AccountNotificationReceivedEvent(
+                this.id,
+                this.memberId,
+                command.getNotificationId(),
+                command.getTrustlyOrderId(),
+                command.getAccountId(),
+                command.getAddress(),
+                command.getBank(),
+                command.getCity(),
+                command.getClearingHouse(),
+                command.getDescriptor(),
+                command.getDirectDebitMandateActivated(),
+                command.getLastDigits(),
+                command.getName(),
+                command.getPersonId(),
+                command.getZipCode()
+            )
+        );
+        markOrderComplete();
+    }
 
-  @EventSourcingHandler
-  public void on(ExternalTransactionIdAssignedEvent e) {
-    this.externalTransactionId = e.getTransactionId();
-  }
+    @CommandHandler
+    public void handle(CancelNotificationReceivedCommand command) {
+        apply(new OrderCanceledEvent(this.id));
+    }
 
-  @EventSourcingHandler
-  public void on(AccountNotificationReceivedEvent e) {
-    handledNotifications.add(e.getNotificationId());
-  }
+    @CommandHandler
+    public void handle(PendingNotificationReceivedCommand command) {
+        apply(
+            new PendingNotificationReceivedEvent(
+                command.getHedvigOrderId(),
+                command.getNotificationId(),
+                command.getTrustlyOrderId(),
+                command.getAmount(),
+                command.getMemberId(),
+                command.getTimestamp()));
+    }
 
-  @EventSourcingHandler
-  public void on(NotificationReceivedEvent e) {
-    handledNotifications.add(e.getNotificationId());
-  }
+    @CommandHandler
+    public void handle(CreditNotificationReceivedCommand command) {
+        apply(
+            new CreditNotificationReceivedEvent(
+                this.id,
+                this.externalTransactionId,
+                command.getNotificationId(),
+                command.getTrustlyOrderId(),
+                command.getMemberId(),
+                command.getAmount(),
+                command.getTimestamp(),
+                this.orderType));
+
+        markOrderComplete();
+    }
+
+    private void markOrderComplete() {
+        if (orderState == OrderState.CONFIRMED) {
+            apply(new OrderCompletedEvent(this.id));
+        }
+    }
+
+    @EventSourcingHandler
+    public void on(OrderCreatedEvent e) {
+        this.id = e.getHedvigOrderId();
+        this.memberId = e.getMemberId();
+    }
+
+    @EventSourcingHandler
+    public void on(OrderAssignedTrustlyIdEvent e) {
+        this.trustlyOrderId = e.getTrustlyOrderId();
+        this.orderState = OrderState.CONFIRMED;
+    }
+
+    @EventSourcingHandler
+    public void on(SelectAccountResponseReceivedEvent e) {
+
+        this.orderType = OrderType.SELECT_ACCOUNT;
+        this.orderState = OrderState.STARTED;
+    }
+
+    @EventSourcingHandler
+    public void on(PaymentResponseReceivedEvent e) {
+        this.orderType = OrderType.CHARGE;
+    }
+
+    @EventSourcingHandler
+    public void on(PayoutResponseReceivedEvent e) {
+        orderType = OrderType.ACCOUNT_PAYOUT;
+    }
+
+    @EventSourcingHandler
+    public void on(PaymentErrorReceivedEvent e) {
+        this.orderType = OrderType.CHARGE;
+        this.errors.add(e.getError());
+    }
+
+    @EventSourcingHandler
+    public void on(OrderCompletedEvent e) {
+        this.orderState = OrderState.COMPLETE;
+    }
+
+    @EventSourcingHandler
+    public void on(OrderCanceledEvent e) {
+        this.orderState = OrderState.CANCELED;
+    }
+
+    @EventSourcingHandler
+    public void on(ExternalTransactionIdAssignedEvent e) {
+        this.externalTransactionId = e.getTransactionId();
+    }
+
+    @EventSourcingHandler
+    public void on(AccountNotificationReceivedEvent e) {
+        handledNotifications.add(e.getNotificationId());
+    }
+
+    @EventSourcingHandler
+    public void on(NotificationReceivedEvent e) {
+        handledNotifications.add(e.getNotificationId());
+    }
 }

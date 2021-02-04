@@ -142,8 +142,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreatePayoutCommand): Boolean {
-        if (getTrustlyAccountBasedOnLatestHedvigOrder() != null) {
-            val trustlyAccount = getTrustlyAccountBasedOnLatestHedvigOrder()
+        getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
             apply(
                 PayoutCreatedEvent(
                     memberId = memberId,
@@ -155,7 +154,7 @@ class Member() {
                     firstName = command.firstName,
                     lastName = command.lastName,
                     timestamp = command.timestamp,
-                    trustlyAccountId = trustlyAccount!!.accountId,
+                    trustlyAccountId = trustlyAccount.accountId,
                     category = command.category,
                     referenceId = command.referenceId,
                     note = command.note,
