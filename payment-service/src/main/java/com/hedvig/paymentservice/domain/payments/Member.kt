@@ -512,6 +512,7 @@ class Member() {
 
     private fun getSingleTransaction(
         transactionId: UUID
+      
     ): Transaction {
         val matchingTransactions = transactions.filter { transaction -> transaction.transactionId == transactionId }
         if (matchingTransactions.size != 1) {
