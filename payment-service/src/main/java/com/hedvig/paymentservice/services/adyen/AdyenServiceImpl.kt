@@ -92,6 +92,8 @@ class AdyenServiceImpl(
     val memberAdyenAccountRepository: MemberAdyenAccountRepository,
     @param:Value("\${hedvig.adyen.allow3DS2}")
     val allow3DS2: Boolean,
+    @param:Value("\${hedvig.adyen.allowTrustlyPayouts}")
+    val allowTrustlyPayouts: Boolean,
     @param:Value("\${hedvig.adyen.public.key}")
     val adyenPublicKey: String,
     @param:Value("\${hedvig.adyen.charge.autorescue.scenario}")
@@ -106,6 +108,9 @@ class AdyenServiceImpl(
     override fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse {
         val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
         response.paymentMethods = includeOnlyTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+        if (!allowTrustlyPayouts) {
+            response.paymentMethods = excludeTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+        }
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
@@ -746,6 +751,9 @@ class AdyenServiceImpl(
 
     private fun includeOnlyTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePayoutMethods.filter { it.type.toLowerCase() == TRUSTLY }
+
+    private fun excludeTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
+        listOfAvailablePayoutMethods.filter { it.type.toLowerCase() != TRUSTLY }
 
     private fun excludeTrustlyFromAvailablePaymentMethods(listOfAvailablePaymentMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }

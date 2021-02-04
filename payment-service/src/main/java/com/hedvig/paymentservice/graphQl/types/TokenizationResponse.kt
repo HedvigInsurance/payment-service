@@ -6,7 +6,7 @@ sealed class TokenizationResponse() {
 
     data class TokenizationResponseFinished(
         val resultCode: String,
-        val activePayoutMethods: ActivePayoutMethodsResponse?
+        val tokenizationResult: TokenizationResultType
     ) : TokenizationResponse()
 
     data class TokenizationResponseAction(

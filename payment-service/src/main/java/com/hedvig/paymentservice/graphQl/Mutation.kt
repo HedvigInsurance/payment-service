@@ -3,20 +3,18 @@ package com.hedvig.paymentservice.graphQl
 import com.coxautodev.graphql.tools.GraphQLMutationResolver
 import com.hedvig.graphql.commons.extensions.getEndUserIp
 import com.hedvig.graphql.commons.extensions.getTokenOrNull
-import com.hedvig.paymentservice.graphQl.types.ActivePayoutMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsRequest
 import com.hedvig.paymentservice.graphQl.types.AdditionalPaymentsDetailsResponse
 import com.hedvig.paymentservice.graphQl.types.CancelDirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.DirectDebitResponse
-import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
 import com.hedvig.paymentservice.graphQl.types.RegisterDirectDebitClientContext
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
 import com.hedvig.paymentservice.graphQl.types.TokenizationResponse
+import com.hedvig.paymentservice.graphQl.types.TokenizationResultType
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.services.adyen.AdyenService
-import com.hedvig.paymentservice.services.adyen.dtos.PaymentResponseResultCode
 import com.hedvig.paymentservice.services.trustly.TrustlyService
 import com.hedvig.paymentservice.services.trustly.dto.DirectDebitOrderInfo.Companion.fromMember
 import graphql.schema.DataFetchingEnvironment
@@ -73,7 +71,7 @@ class Mutation(
 
         return TokenizationResponse.TokenizationResponseFinished(
             resultCode = adyenResponse.paymentsResponse.resultCode.value,
-            activePayoutMethods = null
+            tokenizationResult = TokenizationResultType.from(adyenResponse.getResultCode())
         )
     }
 
@@ -99,9 +97,7 @@ class Mutation(
 
         return TokenizationResponse.TokenizationResponseFinished(
             resultCode = adyenResponse.paymentsResponse.resultCode.value,
-            activePayoutMethods = ActivePayoutMethodsResponse(
-                status = PayoutMethodStatus.from(adyenResponse.getResultCode())
-            )
+            tokenizationResult = TokenizationResultType.from(adyenResponse.getResultCode())
         )
     }
 
@@ -124,7 +120,8 @@ class Mutation(
         }
 
         return AdditionalPaymentsDetailsResponse.AdditionalPaymentsDetailsResponseFinished(
-            resultCode = adyenResponse.paymentsResponse.resultCode.value
+            resultCode = adyenResponse.paymentsResponse.resultCode.value,
+            tokenizationResult = TokenizationResultType.from(adyenResponse.getResultCode())
         )
     }
 

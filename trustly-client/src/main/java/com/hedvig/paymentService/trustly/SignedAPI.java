@@ -32,13 +32,11 @@ import com.hedvig.paymentService.trustly.commons.exceptions.TrustlySignatureExce
 import com.hedvig.paymentService.trustly.data.request.Request;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.security.SignatureHandler;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.security.KeyException;
 import java.security.SecureRandom;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;

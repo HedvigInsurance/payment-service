@@ -21,6 +21,7 @@ spring.jpa.hibernate.ddl-auto: create
 hedvig:
   adyen:
     allow3DS2: true
+    allowTrustlyPayouts: true
     returnUrl: test
     merchantAccount: test
     enviroment: TEST
