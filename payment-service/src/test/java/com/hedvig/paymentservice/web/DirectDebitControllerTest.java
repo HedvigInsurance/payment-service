@@ -3,7 +3,6 @@ package com.hedvig.paymentservice.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
-import com.hedvig.paymentservice.query.member.entities.Member;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
