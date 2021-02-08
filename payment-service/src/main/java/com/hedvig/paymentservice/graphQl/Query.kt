@@ -14,6 +14,7 @@ import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
 import graphql.schema.DataFetchingEnvironment
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.YearMonth
@@ -21,7 +22,9 @@ import java.time.YearMonth
 @Component
 class Query(
     private val bankAccountService: BankAccountService,
-    private val adyenService: AdyenService
+    private val adyenService: AdyenService,
+    @param:Value("\${hedvig.adyen.allowTrustlyPayouts}")
+    private val allowTrustlyPayouts: Boolean,
 ) : GraphQLQueryResolver {
     fun bankAccount(env: DataFetchingEnvironment): BankAccount? {
         val memberId: String? = env.getTokenOrNull()
@@ -85,9 +88,7 @@ class Query(
 
     fun adyenPublicKey(
         env: DataFetchingEnvironment
-    ): String {
-        return adyenService.fetchAdyenPublicKey()
-    }
+    ): String = adyenService.fetchAdyenPublicKey()
 
     fun activePayoutMethods(
         env: DataFetchingEnvironment
@@ -98,6 +99,9 @@ class Query(
             return null
         }
 
+        if (!allowTrustlyPayouts) {
+            return null
+        }
         val status = adyenService.getLatestPayoutTokenRegistrationStatus(memberId) ?: return null
 
         return ActivePayoutMethodsResponse(status = status)
