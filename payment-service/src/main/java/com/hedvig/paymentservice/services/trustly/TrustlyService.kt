@@ -76,7 +76,6 @@ class TrustlyService(
     @param:Value("\${hedvig.trustly.notificationURL}") private val notificationUrl: String,
     @param:Value("\${hedvig.trustly.non.redirecting.to.botService.successURL}") private val plainSuccessUrl: String,
     @param:Value("\${hedvig.trustly.non.redirecting.to.botService.failURL}") private val plainFailUrl: String,
-    @param:Value("\${hedvig.trustly.use.claims.account}") private val useClaimsAccount: Boolean,
     @param:Value("\${hedvig.trustly.URLScheme}") private val urlScheme: String,
     private val springEnvironment: Environment
 ) {
@@ -216,8 +215,8 @@ class TrustlyService(
 
             val account = when (request.category) {
                 TransactionCategory.CLAIM -> when (request.carrier) {
-                    Carrier.HDI -> Account.CLAIM
-                    Carrier.HEDVIG -> Account.CLAIM_X
+                    Carrier.HDI -> Account.CLAIM_HDI
+                    Carrier.HEDVIG -> Account.CLAIM_HEDVIG
                     null -> throw IllegalArgumentException("Cannot start a claim payout order for claim without a carrier")
                 }
                 else -> Account.PREMIUM

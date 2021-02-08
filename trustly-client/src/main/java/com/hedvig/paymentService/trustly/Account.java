@@ -2,8 +2,8 @@ package com.hedvig.paymentService.trustly;
 
 public enum Account {
   PREMIUM,
-  CLAIM,
-  CLAIM_X,
+  CLAIM_HDI,
+  CLAIM_HEDVIG,
   MARKETING,
   OTHER
 }

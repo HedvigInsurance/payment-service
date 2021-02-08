@@ -27,17 +27,17 @@ class Trustly {
     @Value("${hedvig.trustly.password}")
     String passwordPremium;
 
-    @Value("${hedvig.trustly.claim.username}")
-    String usernameClaim;
+    @Value("${hedvig.trustly.claim.hdi.username}")
+    String usernameClaimHdi;
 
-    @Value("${hedvig.trustly.claim.password}")
-    String passwordClaim;
+    @Value("${hedvig.trustly.claim.hdi.password}")
+    String passwordClaimHdi;
 
-    @Value("${hedvig.trustly.claimx.username}")
-    String usernameClaimX;
+    @Value("${hedvig.trustly.claim.hedvig.username}")
+    String usernameClaimHedvig;
 
-    @Value("${hedvig.trustly.claimx.password}")
-    String passwordClaimX;
+    @Value("${hedvig.trustly.claim.hedvig.password}")
+    String passwordClaimHedvig;
 
     @Autowired
     Environment environment;
@@ -47,14 +47,15 @@ class Trustly {
         Security.addProvider(new BouncyCastleProvider());
         SignedAPI api = new SignedAPI();
         boolean testEnvironment = !ArrayUtils.contains(environment.getActiveProfiles(), "production");
-        api.init(privateKeyPath,
+        api.init(
+            privateKeyPath,
             privateKeyPassword,
             usernamePremium,
             passwordPremium,
-            usernameClaim,
-            passwordClaim,
-            usernameClaimX,
-            passwordClaimX,
+            usernameClaimHdi,
+            passwordClaimHdi,
+            usernameClaimHedvig,
+            passwordClaimHedvig,
             testEnvironment
         );
 

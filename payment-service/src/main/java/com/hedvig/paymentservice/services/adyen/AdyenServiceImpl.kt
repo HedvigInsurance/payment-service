@@ -322,7 +322,7 @@ class AdyenServiceImpl(
         return response
     }
 
-    //Extra method for web
+    // Extra method for web
     override fun submitAdyenRedirection(
         request: SubmitAdyenRedirectionRequest,
         memberId: String
@@ -408,7 +408,7 @@ class AdyenServiceImpl(
                 )
             }
         } else {
-            //TODO: Figure out what to do if it is not successful. Maybe keeping it in pending state is okay, maybe we should cancel it
+            // TODO: Figure out what to do if it is not successful. Maybe keeping it in pending state is okay, maybe we should cancel it
         }
     }
 
@@ -416,8 +416,7 @@ class AdyenServiceImpl(
         val memberAdyenAccount = memberAdyenAccountRepository.findById(request.memberId).orElse(null)
             ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(memberAdyenAccount.recurringDetailReference == request.recurringDetailReference)
-        {
+        require(memberAdyenAccount.recurringDetailReference == request.recurringDetailReference) {
             "RecurringDetailReference mismatch [MemberId : ${memberAdyenAccount.memberId}] " +
                 "[MemberRecurringDetailReference: ${memberAdyenAccount.recurringDetailReference} " +
                 "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
@@ -559,16 +558,16 @@ class AdyenServiceImpl(
         }
 
     override fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem) =
-       getAndApplyCommand {
-           getPayoutTransactionCommand(adyenNotification) { transaction ->
-               ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
-                   transactionId = transaction.transactionId,
-                   memberId = transaction.memberId,
-                   amount = Money.of(transaction.amount, transaction.currency),
-                   reason = adyenNotification.reason
-               )
-           }
-       }
+        getAndApplyCommand {
+            getPayoutTransactionCommand(adyenNotification) { transaction ->
+                ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency),
+                    reason = adyenNotification.reason
+                )
+            }
+        }
 
     override fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem) =
         getAndApplyCommand {
@@ -583,17 +582,18 @@ class AdyenServiceImpl(
         }
 
     override fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem) =
-        getAndApplyCommand {  getPayoutTransactionCommand(adyenNotification) { transaction ->
-            ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
-                transactionId = transaction.transactionId,
-                memberId = transaction.memberId,
-                amount = Money.of(transaction.amount, transaction.currency),
-                reason = adyenNotification.reason
-            )
-        }
+        getAndApplyCommand {
+            getPayoutTransactionCommand(adyenNotification) { transaction ->
+                ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency),
+                    reason = adyenNotification.reason
+                )
+            }
         }
 
-    override fun handleAutoRescueNotification(adyenNotification: NotificationRequestItem) : Any =
+    override fun handleAutoRescueNotification(adyenNotification: NotificationRequestItem): Any =
         withTransaction(adyenNotification) { transaction ->
             ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand(
                 transactionId = transaction.transactionId,
@@ -609,7 +609,7 @@ class AdyenServiceImpl(
     private fun withTransaction(
         adyenNotification: NotificationRequestItem,
         getCommandFromTransaction: (AdyenTransaction) -> Any
-    ) : Any {
+    ): Any {
         val adyenTransactionId = UUID.fromString(adyenNotification.merchantReference)
 
         val transactionMaybe: Optional<AdyenTransaction> = transactionRepository.findById(adyenTransactionId)
@@ -623,12 +623,11 @@ class AdyenServiceImpl(
         return getCommandFromTransaction(transaction)
     }
 
-    private fun getAndApplyCommand(fn: () -> Any)
-    {
+    private fun getAndApplyCommand(fn: () -> Any) {
         try {
             val command = fn()
             commandGateway.sendAndWait<Void>(command)
-        }catch(e: RuntimeException){
+        } catch (e: RuntimeException) {
             logger.error(e.message, e)
         }
     }
@@ -636,7 +635,7 @@ class AdyenServiceImpl(
     private fun getPayoutTransactionCommand(
         adyenNotification: NotificationRequestItem,
         getCommandFromTransaction: (AdyenPayoutTransaction) -> Any
-    ) : Any {
+    ): Any {
         val adyenTransactionId = UUID.fromString(adyenNotification.originalReference)
 
         val adyenTransactionMaybe = adyenPayoutTransactionRepository.findById(adyenTransactionId)
@@ -665,13 +664,12 @@ class AdyenServiceImpl(
                 )
             }
         }
-
     }
 
     private fun handlePayinAuthorizationNotification(
         adyenNotification: NotificationRequestItem,
         transaction: AdyenTransaction
-    ) : Any {
+    ): Any {
         val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
 
         return when {
