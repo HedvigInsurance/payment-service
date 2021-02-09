@@ -12,6 +12,7 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenPayoutAccou
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus.Companion.fromTokenRegistrationStatus
+import com.hedvig.paymentservice.domain.payments.enums.Carrier
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountUpdatedEvent
@@ -44,7 +45,8 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.util.*
+import java.util.ArrayList
+import java.util.UUID
 import javax.money.MonetaryAmount
 
 @Aggregate
@@ -142,6 +144,9 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreatePayoutCommand): Boolean {
+        require(command.category != TransactionCategory.CLAIM || command.carrier != null) {
+            throw IllegalArgumentException("Illegal to create a claim payout without carrier (memberId=$memberId)")
+        }
         getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
             apply(
                 PayoutCreatedEvent(
@@ -160,13 +165,20 @@ class Member() {
                     note = command.note,
                     handler = command.handler,
                     adyenShopperReference = null,
-                    email = command.email
+                    email = command.email,
+                    carrier = command.carrier
                 )
             )
             return true
         }
 
         adyenPayoutAccount?.let { account ->
+            require(command.category == TransactionCategory.CLAIM) {
+                throw IllegalArgumentException("Illegal to create payout with adyen that is not of type claim (memberId=$memberId)")
+            }
+            require(command.carrier == Carrier.HEDVIG) {
+                throw IllegalArgumentException("Illegal to create payout with adyen that does not have Hedvig as a carrier (memberId=$memberId)")
+            }
             PayoutCreatedEvent(
                 memberId = memberId,
                 transactionId = command.transactionId,
@@ -183,7 +195,8 @@ class Member() {
                 handler = command.handler,
                 adyenShopperReference = account.shopperReference,
                 trustlyAccountId = null,
-                email = command.email
+                email = command.email,
+                carrier = command.carrier
             )
             return true
         }
@@ -506,6 +519,7 @@ class Member() {
 
     private fun getSingleTransaction(
         transactionId: UUID
+
     ): Transaction {
         val matchingTransactions = transactions.filter { transaction -> transaction.transactionId == transactionId }
         if (matchingTransactions.size != 1) {
@@ -522,8 +536,8 @@ class Member() {
         }
     }
 
-    private fun getTrustlyAccountBasedOnLatestHedvigOrder() = directDebitAccountOrders.maxByOrNull { it.createdAt }?.account
-
+    private fun getTrustlyAccountBasedOnLatestHedvigOrder() =
+        directDebitAccountOrders.maxByOrNull { it.createdAt }?.account
 
     companion object {
         val log = LoggerFactory.getLogger(this::class.java)!!

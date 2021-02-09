@@ -63,11 +63,23 @@ public class SignedAPI {
     final String keyPassword,
     final String usernamePremium,
     final String passwordPremium,
-    final String usernameClaim,
-    final String passwordClaim
+    final String usernameClaimHdi,
+    final String passwordClaimHdi,
+    final String usernameClaimHedvig,
+    final String passwordClaimHedvig
   )
     throws URISyntaxException {
-    init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, false);
+    init(
+      privateKeyPath,
+      keyPassword,
+      usernamePremium,
+      passwordPremium,
+      usernameClaimHdi,
+      passwordClaimHdi,
+      usernameClaimHedvig,
+      passwordClaimHedvig,
+      false
+    );
   }
 
   /**
@@ -81,13 +93,24 @@ public class SignedAPI {
     final String keyPassword,
     final String usernamePremium,
     final String passwordPremium,
-    final String usernameClaim,
-    final String passwordClaim,
-    final boolean testEnvironment)
+    final String usernameClaimHdi,
+    final String passwordClaimHdi,
+    final String usernameClaimHedvig,
+    final String passwordClaimHedvig,
+    final boolean testEnvironment
+  )
     throws URISyntaxException {
     setEnvironment(testEnvironment);
     try {
-      signatureHandler.init(privateKeyPath, keyPassword, usernamePremium, passwordPremium, usernameClaim, passwordClaim, testEnvironment);
+      signatureHandler.init(privateKeyPath,
+        keyPassword,
+        usernamePremium,
+        passwordPremium,
+        usernameClaimHdi,
+        passwordClaimHdi,
+        usernameClaimHedvig,
+        passwordClaimHedvig,
+        testEnvironment);
     } catch (final KeyException e) {
       e.printStackTrace();
     }
@@ -106,8 +129,10 @@ public class SignedAPI {
   public Response sendRequest(final Request request, final Account account) {
     final Gson gson = new GsonBuilder().serializeNulls().create();
 
-    if (account == Account.CLAIM) {
-      signatureHandler.insertClaimAccountCredentials(request);
+    if (account == Account.CLAIM_HEDVIG) {
+      signatureHandler.insertClaimHedvigAccountCredentials(request);
+    } else if (account == Account.CLAIM_HDI) {
+      signatureHandler.insertClaimHdiAccountCredentials(request);
     } else {
       signatureHandler.insertCredentials(request);
     }

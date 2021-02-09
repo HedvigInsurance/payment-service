@@ -28,9 +28,6 @@ public class PayoutCreatedEventUpCaster extends SingleEventUpcaster {
         document -> {
           Element element = document.getRootElement();
           element.addElement("category").setText(TransactionCategory.CLAIM.name());
-          element.addElement("referenceId");
-          element.addElement("note");
-          element.addElement("handler");
           return document;
         }
       );

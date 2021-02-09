@@ -1,45 +1,43 @@
 hedvig.segment.writeKey: 12313
 
-hedvig.trustly.successURL: http://192.168.131.239:8008/hedvig/trigger/notification?status=SUCCESS
-hedvig.trustly.failURL: https://hedvig.com/trustly/fail
-hedvig.trustly.privateKeyPath: "src/main/resources/private.pem"
-hedvig.trustly.privateKeyPassword: ""
-hedvig.trustly.username: "test"
-hedvig.trustly.password: "test"
-hedvig.trustly.claim.username: "test"
-hedvig.trustly.claim.password: "test"
-hedvig.trustly.notificationURL: "https://test"
-hedvig.trustly.non.redirecting.to.botService.successURL: "https://hedvig.com/trustly/success"
-hedvig.trustly.non.redirecting.to.botService.failURL: " https://hedvig.com/trustly/fail"
-hedvig.trustly.validRedirectHosts: []
-
-spring.jpa.hibernate.ddl-auto: create
-
-
 hedvig:
-  adyen:
-    allow3DS2: true
-    allowTrustlyPayouts: true
-    returnUrl: test
-    merchantAccount: test
-    enviroment: TEST
-    apiKey: test
-  trustly:
-    use:
-      claims:
-        account: true
-  segment:
-    writeKey: test
-  meerkat:
-    url: localhost:4123
-  member-service:
-    url: localhost:4084
-  product-pricing:
-    url: localhost:4085
+    trustly:
+        successURL: http://192.168.131.239:8008/hedvig/trigger/notification?status=SUCCESS
+        failURL: https://hedvig.com/trustly/fail
+        privateKeyPath: "src/main/resources/private.pem"
+        privateKeyPassword: ""
+        username: "test"
+        password: "test"
+        claim:
+            hdi:
+                username: "test"
+                password: "test"
+            hedvig:
+                username: "test"
+                password: "test"
+        notificationURL: "https://test"
+        non.redirecting.to.botService.successURL: "https://hedvig.com/trustly/success"
+        non.redirecting.to.botService.failURL: " https://hedvig.com/trustly/fail"
+        validRedirectHosts: [ ]
+    adyen:
+        allow3DS2: true
+        allowTrustlyPayouts: true
+        returnUrl: test
+        merchantAccount: test
+        enviroment: TEST
+        apiKey: test
+    segment:
+        writeKey: test
+    meerkat:
+        url: localhost:4123
+    member-service:
+        url: localhost:4084
+    product-pricing:
+        url: localhost:4085
 
 graphiql:
-  endpoint:
-    graphql: /graphql
-  enabled: true
+    endpoint:
+        graphql: /graphql
+    enabled: true
 
 
