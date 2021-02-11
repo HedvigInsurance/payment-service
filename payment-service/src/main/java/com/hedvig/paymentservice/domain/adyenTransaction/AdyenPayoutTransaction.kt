@@ -17,12 +17,12 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.FailedAdyenPayou
 import com.hedvig.paymentservice.domain.adyenTransaction.events.ReservedAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.SuccessfulAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.services.adyen.AdyenService
+import java.util.UUID
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
-import java.util.UUID
 
 @Aggregate
 class AdyenPayoutTransaction() {
@@ -105,7 +105,6 @@ class AdyenPayoutTransaction() {
             )
         }
     }
-
 
     @EventSourcingHandler
     fun on(e: AdyenPayoutTransactionInitiatedEvent) {

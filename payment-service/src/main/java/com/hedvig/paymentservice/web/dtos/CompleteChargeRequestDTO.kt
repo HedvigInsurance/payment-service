@@ -5,8 +5,8 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 class CompleteChargeRequestDTO(
-  val memberId: String,
-  val transactionId: UUID,
-  val amount: MonetaryAmount,
-  val timestamp: Instant?
+    val memberId: String,
+    val transactionId: UUID,
+    val amount: MonetaryAmount,
+    val timestamp: Instant?
 )

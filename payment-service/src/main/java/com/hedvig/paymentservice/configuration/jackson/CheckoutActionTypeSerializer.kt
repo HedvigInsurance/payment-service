@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Configuration
 class CheckoutActionTypeSerializer :
   StdSerializer<CheckoutPaymentsAction.CheckoutActionType>(CheckoutPaymentsAction.CheckoutActionType::class.java) {
   override fun serialize(
-    enum: CheckoutPaymentsAction.CheckoutActionType,
-    jsonGenerator: JsonGenerator,
-    provider: SerializerProvider
+      enum: CheckoutPaymentsAction.CheckoutActionType,
+      jsonGenerator: JsonGenerator,
+      provider: SerializerProvider
   ) {
     return jsonGenerator.writeString(enum.value)
   }

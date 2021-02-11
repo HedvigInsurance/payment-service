@@ -3,12 +3,12 @@ package com.hedvig.paymentservice.domain.accountRegistration
 import com.hedvig.paymentservice.domain.accountRegistration.commands.*
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.accountRegistration.events.*
+import java.util.*
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
-import java.util.*
 
 @Aggregate
 class AccountRegistrationAggregate() {
@@ -72,7 +72,6 @@ class AccountRegistrationAggregate() {
   @EventSourcingHandler
   fun on(e: AccountRegistrationNotificationReceivedEvent) {
     this.status = AccountRegistrationStatus.IN_PROGRESS
-
   }
 
   @EventSourcingHandler
@@ -84,6 +83,4 @@ class AccountRegistrationAggregate() {
   fun on(e: AccountRegistrationCancellationReceivedEvent) {
     this.status = AccountRegistrationStatus.CANCELLED
   }
-
 }
-

@@ -16,25 +16,25 @@ import org.springframework.web.bind.annotation.RequestBody
 interface AccountServiceClient {
   @PostMapping("/_/schedule/charge/{memberId}/failed")
   fun notifyChargeFailed(
-    @PathVariable memberId: String,
-    @RequestBody request: NotifyChargeFailedRequestDto
+      @PathVariable memberId: String,
+      @RequestBody request: NotifyChargeFailedRequestDto
   ): ResponseEntity<Void>
 
   @PostMapping("/_/schedule/charge/{memberId}/completed")
   fun notifyChargeCompleted(
-    @PathVariable memberId: String,
-    @RequestBody request: NotifyChargeCompletedRequestDto
+      @PathVariable memberId: String,
+      @RequestBody request: NotifyChargeCompletedRequestDto
   ): ResponseEntity<Void>
 
   @PostMapping("/_/accounts/backfill/{memberId}/charge/completed")
   fun notifyBackfilledChargeCompleted(
-    @PathVariable memberId: String,
-    @RequestBody request: NotifyChargeCompletedRequestDto
+      @PathVariable memberId: String,
+      @RequestBody request: NotifyChargeCompletedRequestDto
   ): ResponseEntity<Void>
 
   @PostMapping("/_/schedule/charge/{memberId}/initiated")
   fun notifyChargeInitiated(
-    @PathVariable memberId: String,
-    @RequestBody request: NotifyChargeInitiatedRequestDto
+      @PathVariable memberId: String,
+      @RequestBody request: NotifyChargeInitiatedRequestDto
   ): ResponseEntity<Void>
 }

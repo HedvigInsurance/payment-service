@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.UUID
 
 data class PayoutCompletedEvent(
-  val memberId: String,
-  val transactionId: UUID,
-  val timestamp: Instant
+    val memberId: String,
+    val transactionId: UUID,
+    val timestamp: Instant
 )

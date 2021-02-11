@@ -14,10 +14,10 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountRespo
 import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent
+import java.util.*
 import org.axonframework.test.saga.SagaTestFixture
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 class RegisterAccountSagaTest {
 
@@ -275,7 +275,6 @@ class RegisterAccountSagaTest {
       .expectActiveSagas(0)
   }
 
-
   companion object {
     val TEST_ACCOUNT_REGISTRATION_ID: UUID = UUID.fromString("dbe1a7dc-2490-11e9-a718-dbca6dd113e4")
     val TEST_HEDVIG_ORDER_ID: UUID = UUID.fromString("286f8170-2868-11e9-b424-4b92cc4a6e6b")
@@ -284,5 +283,4 @@ class RegisterAccountSagaTest {
     const val TEST_MEMBER_ID: String = "RemarkableMemberId1"
     const val TEST_STRING: String = "RemarkableTestString"
   }
-
 }

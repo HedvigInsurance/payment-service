@@ -2,11 +2,11 @@ package com.hedvig.paymentservice.domain.payments.events
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.enums.Carrier
-import org.axonframework.serialization.Revision
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import javax.money.MonetaryAmount
+import org.axonframework.serialization.Revision
 
 @Revision("2.0")
 data class PayoutCreatedEvent(

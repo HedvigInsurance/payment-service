@@ -1,10 +1,10 @@
 package com.hedvig.paymentservice.serviceIntergration.memberService
 
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member
+import java.util.Optional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClientResponseException
-import java.util.Optional
 
 @Service
 class MemberServiceImpl(

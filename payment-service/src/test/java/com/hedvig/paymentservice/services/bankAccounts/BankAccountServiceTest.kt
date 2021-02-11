@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistr
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
+import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccount
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
@@ -16,15 +17,14 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.*
-import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 
 @RunWith(SpringRunner::class)
 class BankAccountServiceTest {

@@ -43,13 +43,6 @@ import com.hedvig.paymentservice.services.trustly.dto.PaymentRequest
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest
 import com.hedvig.paymentservice.services.trustly.exceptions.InvalidRedirectException
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse
-import org.axonframework.commandhandling.gateway.CommandGateway
-import org.javamoney.moneta.CurrencyUnitBuilder
-import org.javamoney.moneta.Money
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.env.Environment
-import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.net.URI
 import java.text.DecimalFormat
@@ -62,6 +55,13 @@ import java.util.Locale
 import java.util.UUID
 import javax.money.CurrencyContextBuilder
 import javax.money.CurrencyUnit
+import org.axonframework.commandhandling.gateway.CommandGateway
+import org.javamoney.moneta.CurrencyUnitBuilder
+import org.javamoney.moneta.Money
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
+import org.springframework.stereotype.Component
 
 @Component
 class TrustlyService(

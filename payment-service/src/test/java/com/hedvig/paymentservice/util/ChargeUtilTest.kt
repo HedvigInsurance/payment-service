@@ -1,9 +1,9 @@
 package com.hedvig.paymentservice.util
 
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
+import java.time.LocalDate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import java.time.LocalDate
 
 class ChargeUtilTest {
     @Test

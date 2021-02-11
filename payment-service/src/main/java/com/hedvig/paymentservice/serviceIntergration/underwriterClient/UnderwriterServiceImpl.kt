@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class UnderwriterServiceImpl(
-  val underwriterClient: UnderwriterClient
+    val underwriterClient: UnderwriterClient
 ) : UnderwriterService {
   override fun getMarketFromQuote(memberId: String): QuoteMarketInfo {
     return underwriterClient.getQuoteMarketInfoFromMemberId(memberId).body!!

@@ -4,9 +4,9 @@ import com.hedvig.paymentservice.web.dtos.ChargeRequest
 import javax.money.MonetaryAmount
 
 data class ChargeMemberRequest(
-  var memberId: String,
-  var amount: MonetaryAmount,
-  var createdBy: String
+    var memberId: String,
+    var amount: MonetaryAmount,
+    var createdBy: String
 ) {
   companion object {
     fun fromChargeRequest(memberId: String, request: ChargeRequest): ChargeMemberRequest {

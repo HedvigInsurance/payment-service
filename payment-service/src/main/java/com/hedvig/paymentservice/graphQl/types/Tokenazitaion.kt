@@ -7,7 +7,6 @@ enum class TokenizationChannel {
   IOS,
   WEB;
 
-
   companion object {
     fun toPaymentsRequestChannelEnum(enum: TokenizationChannel): PaymentsRequest.ChannelEnum {
       return when (enum) {
@@ -18,5 +17,3 @@ enum class TokenizationChannel {
     }
   }
 }
-
-

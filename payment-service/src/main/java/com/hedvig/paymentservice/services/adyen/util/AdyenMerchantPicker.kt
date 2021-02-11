@@ -4,15 +4,14 @@ import com.hedvig.paymentservice.configuration.MerchantAccounts
 import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
+import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market as ProductPricingMarket
 import com.hedvig.paymentservice.serviceIntergration.underwriterClient.UnderwriterService
 import com.hedvig.paymentservice.services.adyen.dtos.AdyenMerchantInfo
 import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.neovisionaries.i18n.CountryCode
 import com.neovisionaries.i18n.CurrencyCode
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market as ProductPricingMarket
 
 @Component
 class AdyenMerchantPicker(
@@ -102,4 +101,3 @@ class AdyenMerchantPicker(
         val logger = LoggerFactory.getLogger(this::class.java)
     }
 }
-

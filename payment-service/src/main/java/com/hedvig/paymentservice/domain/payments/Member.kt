@@ -37,6 +37,10 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEve
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
+import java.time.Instant
+import java.util.ArrayList
+import java.util.UUID
+import javax.money.MonetaryAmount
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
@@ -44,10 +48,6 @@ import org.axonframework.eventhandling.Timestamp
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
-import java.time.Instant
-import java.util.ArrayList
-import java.util.UUID
-import javax.money.MonetaryAmount
 
 @Aggregate
 class Member() {

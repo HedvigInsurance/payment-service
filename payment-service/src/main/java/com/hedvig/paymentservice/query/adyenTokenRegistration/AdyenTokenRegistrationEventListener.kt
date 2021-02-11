@@ -14,7 +14,6 @@ import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.lang.RuntimeException
 
 @Component
 @Transactional
@@ -99,7 +98,7 @@ class AdyenTokenRegistrationEventListener(
         val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         if (!tokenRegistration.isForPayout) {
-            //We only care for payout tokens
+            // We only care for payout tokens
             return
         }
 
@@ -111,7 +110,7 @@ class AdyenTokenRegistrationEventListener(
         val tokenRegistration = adyenTokenRepository.findById(e.adyenTokenRegistrationId).orElseThrow()
 
         if (!tokenRegistration.isForPayout) {
-            //We only care for payout tokens
+            // We only care for payout tokens
             return
         }
 

@@ -20,7 +20,6 @@ class ChargeCreatedEventUpcaster : SingleEventUpcaster() {
     val trustlyAccountId = intermediateRepresentation.getData(org.dom4j.Document::class.java)
       .data.rootElement.element("accountId")
 
-
     return intermediateRepresentation.upcastPayload(
       SimpleSerializedType(
         ChargeCreatedEvent::class.java.typeName,
@@ -35,5 +34,4 @@ class ChargeCreatedEventUpcaster : SingleEventUpcaster() {
       document
     }
   }
-
 }

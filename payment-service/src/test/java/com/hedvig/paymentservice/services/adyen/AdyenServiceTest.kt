@@ -29,14 +29,14 @@ import com.neovisionaries.i18n.CurrencyCode
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import java.math.BigDecimal
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.math.BigDecimal
-import java.util.*
 
 @RunWith(SpringRunner::class)
 class AdyenServiceTest {
@@ -201,7 +201,7 @@ class AdyenServiceTest {
 
         adyenService.handleAuthorisationNotification(notification)
 
-        verify(exactly = 1) { commandGateway.sendAndWait(ofType(AuthoriseAdyenTokenRegistrationFromNotificationCommand::class))  }
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(AuthoriseAdyenTokenRegistrationFromNotificationCommand::class)) }
     }
 
     @Test
@@ -313,7 +313,7 @@ class AdyenServiceTest {
     private fun makeNotificationRequestItem(
         isSuccessful: Boolean,
         merchantReference: String? = UUID.randomUUID().toString(),
-            isAutoRescue: Boolean = false
+        isAutoRescue: Boolean = false
     ) = NotificationRequestItem(
         amount = null,
         eventCode = "AUTHORISATION",
@@ -329,7 +329,7 @@ class AdyenServiceTest {
         additionalData = if (isAutoRescue) mapOf("retry.rescueScheduled" to "true", "retry.rescueReference" to "something", "retry.orderAttemptNumber" to "2") else null
     )
 
-    private fun makeAdyenTokenRegistration(status : AdyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED): AdyenTokenRegistration {
+    private fun makeAdyenTokenRegistration(status: AdyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED): AdyenTokenRegistration {
         val tokenRegistration = AdyenTokenRegistration()
         tokenRegistration.adyenTokenRegistrationId = UUID.fromString("CD076349-4454-432A-AD19-42C5C4A1396A")
         tokenRegistration.memberId = "MEMBER_ID"
@@ -341,9 +341,9 @@ class AdyenServiceTest {
     }
 
     private fun makeAdyenTransaction() = AdyenTransaction().apply {
-        transactionId = UUID.fromString("8C0A90BF-A8A4-4F2D-A68B-BA40B10C39FB");
-        memberId = "1234";
-        amount = BigDecimal.TEN;
+        transactionId = UUID.fromString("8C0A90BF-A8A4-4F2D-A68B-BA40B10C39FB")
+        memberId = "1234"
+        amount = BigDecimal.TEN
         currency = "SEK"
     }
 }

@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.adyen
 
 import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
+import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethod
 import com.adyen.model.checkout.PaymentMethodsRequest
@@ -62,17 +63,16 @@ import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
+import java.util.Optional
+import java.util.UUID
+import javax.money.MonetaryAmount
+import kotlin.collections.set
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.Optional
-import java.util.UUID
-import javax.money.MonetaryAmount
-import kotlin.collections.set
-import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 @Service
 class AdyenServiceImpl(

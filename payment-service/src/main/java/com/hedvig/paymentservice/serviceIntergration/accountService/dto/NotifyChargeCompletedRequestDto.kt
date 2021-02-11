@@ -5,7 +5,7 @@ import java.util.*
 import javax.money.MonetaryAmount
 
 data class NotifyChargeCompletedRequestDto(
-  val transactionId: UUID,
-  val amount: MonetaryAmount,
-  val chargedAt: Instant
+    val transactionId: UUID,
+    val amount: MonetaryAmount,
+    val chargedAt: Instant
 )

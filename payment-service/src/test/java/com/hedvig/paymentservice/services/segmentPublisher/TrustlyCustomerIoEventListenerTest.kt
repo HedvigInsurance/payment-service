@@ -2,8 +2,6 @@ package com.hedvig.paymentservice.services.segmentPublisher
 
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
-import com.hedvig.paymentservice.query.member.entities.Member
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
 import com.nhaarman.mockitokotlin2.KArgumentCaptor
 import com.nhaarman.mockitokotlin2.argumentCaptor
@@ -12,12 +10,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.BDDMockito.`when`
-import org.mockito.BDDMockito.any
 import org.mockito.BDDMockito.then
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import java.util.Optional
 
 @RunWith(MockitoJUnitRunner::class)
 class TrustlyCustomerIoEventListenerTest {
@@ -57,7 +52,6 @@ class TrustlyCustomerIoEventListenerTest {
         )
         sut.on(evt)
         then(notificationService).should().updateCustomer(eq(MEMBER_ID), dataCaptor.capture())
-
 
         assertThat(dataCaptor.firstValue).containsEntry("is_direct_debit_activated", false as Object)
     }

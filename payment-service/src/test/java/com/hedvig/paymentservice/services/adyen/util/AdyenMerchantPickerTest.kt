@@ -14,13 +14,13 @@ import com.neovisionaries.i18n.CountryCode
 import com.neovisionaries.i18n.CurrencyCode
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.util.Optional
+import javax.money.Monetary
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.util.Optional
-import javax.money.Monetary
 
 @RunWith(SpringRunner::class)
 class AdyenMerchantPickerTest() {
@@ -131,4 +131,3 @@ class AdyenMerchantPickerTest() {
         return merchantAccounts
     }
 }
-

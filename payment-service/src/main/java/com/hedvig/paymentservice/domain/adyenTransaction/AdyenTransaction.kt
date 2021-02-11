@@ -20,13 +20,13 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransaction
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.adyen.dtos.ChargeMemberWithTokenRequest
+import java.util.UUID
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
-import java.util.UUID
 
 @Aggregate
 class AdyenTransaction() {
