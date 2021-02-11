@@ -4,8 +4,8 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenR
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 
 data class UpdateAdyenAccountCommand(
-  @TargetAggregateIdentifier
-  val memberId: String,
-  val recurringDetailReference: String,
-  val adyenTokenStatus: AdyenTokenRegistrationStatus
+    @TargetAggregateIdentifier  
+    val memberId: String,
+    val recurringDetailReference: String,
+    val adyenTokenStatus: AdyenTokenRegistrationStatus
 )

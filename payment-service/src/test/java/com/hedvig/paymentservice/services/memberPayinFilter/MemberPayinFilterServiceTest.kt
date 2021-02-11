@@ -12,6 +12,9 @@ import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFil
 import com.hedvig.paymentservice.services.payinMethodFilter.MemberPayinMethodFilterServiceImpl
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -20,9 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.*
 
 @RunWith(SpringRunner::class)
 @DataJpaTest
@@ -205,7 +205,6 @@ class MemberPayinFilterServiceTest {
                 buildAdyenAccount(withReference = false)
             )
 
-
         val result = classUnderTest.membersWithConnectedPayinMethodForMarket(
             listOf("123", "234"),
             Market.NORWAY
@@ -258,8 +257,8 @@ class MemberPayinFilterServiceTest {
         createdAt = createdAt
     )
 
-    private fun buildAdyenAccount(withReference : Boolean = true): MemberAdyenAccount {
-        val account = MemberAdyenAccount("123", "account" )
+    private fun buildAdyenAccount(withReference: Boolean = true): MemberAdyenAccount {
+        val account = MemberAdyenAccount("123", "account")
         account.recurringDetailReference = if (withReference) "reference" else null
         account.accountStatus = if (withReference) AdyenAccountStatus.AUTHORISED else null
         return account

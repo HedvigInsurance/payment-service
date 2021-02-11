@@ -13,7 +13,7 @@ class PendingAdyenTokenRegistrationCreatedEventUpcasterV2 : SingleEventUpcaster(
   }
 
   override fun doUpcast(
-    intermediateRepresentation: IntermediateEventRepresentation
+      intermediateRepresentation: IntermediateEventRepresentation
   ): IntermediateEventRepresentation? {
     val memberId = intermediateRepresentation.getData(org.dom4j.Document::class.java)
       .data.rootElement.element("memberId")
@@ -29,4 +29,3 @@ class PendingAdyenTokenRegistrationCreatedEventUpcasterV2 : SingleEventUpcaster(
     }
   }
 }
-

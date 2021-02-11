@@ -4,7 +4,7 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 class SuccessfulAdyenPayoutTransactionReceivedEvent(
-  val transactionId: UUID,
-  val memberId: String,
-  val amount: MonetaryAmount
+    val transactionId: UUID,
+    val memberId: String,
+    val amount: MonetaryAmount
 )

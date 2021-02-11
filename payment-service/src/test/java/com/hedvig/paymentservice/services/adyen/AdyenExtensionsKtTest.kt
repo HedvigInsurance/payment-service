@@ -1,12 +1,12 @@
 package com.hedvig.paymentservice.services.adyen
 
 import io.mockk.junit5.MockKExtension
+import java.math.BigDecimal
 import org.assertj.core.api.Assertions.assertThat
 import org.javamoney.moneta.Money
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class AdyenExtensionsKtTest {

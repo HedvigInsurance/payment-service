@@ -40,7 +40,6 @@ class AdyenPayoutTransactionTest {
         every { adyenService.confirmPayout(any(), any()) } returns confirmThirdPartyResponse
     }
 
-
     @Test
     fun `given a payout is initiated then we expect AdyenPayoutTransactionInitiatedEvent, AdyenPayoutTransactionAuthorisedEvent, AdyenPayoutTransactionConfirmedEvent`() {
         fixture.givenNoPriorActivity()
@@ -130,7 +129,7 @@ class AdyenPayoutTransactionTest {
                     memberId = AdyenTransactionTest.MEMBER_ID_ONE,
                     shopperReference = "REFERANCE",
                     amount = AdyenTransactionTest.ONE_THOUSAND_NOK
-                ),AdyenPayoutTransactionAuthorisedEvent(
+                ), AdyenPayoutTransactionAuthorisedEvent(
                     transactionId = AdyenTransactionTest.TRANSACTION_ID_ONE,
                     memberId = AdyenTransactionTest.MEMBER_ID_ONE,
                     shopperReference = "REFERANCE",
@@ -151,5 +150,4 @@ class AdyenPayoutTransactionTest {
         const val PSP_REFERENCE = "pspReference"
         const val PAYOUT_SUBMiT_RECEIVED = "[payout-submit-received]"
     }
-
 }

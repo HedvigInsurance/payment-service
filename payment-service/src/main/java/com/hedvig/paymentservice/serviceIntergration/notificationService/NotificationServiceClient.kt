@@ -10,6 +10,5 @@ import org.springframework.web.bind.annotation.RequestBody
 interface NotificationServiceClient {
 
   @PostMapping("/_/customerio/{memberId}")
-  fun updateCustomer(@PathVariable memberId:String, @RequestBody data:JsonNode)
-
+  fun updateCustomer(@PathVariable memberId: String, @RequestBody data: JsonNode)
 }

@@ -1,8 +1,8 @@
 package com.hedvig.paymentservice.domain.adyenTransaction.commands
 
+import java.util.UUID
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 import org.javamoney.moneta.Money
-import java.util.UUID
 
 data class ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand(
     @TargetAggregateIdentifier

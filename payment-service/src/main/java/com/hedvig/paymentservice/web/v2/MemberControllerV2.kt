@@ -14,6 +14,8 @@ import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
 import com.hedvig.paymentservice.services.payments.dto.PayoutMemberRequestDTO
 import com.hedvig.paymentservice.web.dtos.ChargeRequest
 import com.hedvig.paymentservice.web.dtos.PayoutRequestDTO
+import java.math.BigDecimal
+import java.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -23,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
-import java.util.UUID
 
 @RestController
 @RequestMapping(path = ["/v2/_/members/"])
@@ -118,4 +118,3 @@ class MemberControllerV2(
         val logger = LoggerFactory.getLogger(this::class.java)!!
     }
 }
-

@@ -1,6 +1,7 @@
 package com.hedvig.paymentservice.web
 
 import com.hedvig.paymentservice.services.adyen.AdyenService
+import java.util.UUID
 import org.javamoney.moneta.Money
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.ModelAndView
-import java.util.UUID
 
 @Controller
 @RequestMapping("/debug/adyen")

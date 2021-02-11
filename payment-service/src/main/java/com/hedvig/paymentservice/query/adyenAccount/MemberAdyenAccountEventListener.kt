@@ -43,13 +43,13 @@ class MemberAdyenAccountEventListener(
     private fun createOrUpdateMemberAdyenAccountWithMerchantInfo(memberId: String, merchantAccount: String?) {
         val accountMaybe = memberAdyenAccountRepository.findById(memberId)
 
-        logger.info("CreateMerchantInfo - [MemberId: ${memberId}] [Account: ${merchantAccount}]")
+        logger.info("CreateMerchantInfo - [MemberId: $memberId] [Account: $merchantAccount]")
 
         if (accountMaybe.isPresent) {
             val account = accountMaybe.get()
             account.merchantAccount = merchantAccount ?: HEDVIG_ABCOM
             memberAdyenAccountRepository.save(account)
-            logger.info("Account updated - [MemberId: ${memberId}] [Account: ${account.merchantAccount}]")
+            logger.info("Account updated - [MemberId: $memberId] [Account: ${account.merchantAccount}]")
         } else {
             memberAdyenAccountRepository.save(
                 MemberAdyenAccount(
@@ -57,7 +57,7 @@ class MemberAdyenAccountEventListener(
                     merchantAccount = merchantAccount ?: HEDVIG_ABCOM
                 )
             )
-            logger.info("Account created - [MemberId: ${memberId}] [Account: ${merchantAccount ?: HEDVIG_ABCOM}]")
+            logger.info("Account created - [MemberId: $memberId] [Account: ${merchantAccount ?: HEDVIG_ABCOM}]")
         }
     }
 

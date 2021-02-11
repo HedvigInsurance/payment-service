@@ -5,8 +5,8 @@ import java.util.*
 import javax.money.MonetaryAmount
 
 data class NotifyChargeInitiatedRequestDto(
-  val transactionId: UUID,
-  val amount: MonetaryAmount,
-  val initiatedBy: String?,
-  val initiatedAt: Instant
+    val transactionId: UUID,
+    val amount: MonetaryAmount,
+    val initiatedBy: String?,
+    val initiatedAt: Instant
 )

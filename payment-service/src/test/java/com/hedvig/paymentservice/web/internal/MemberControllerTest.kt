@@ -2,8 +2,6 @@ package com.hedvig.paymentservice.web.internal
 
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
-import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
-import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService
@@ -12,10 +10,10 @@ import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class MemberControllerTest {
 

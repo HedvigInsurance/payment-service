@@ -7,7 +7,7 @@ import lombok.Value
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 
 @Value
-data class PendingNotificationReceivedCommand (
+data class PendingNotificationReceivedCommand(
     @TargetAggregateIdentifier
     val hedvigOrderId: UUID,
 

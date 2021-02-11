@@ -14,13 +14,13 @@ import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAd
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.util.UUID
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.javamoney.moneta.Money
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.util.UUID
 
 @RunWith(SpringRunner::class)
 class AdyenTransactionTest {

@@ -5,9 +5,9 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 data class ChargeErroredEvent(
-  val memberId: String,
-  val transactionId: UUID,
-  val amount: MonetaryAmount,
-  val reason: String,
-  val timestamp: Instant
+    val memberId: String,
+    val transactionId: UUID,
+    val amount: MonetaryAmount,
+    val reason: String,
+    val timestamp: Instant
 )

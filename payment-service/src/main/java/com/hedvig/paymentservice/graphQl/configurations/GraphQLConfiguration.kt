@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class GraphQLConfiguration(
-  val objectMapper: ObjectMapper
+    val objectMapper: ObjectMapper
 ) {
   @Bean
   fun paymentMethodsResponseScalar(): GraphQLScalarType {
@@ -295,5 +295,4 @@ class GraphQLConfiguration(
         )
       )
   }
-
 }

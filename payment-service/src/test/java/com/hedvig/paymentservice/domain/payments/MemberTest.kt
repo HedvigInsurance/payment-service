@@ -21,6 +21,11 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Contract
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+import javax.money.Monetary
+import javax.money.MonetaryAmount
 import org.assertj.core.api.Assertions.assertThat
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.javamoney.moneta.Money
@@ -28,11 +33,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
-import javax.money.Monetary
-import javax.money.MonetaryAmount
 
 @RunWith(SpringRunner::class)
 class MemberTest {

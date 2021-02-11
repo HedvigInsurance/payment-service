@@ -1,9 +1,7 @@
 package com.hedvig.paymentservice.graphQl.types
 
-import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
-import com.hedvig.paymentservice.query.member.entities.Member
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus as DomainPaymentsDirectDebitStatus
-
+import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 
 data class BankAccount(
     val bankName: String,
@@ -28,5 +26,3 @@ data class BankAccount(
         }
     }
 }
-
-

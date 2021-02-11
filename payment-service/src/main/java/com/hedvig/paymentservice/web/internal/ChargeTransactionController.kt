@@ -4,18 +4,18 @@ import com.hedvig.paymentservice.domain.payments.commands.ChargeCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.ChargeFailedCommand
 import com.hedvig.paymentservice.web.dtos.CompleteChargeRequestDTO
 import com.hedvig.paymentservice.web.dtos.FailChargeRequestDTO
+import java.time.Instant
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.time.Instant
 
 @RestController
 @RequestMapping("/adyen/transaction")
 class ChargeTransactionController(
-  val commandGateway: CommandGateway
+    val commandGateway: CommandGateway
 ) {
   @PostMapping(value = ["charge/complete"])
   fun completeCharge(@RequestBody req: CompleteChargeRequestDTO): ResponseEntity<Void> {

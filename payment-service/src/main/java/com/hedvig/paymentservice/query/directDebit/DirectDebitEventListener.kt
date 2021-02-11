@@ -6,6 +6,8 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedE
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
+import java.time.Instant
+import java.util.*
 import lombok.extern.slf4j.Slf4j
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
@@ -13,8 +15,6 @@ import org.axonframework.eventhandling.Timestamp
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
-import java.time.Instant
-import java.util.*
 
 @Component
 @Slf4j

@@ -1,15 +1,14 @@
 package com.hedvig.paymentservice.web.dtos
 
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
-import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
 import com.hedvig.paymentservice.query.member.entities.Member
 import java.util.UUID
 
 data class PaymentMemberDTO(
-  val id: String,
-  val transactions: Map<UUID, TransactionDTO>,
-  val directDebitMandateActive: Boolean,
-  val trustlyAccountNumber: String? = null
+    val id: String,
+    val transactions: Map<UUID, TransactionDTO>,
+    val directDebitMandateActive: Boolean,
+    val trustlyAccountNumber: String? = null
 ) {
 
   companion object {

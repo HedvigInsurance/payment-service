@@ -4,8 +4,8 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 class AdyenTransactionInitiatedEvent(
-  val transactionId: UUID,
-  val memberId: String,
-  val recurringDetailReference: String,
-  val amount: MonetaryAmount
+    val transactionId: UUID,
+    val memberId: String,
+    val recurringDetailReference: String,
+    val amount: MonetaryAmount
 )

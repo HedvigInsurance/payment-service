@@ -4,19 +4,19 @@ import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistr
 import com.hedvig.paymentservice.domain.accountRegistration.events.*
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistration
 import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrationRepository
+import java.time.Instant
 import mu.KotlinLogging
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.eventhandling.Timestamp
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
 @Component
 @Transactional
 class AccountRegistrationEventListener(
-  val repository: AccountRegistrationRepository
+    val repository: AccountRegistrationRepository
 ) {
 
   @EventHandler

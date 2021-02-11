@@ -5,12 +5,12 @@ import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO
 
 data class DirectDebitOrderInfo(
 
-  val memberId: String,
-  val personalNumber: String,
-  val firstName: String,
-  val lastName: String,
-  val triggerId: String? = null,
-  val redirectingToBotService: Boolean = false
+    val memberId: String,
+    val personalNumber: String,
+    val firstName: String,
+    val lastName: String,
+    val triggerId: String? = null,
+    val redirectingToBotService: Boolean = false
 ) {
   constructor(request: DirectDebitRequest, isRedirectingToBotService: Boolean) :
     this(
@@ -23,11 +23,10 @@ data class DirectDebitOrderInfo(
     )
 
   constructor(
-    memberId: String,
-    request: RegisterDirectDebitRequestDTO,
-    isRedirectingToBotService: Boolean
+      memberId: String,
+      request: RegisterDirectDebitRequestDTO,
+      isRedirectingToBotService: Boolean
   ) : this(memberId, request.personalNumber, request.firstName, request.lastName, null, isRedirectingToBotService)
-
 
   companion object {
     fun fromMember(m: Member): DirectDebitOrderInfo {

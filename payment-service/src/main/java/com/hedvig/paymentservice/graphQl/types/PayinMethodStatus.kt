@@ -5,7 +5,6 @@ import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 enum class PayinMethodStatus {
     ACTIVE, PENDING, NEEDS_SETUP;
 
-
     companion object {
         fun fromTrustlyDirectDebitStatus(status: DirectDebitStatus): PayinMethodStatus {
             return when (status) {

@@ -6,8 +6,7 @@ import org.axonframework.serialization.upcasting.event.IntermediateEventRepresen
 import org.axonframework.serialization.upcasting.event.SingleEventUpcaster
 import org.dom4j.Document
 
-class AdyenTokenRegistrationAuthorisedEventUpcaster(
-) : SingleEventUpcaster() {
+class AdyenTokenRegistrationAuthorisedEventUpcaster() : SingleEventUpcaster() {
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
     val initialEvent = SimpleSerializedType(AdyenTokenRegistrationAuthorisedEvent::class.java.typeName, null)
     return (intermediateRepresentation.type == initialEvent)

@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 
 interface NotificationService {
 
-  fun updateCustomer(memberId:String, data:Map<String, Any?>)
+  fun updateCustomer(memberId: String, data: Map<String, Any?>)
 
-  fun updateCustomer(memberId:String, data: JsonNode)
-
+  fun updateCustomer(memberId: String, data: JsonNode)
 }
