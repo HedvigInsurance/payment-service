@@ -4,5 +4,8 @@ import java.util.UUID
 
 class SwishPayoutTransactionFailedEvent(
     val transactionId: UUID,
-    val memberId: String
+    val memberId: String,
+    val errorCode :String?,
+    val errorMessage :String?,
+    val additionalInformation :String?
 )

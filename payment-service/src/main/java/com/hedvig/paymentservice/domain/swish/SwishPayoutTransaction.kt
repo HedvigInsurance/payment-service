@@ -55,27 +55,28 @@ class SwishPayoutTransaction() {
         )
 
         val response = swishService.startPayout(
-            cmd.transactionId,
-            cmd.phoneNumber,
-            cmd.ssn,
-            cmd.amount,
-            cmd.message,
-            LocalDateTime.now()
+            transactionId = cmd.transactionId,
+            memberId = cmd.memberId,
+            payeeAlias = cmd.phoneNumber,
+            payeeSSN = cmd.ssn,
+            amount = cmd.amount,
+            message = cmd.message,
+            instructionDate = LocalDateTime.now()
         )
 
         when (response) {
             StartPayoutResponse.Success -> AggregateLifecycle.apply(
                 SwishPayoutTransactionConfirmedEvent(
-                    cmd.transactionId,
-                    cmd.memberId
+                    transactionId = cmd.transactionId,
+                    memberId = cmd.memberId
                 )
             )
             is StartPayoutResponse.Failed -> AggregateLifecycle.apply(
                 SwishPayoutTransactionCanceledEvent(
-                    cmd.transactionId,
-                    cmd.memberId,
-                    response.exceptionMessage ?: "exception",
-                    response.status
+                    transactionId = cmd.transactionId,
+                    memberId = cmd.memberId,
+                    reason = response.exceptionMessage ?: "exception",
+                    httpStatusCode = response.status
                 )
             )
         }
@@ -138,8 +139,8 @@ class SwishPayoutTransaction() {
         if (transactionStatus != SwishPayoutTransactionStatus.COMPLETED) {
             AggregateLifecycle.apply(
                 SwishPayoutTransactionCompletedEvent(
-                    cmd.transactionId,
-                    cmd.memberId
+                    transactionId = cmd.transactionId,
+                    memberId = cmd.memberId
                 )
             )
         }
@@ -150,8 +151,11 @@ class SwishPayoutTransaction() {
         if (transactionStatus != SwishPayoutTransactionStatus.FAILED) {
             AggregateLifecycle.apply(
                 SwishPayoutTransactionFailedEvent(
-                    cmd.transactionId,
-                    cmd.memberId
+                    transactionId = cmd.transactionId,
+                    memberId = cmd.memberId,
+                    errorCode = cmd.errorCode,
+                    errorMessage = cmd.errorMessage,
+                    additionalInformation = cmd.additionalInformation
                 )
             )
         }
