@@ -5,6 +5,7 @@ import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
+import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutHandler
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService
@@ -99,7 +100,8 @@ class PaymentService(
                 request.note,
                 request.handler,
                 member.email,
-                request.carrier
+                request.carrier,
+                request.payoutHandler?.toCommand() ?: SelectedPayoutHandler.NotSelected
             )
         )
         return if (result) Optional.of(transactionId) else Optional.empty()

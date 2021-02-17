@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.domain.payments
 
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
+import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutHandler
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.enums.Carrier
@@ -479,7 +480,8 @@ class MemberTest {
         referenceId = null,
         note = null,
         handler = null,
-        carrier = Carrier.HDI
+        carrier = Carrier.HDI,
+        selectedPayoutHandler = SelectedPayoutHandler.NotSelected
     )
 
     private fun makeChargeCreatedEvent(

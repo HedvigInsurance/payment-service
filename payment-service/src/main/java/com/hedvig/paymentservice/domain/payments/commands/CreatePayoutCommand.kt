@@ -25,13 +25,6 @@ data class CreatePayoutCommand(
     val handler: String?,
     val email: String,
     val carrier: Carrier?,
-    val selectedPayoutHandler: SelectedPayoutHandler = SelectedPayoutHandler.NotSelected
+    val selectedPayoutHandler: SelectedPayoutHandler
 )
 
-sealed class SelectedPayoutHandler {
-    data class Swish(
-        val phoneNumber: String,
-        val ssn: String
-    ): SelectedPayoutHandler()
-    object NotSelected: SelectedPayoutHandler()
-}

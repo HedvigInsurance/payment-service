@@ -170,7 +170,8 @@ class Member() {
                         carrier = command.carrier,
                         payoutHandler = PayoutHandler.Swish(
                             command.selectedPayoutHandler.phoneNumber,
-                            command.selectedPayoutHandler.ssn
+                            command.selectedPayoutHandler.ssn,
+                            command.selectedPayoutHandler.message
                         )
                     )
                 )
