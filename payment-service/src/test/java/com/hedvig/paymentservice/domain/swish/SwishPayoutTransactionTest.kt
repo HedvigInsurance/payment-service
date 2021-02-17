@@ -66,7 +66,7 @@ class SwishPayoutTransactionTest {
     }
 
     @Test
-    fun `on InitiateSwishTransactionPayoutCommand with successful start of payout expect SwishPayoutTransactionInitiatedEvent and SwishPayoutTransactionCanceledEvent`() {
+    fun `on InitiateSwishTransactionPayoutCommand with failed start of payout expect SwishPayoutTransactionInitiatedEvent and SwishPayoutTransactionCanceledEvent`() {
         every { swishService.startPayout(any(), any(), any(), any(), any(), any(), any()) } returns StartPayoutResponse.Failed("message", 422)
 
         fixture.givenNoPriorActivity()
