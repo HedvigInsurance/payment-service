@@ -12,6 +12,7 @@ import com.neovisionaries.i18n.CountryCode
 import com.neovisionaries.i18n.CurrencyCode
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import kotlin.jvm.Throws
 
 @Component
 class AdyenMerchantPicker(
