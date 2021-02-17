@@ -23,6 +23,7 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCo
 import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent;
+import com.hedvig.paymentservice.domain.payments.events.PayoutHandler;
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
@@ -35,6 +36,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
+import com.hedvig.paymentservice.web.dtos.SelectedPayoutHandler;
 import lombok.val;
 import org.assertj.core.api.Assertions;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -116,7 +118,8 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            null
+            null,
+            SelectedPayoutHandler.NotSelected.INSTANCE
         );
 
         mockMvc
@@ -145,7 +148,8 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            null
+            null,
+            SelectedPayoutHandler.NotSelected.INSTANCE
         );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
@@ -180,7 +184,8 @@ public class PayoutIntegrationTest {
                 null,
                 null,
                 null,
-                null
+                null,
+                SelectedPayoutHandler.NotSelected.INSTANCE
             );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
@@ -208,7 +213,8 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            null
+            null,
+            SelectedPayoutHandler.NotSelected.INSTANCE
         );
 
         mockMvc
@@ -232,7 +238,9 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            null);
+            null,
+            SelectedPayoutHandler.NotSelected.INSTANCE
+        );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
 
@@ -251,6 +259,44 @@ public class PayoutIntegrationTest {
 
         final String category = getCategoryFromEventStore(eventStore);
         Assertions.assertThat(category).isEqualTo(TransactionCategory.MARKETING.name());
+    }
+
+    @Test
+    public void givenSwishPayout_WhenCreatingPayout_ThenShouldCreatePayoutCreatedEventForSwish()
+        throws Exception {
+
+        final PayoutRequestDTO payoutRequest = new PayoutRequestDTO(
+            TRANSACTION_AMOUNT,
+            true,
+            null,
+            null,
+            null,
+            null,
+            null,
+            new SelectedPayoutHandler.Swish(
+                "phoneNumber",
+                "ssn",
+                "message"
+            )
+        );
+
+        mockMvc
+            .perform(
+                post(String.format("/v2/_/members/%s/payout", TOLVANSSON_MEMBER_ID))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(payoutRequest)))
+            .andExpect(status().isAccepted());
+
+        final List<? extends DomainEventMessage<?>> memberEvents = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream().collect(Collectors.toList());
+
+        assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
+
+        final PayoutHandler payoutHandler = getPayoutHandlerFromEventStore(eventStore);
+        Assertions.assertThat(payoutHandler).isInstanceOf(PayoutHandler.Swish.class);
+        final PayoutHandler.Swish swish = (PayoutHandler.Swish) payoutHandler;
+        Assertions.assertThat(swish.getPhoneNumber()).isEqualTo("phoneNumber");
+        Assertions.assertThat(swish.getSsn()).isEqualTo("ssn");
+        Assertions.assertThat(swish.getMessage()).isEqualTo("message");
     }
 
     private void updateTrustly() {
@@ -279,6 +325,14 @@ public class PayoutIntegrationTest {
             .map(event -> (PayoutCreatedEvent) event.getPayload())
             .findFirst();
         return payoutCreatedEvent.get().getCategory().name();
+    }
+
+    private PayoutHandler getPayoutHandlerFromEventStore(EventStore eventStore) {
+        final Optional<PayoutCreatedEvent> payoutCreatedEvent = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream()
+            .filter(event -> event.getPayloadType().getTypeName().equalsIgnoreCase(PayoutCreatedEvent.class.getTypeName()))
+            .map(event -> (PayoutCreatedEvent) event.getPayload())
+            .findFirst();
+        return payoutCreatedEvent.get().getPayoutHandler();
     }
 
     private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {
