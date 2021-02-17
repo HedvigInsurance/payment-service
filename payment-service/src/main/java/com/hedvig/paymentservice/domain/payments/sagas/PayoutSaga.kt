@@ -2,10 +2,10 @@ package com.hedvig.paymentservice.domain.payments.sagas
 
 import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionPayoutCommand
+import com.hedvig.paymentservice.domain.swish.commands.InitiateSwishTransactionPayoutCommand
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand
-import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.services.trustly.TrustlyService
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest
 import org.axonframework.commandhandling.gateway.CommandGateway
@@ -20,19 +20,15 @@ import java.util.UUID
 class PayoutSaga {
     @Autowired
     @Transient
-    var commandGateway: CommandGateway? = null
+    lateinit var commandGateway: CommandGateway
 
     @Autowired
     @Transient
-    var trustlyService: TrustlyService? = null
+    lateinit var trustlyService: TrustlyService
 
     @Autowired
     @Transient
-    var adyenService: AdyenService? = null
-
-    @Autowired
-    @Transient
-    var uuidGenerator: UUIDGenerator? = null
+    lateinit var uuidGenerator: UUIDGenerator
 
     @StartSaga
     @SagaEventHandler(associationProperty = "memberId")
@@ -41,7 +37,7 @@ class PayoutSaga {
         is PayoutHandler.Trustly -> {
             val hedvigOrderId = commandGateway!!.sendAndWait<UUID>(
                 CreatePayoutOrderCommand(
-                    uuidGenerator!!.generateRandom(),
+                    uuidGenerator.generateRandom(),
                     event.transactionId,
                     event.memberId,
                     event.amount,
@@ -53,7 +49,7 @@ class PayoutSaga {
                     event.lastName
                 )
             )
-            trustlyService!!.startPayoutOrder(
+            trustlyService.startPayoutOrder(
                 PayoutRequest(
                     event.memberId,
                     event.amount,
@@ -70,7 +66,7 @@ class PayoutSaga {
             )
         }
         is PayoutHandler.Adyen -> {
-            commandGateway!!.sendAndWait<Any>(
+            commandGateway.sendAndWait<Any>(
                 InitiateAdyenTransactionPayoutCommand(
                     event.transactionId,
                     event.memberId,
@@ -80,6 +76,15 @@ class PayoutSaga {
                 )
             )
         }
-        is PayoutHandler.Swish -> TODO()
+        is PayoutHandler.Swish -> commandGateway.sendAndWait<Any>(
+            InitiateSwishTransactionPayoutCommand(
+                event.transactionId,
+                event.memberId,
+                event.payoutHandler.phoneNumber,
+                event.payoutHandler.ssn,
+                event.payoutHandler.message,
+                event.amount
+            )
+        )
     }
 }

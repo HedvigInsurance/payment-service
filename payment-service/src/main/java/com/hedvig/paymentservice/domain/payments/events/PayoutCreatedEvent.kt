@@ -38,6 +38,7 @@ sealed class PayoutHandler {
 
     data class Swish(
         val phoneNumber: String,
-        val ssn: String
+        val ssn: String,
+        val message: String
     ) : PayoutHandler()
 }

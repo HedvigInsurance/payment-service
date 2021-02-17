@@ -2,11 +2,13 @@ package com.hedvig.paymentservice.services.swish
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import feign.Client
+import feign.FeignException
 import org.apache.http.conn.ssl.DefaultHostnameVerifier
 import org.apache.http.ssl.SSLContexts
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.openssl.PEMParser
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
+import org.javamoney.moneta.Money
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,6 +32,7 @@ import java.security.Signature
 import java.time.LocalDateTime
 import java.util.Base64
 import java.util.UUID
+import javax.money.MonetaryAmount
 import javax.net.ssl.SSLSocketFactory
 
 @Configuration
@@ -42,6 +45,14 @@ class SwishConfigurationProperties {
     lateinit var callbackUrl: String
 }
 
+sealed class StartPayoutResponse {
+    object Success: StartPayoutResponse()
+    data class Failed(
+        val exceptionMessage: String?,
+        val status: Int?
+    ) : StartPayoutResponse()
+}
+
 @Service
 class SwishService(
     val objectMapper: ObjectMapper,
@@ -49,16 +60,16 @@ class SwishService(
     val properties : SwishConfigurationProperties
 ) {
     fun startPayout(
-        payerPaymentReference: String,
+        transactionId: UUID,
         payeeAlias: String,
         payeeSSN: String,
-        amount: BigDecimal,
+        amount: MonetaryAmount,
         message: String,
         instructionDate: LocalDateTime,
-    ) {
+    ): StartPayoutResponse {
         val payload = PayoutPayload(
-            UUID.randomUUID().toString().replace("-", "").toUpperCase(),
-            payerPaymentReference,
+            transactionId.toString().replace("-", "").toUpperCase(),
+            transactionId,
             payeeAlias,
             payeeSSN,
             String.format("%.2f", amount),
@@ -69,13 +80,12 @@ class SwishService(
         val json = objectMapper.writeValueAsString(payload)
         val signature = SwishSignature.createSignature(json, properties.signingPrivatePemPath)
         val req = PayoutRequest(payload, signature, properties.callbackUrl)
-        val response = try {
+        return try {
             client.payout(req)
+            StartPayoutResponse.Success
         } catch (e: Exception) {
-            log.error(e.message)
-            throw e
+            StartPayoutResponse.Failed(e.message, (e as FeignException?)?.status())
         }
-        log.info(response.toString())
     }
 
     data class PayoutRequest(
@@ -86,7 +96,7 @@ class SwishService(
 
     data class PayoutPayload(
         val payoutInstructionUUID: String,
-        val payerPaymentReference: String,
+        val payerPaymentReference: UUID,
         val payeeAlias: String,
         val payeeSSN: String,
         val amount: String,
@@ -137,10 +147,10 @@ class SwishController(
     @GetMapping("payout")
     fun payout() {
         swishService.startPayout(
-            payerPaymentReference = "payerPaymentReference",
+            transactionId = UUID.randomUUID(),
             payeeAlias = "46726738711",
             payeeSSN = "198607209882",
-            amount = BigDecimal.TEN,
+            amount = Money.of(10, "SEK"),
             message = "message",
             instructionDate = LocalDateTime.now(),
         )
