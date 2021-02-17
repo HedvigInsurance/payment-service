@@ -1,6 +1,5 @@
 package com.hedvig.paymentservice.domain.swish
 
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand
 import com.hedvig.paymentservice.domain.swish.commands.InitiateSwishTransactionPayoutCommand
@@ -36,7 +35,7 @@ class SwishPayoutTransaction() {
 
     @Autowired
     @Transient
-    private lateinit var commandGateway: CommandGateway
+    lateinit var commandGateway: CommandGateway
 
     @CommandHandler
     constructor(
@@ -87,24 +86,11 @@ class SwishPayoutTransaction() {
     }
 
     @EventSourcingHandler
-    fun on(e: AdyenPayoutTransactionInitiatedEvent) {
+    fun on(e: SwishPayoutTransactionInitiatedEvent) {
         transactionId = e.transactionId
         memberId = e.memberId
         transactionStatus = SwishPayoutTransactionStatus.INITIATED
         amount = e.amount
-    }
-
-    @EventSourcingHandler
-    fun on(e: SwishPayoutTransactionCanceledEvent) {
-        transactionStatus = SwishPayoutTransactionStatus.CANCELLED
-        commandGateway.sendAndWait<Any>(
-            PayoutFailedCommand(
-                memberId = e.memberId,
-                transactionId = e.transactionId,
-                amount = amount,
-                timestamp = Instant.now()
-            )
-        )
     }
 
     @EventSourcingHandler
@@ -117,6 +103,19 @@ class SwishPayoutTransaction() {
         transactionStatus = SwishPayoutTransactionStatus.COMPLETED
         commandGateway.sendAndWait<Any>(
             PayoutCompletedCommand(
+                memberId = e.memberId,
+                transactionId = e.transactionId,
+                amount = amount,
+                timestamp = Instant.now()
+            )
+        )
+    }
+
+    @EventSourcingHandler
+    fun on(e: SwishPayoutTransactionCanceledEvent) {
+        transactionStatus = SwishPayoutTransactionStatus.CANCELLED
+        commandGateway.sendAndWait<Any>(
+            PayoutFailedCommand(
                 memberId = e.memberId,
                 transactionId = e.transactionId,
                 amount = amount,
