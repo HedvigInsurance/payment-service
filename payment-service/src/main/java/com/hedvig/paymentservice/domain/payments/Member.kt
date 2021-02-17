@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand
+import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutHandler
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenPayoutAccountCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
@@ -32,6 +33,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -147,65 +149,91 @@ class Member() {
         require(command.category != TransactionCategory.CLAIM || command.carrier != null) {
             throw IllegalArgumentException("Illegal to create a claim payout without carrier (memberId=$memberId)")
         }
-        getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
-            apply(
-                PayoutCreatedEvent(
-                    memberId = memberId,
-                    transactionId = command.transactionId,
-                    amount = command.amount,
-                    address = command.address,
-                    countryCode = command.countryCode,
-                    dateOfBirth = command.dateOfBirth,
-                    firstName = command.firstName,
-                    lastName = command.lastName,
-                    timestamp = command.timestamp,
-                    trustlyAccountId = trustlyAccount.accountId,
-                    category = command.category,
-                    referenceId = command.referenceId,
-                    note = command.note,
-                    handler = command.handler,
-                    adyenShopperReference = null,
-                    email = command.email,
-                    carrier = command.carrier
+
+        when (command.selectedPayoutHandler) {
+            is SelectedPayoutHandler.Swish -> {
+                apply(
+                    PayoutCreatedEvent(
+                        memberId = memberId,
+                        transactionId = command.transactionId,
+                        amount = command.amount,
+                        address = command.address,
+                        countryCode = command.countryCode,
+                        dateOfBirth = command.dateOfBirth,
+                        firstName = command.firstName,
+                        lastName = command.lastName,
+                        timestamp = command.timestamp,
+                        category = command.category,
+                        referenceId = command.referenceId,
+                        note = command.note,
+                        email = command.email,
+                        carrier = command.carrier,
+                        payoutHandler = PayoutHandler.Swish(
+                            command.selectedPayoutHandler.phoneNumber,
+                            command.selectedPayoutHandler.ssn
+                        )
+                    )
                 )
-            )
-            return true
-        }
-
-        adyenPayoutAccount?.let { account ->
-            require(command.category == TransactionCategory.CLAIM) {
-                throw IllegalArgumentException("Illegal to create payout with adyen that is not of type claim (memberId=$memberId)")
+                return true
             }
-            require(command.carrier == Carrier.HEDVIG) {
-                throw IllegalArgumentException("Illegal to create payout with adyen that does not have Hedvig as a carrier (memberId=$memberId)")
-            }
-            PayoutCreatedEvent(
-                memberId = memberId,
-                transactionId = command.transactionId,
-                amount = command.amount,
-                address = command.address,
-                countryCode = command.countryCode,
-                dateOfBirth = command.dateOfBirth,
-                firstName = command.firstName,
-                lastName = command.lastName,
-                timestamp = command.timestamp,
-                category = command.category,
-                referenceId = command.referenceId,
-                note = command.note,
-                handler = command.handler,
-                adyenShopperReference = account.shopperReference,
-                trustlyAccountId = null,
-                email = command.email,
-                carrier = command.carrier
-            )
-            return true
-        }
+            SelectedPayoutHandler.NotSelected -> {
+                getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
+                    apply(
+                        PayoutCreatedEvent(
+                            memberId = memberId,
+                            transactionId = command.transactionId,
+                            amount = command.amount,
+                            address = command.address,
+                            countryCode = command.countryCode,
+                            dateOfBirth = command.dateOfBirth,
+                            firstName = command.firstName,
+                            lastName = command.lastName,
+                            timestamp = command.timestamp,
+                            category = command.category,
+                            referenceId = command.referenceId,
+                            note = command.note,
+                            email = command.email,
+                            carrier = command.carrier,
+                            payoutHandler = PayoutHandler.Trustly(trustlyAccount.accountId)
+                        )
+                    )
+                    return true
+                }
 
-        log.info("Cannot payout account - no payout account is set up")
-        apply(
-            PayoutCreationFailedEvent(memberId, command.transactionId, command.amount, command.timestamp)
-        )
-        return false
+                adyenPayoutAccount?.let { account ->
+                    require(command.category == TransactionCategory.CLAIM) {
+                        throw IllegalArgumentException("Illegal to create payout with adyen that is not of type claim (memberId=$memberId)")
+                    }
+                    require(command.carrier == Carrier.HEDVIG) {
+                        throw IllegalArgumentException("Illegal to create payout with adyen that does not have Hedvig as a carrier (memberId=$memberId)")
+                    }
+                    PayoutCreatedEvent(
+                        memberId = memberId,
+                        transactionId = command.transactionId,
+                        amount = command.amount,
+                        address = command.address,
+                        countryCode = command.countryCode,
+                        dateOfBirth = command.dateOfBirth,
+                        firstName = command.firstName,
+                        lastName = command.lastName,
+                        timestamp = command.timestamp,
+                        category = command.category,
+                        referenceId = command.referenceId,
+                        note = command.note,
+                        email = command.email,
+                        carrier = command.carrier,
+                        payoutHandler = PayoutHandler.Adyen(account.shopperReference)
+                    )
+                    return true
+                }
+
+                log.info("Cannot payout account - no payout account is set up")
+                apply(
+                    PayoutCreationFailedEvent(memberId, command.transactionId, command.amount, command.timestamp)
+                )
+                return false
+            }
+        }
     }
 
     @CommandHandler

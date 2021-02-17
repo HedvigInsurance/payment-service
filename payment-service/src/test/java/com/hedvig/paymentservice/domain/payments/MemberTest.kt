@@ -14,6 +14,7 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedE
 import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -513,10 +514,8 @@ class MemberTest {
         category = TransactionCategory.CLAIM,
         referenceId = null,
         note = null,
-        handler = null,
         carrier = Carrier.HDI,
-        trustlyAccountId = trustlyAccountId,
-        adyenShopperReference = adyenShopperReference
+        payoutHandler = PayoutHandler.Trustly(trustlyAccountId!!)
     )
 
     private fun makeChargeCreationFailedEvent(

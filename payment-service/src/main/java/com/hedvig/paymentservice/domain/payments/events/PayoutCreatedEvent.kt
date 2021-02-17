@@ -35,4 +35,9 @@ sealed class PayoutHandler {
     data class Adyen(
         val shopperReference: String
     ) : PayoutHandler()
+
+    data class Swish(
+        val phoneNumber: String,
+        val ssn: String
+    ) : PayoutHandler()
 }
