@@ -43,6 +43,10 @@ class SwishPayoutTransaction() {
         cmd: InitiateSwishTransactionPayoutCommand,
         swishService: SwishService
     ) : this() {
+        require(cmd.amount.currency.currencyCode == "SEK") {
+            throw IllegalArgumentException("Only sek is supported for swish payout")
+        }
+
         AggregateLifecycle.apply(
             SwishPayoutTransactionInitiatedEvent(
                 transactionId = cmd.transactionId,

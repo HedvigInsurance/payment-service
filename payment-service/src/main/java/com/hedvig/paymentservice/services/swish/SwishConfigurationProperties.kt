@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "swish")
 class SwishConfigurationProperties {
+    lateinit var payerAlias: String
     lateinit var tlsCertPath: String
     lateinit var tlsCertPassword: String
     lateinit var signingPrivatePemPath: String
