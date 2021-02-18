@@ -4,7 +4,11 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.AdyenTokenRegistrationAuthorisedEventUpcasterV2;
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.PendingAdyenTokenRegistrationCreatedEventUpcaster;
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.PendingAdyenTokenRegistrationCreatedEventUpcasterV2;
-import com.hedvig.paymentservice.domain.payments.events.upcasters.*;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.ChargeCreatedEventUpcaster;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventUpCaster;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventV2UpCaster;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventV3UpCaster;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.TrustlyAccountCreatedUpCaster;
 import org.axonframework.config.EventProcessingConfiguration;
 import org.axonframework.eventhandling.TrackingEventProcessorConfiguration;
 import org.axonframework.messaging.StreamableMessageSource;
