@@ -4,7 +4,6 @@ import static com.hedvig.paymentservice.domain.DomainTestUtilities.hasEvent;
 import static com.hedvig.paymentservice.trustly.testHelpers.TestData.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -23,7 +22,7 @@ import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCo
 import com.hedvig.paymentservice.domain.payments.events.PayoutCompletedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent;
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent;
-import com.hedvig.paymentservice.domain.payments.events.PayoutHandler;
+import com.hedvig.paymentservice.domain.payments.events.PayoutDetails;
 import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat;
 import com.hedvig.paymentservice.serviceIntergration.memberService.dto.Member;
 import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
@@ -36,8 +35,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
-import com.hedvig.paymentservice.web.dtos.SelectedPayoutHandler;
-import lombok.val;
+import com.hedvig.paymentservice.web.dtos.SelectedPayoutDetails;
 import org.assertj.core.api.Assertions;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.eventsourcing.DomainEventMessage;
@@ -119,7 +117,7 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            SelectedPayoutHandler.NotSelected.INSTANCE
+            SelectedPayoutDetails.NotSelected.INSTANCE
         );
 
         mockMvc
@@ -149,7 +147,7 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            SelectedPayoutHandler.NotSelected.INSTANCE
+            SelectedPayoutDetails.NotSelected.INSTANCE
         );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
@@ -185,7 +183,7 @@ public class PayoutIntegrationTest {
                 null,
                 null,
                 null,
-                SelectedPayoutHandler.NotSelected.INSTANCE
+                SelectedPayoutDetails.NotSelected.INSTANCE
             );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_FAIL);
@@ -214,7 +212,7 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            SelectedPayoutHandler.NotSelected.INSTANCE
+            SelectedPayoutDetails.NotSelected.INSTANCE
         );
 
         mockMvc
@@ -239,7 +237,7 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            SelectedPayoutHandler.NotSelected.INSTANCE
+            SelectedPayoutDetails.NotSelected.INSTANCE
         );
 
         mockTrustlyApiResponse(TrustlyApiResponseResult.SHOULD_SUCCEED);
@@ -273,7 +271,7 @@ public class PayoutIntegrationTest {
             null,
             null,
             null,
-            new SelectedPayoutHandler.Swish(
+            new SelectedPayoutDetails.Swish(
                 "phoneNumber",
                 "ssn",
                 "message"
@@ -291,9 +289,9 @@ public class PayoutIntegrationTest {
 
         assertThat(memberEvents, hasEvent(PayoutCreatedEvent.class));
 
-        final PayoutHandler payoutHandler = getPayoutHandlerFromEventStore(eventStore);
-        Assertions.assertThat(payoutHandler).isInstanceOf(PayoutHandler.Swish.class);
-        final PayoutHandler.Swish swish = (PayoutHandler.Swish) payoutHandler;
+        final PayoutDetails payoutDetails = getPayoutDetailsFromEventStore(eventStore);
+        Assertions.assertThat(payoutDetails).isInstanceOf(PayoutDetails.Swish.class);
+        final PayoutDetails.Swish swish = (PayoutDetails.Swish) payoutDetails;
         Assertions.assertThat(swish.getPhoneNumber()).isEqualTo("phoneNumber");
         Assertions.assertThat(swish.getSsn()).isEqualTo("ssn");
         Assertions.assertThat(swish.getMessage()).isEqualTo("message");
@@ -327,12 +325,12 @@ public class PayoutIntegrationTest {
         return payoutCreatedEvent.get().getCategory().name();
     }
 
-    private PayoutHandler getPayoutHandlerFromEventStore(EventStore eventStore) {
+    private PayoutDetails getPayoutDetailsFromEventStore(EventStore eventStore) {
         final Optional<PayoutCreatedEvent> payoutCreatedEvent = eventStore.readEvents(TOLVANSSON_MEMBER_ID).asStream()
             .filter(event -> event.getPayloadType().getTypeName().equalsIgnoreCase(PayoutCreatedEvent.class.getTypeName()))
             .map(event -> (PayoutCreatedEvent) event.getPayload())
             .findFirst();
-        return payoutCreatedEvent.get().getPayoutHandler();
+        return payoutCreatedEvent.get().getPayoutDetails();
     }
 
     private void mockTrustlyApiResponse(TrustlyApiResponseResult result) {

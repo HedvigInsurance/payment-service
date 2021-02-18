@@ -12,5 +12,5 @@ data class PayoutRequestDTO(
     val note: String?,
     val handler: String?,
     val carrier: Carrier?,
-    val payoutHandler: SelectedPayoutHandler?
+    val payoutDetails: SelectedPayoutDetails?
 )

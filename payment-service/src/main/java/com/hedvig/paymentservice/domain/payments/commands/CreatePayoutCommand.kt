@@ -25,6 +25,6 @@ data class CreatePayoutCommand(
     val handler: String?,
     val email: String,
     val carrier: Carrier?,
-    val selectedPayoutHandler: SelectedPayoutHandler
+    val selectedPayoutDetails: SelectedPayoutDetails
 )
 

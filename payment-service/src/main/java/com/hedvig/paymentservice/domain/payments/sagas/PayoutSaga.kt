@@ -4,7 +4,7 @@ import com.hedvig.paymentservice.common.UUIDGenerator
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.InitiateAdyenTransactionPayoutCommand
 import com.hedvig.paymentservice.domain.swish.commands.InitiateSwishTransactionPayoutCommand
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
-import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
+import com.hedvig.paymentservice.domain.payments.events.PayoutDetails
 import com.hedvig.paymentservice.domain.trustlyOrder.commands.CreatePayoutOrderCommand
 import com.hedvig.paymentservice.services.trustly.TrustlyService
 import com.hedvig.paymentservice.services.trustly.dto.PayoutRequest
@@ -33,15 +33,15 @@ class PayoutSaga {
     @StartSaga
     @SagaEventHandler(associationProperty = "memberId")
     @EndSaga
-    fun on(event: PayoutCreatedEvent) = when (event.payoutHandler) {
-        is PayoutHandler.Trustly -> {
+    fun on(event: PayoutCreatedEvent) = when (event.payoutDetails) {
+        is PayoutDetails.Trustly -> {
             val hedvigOrderId = commandGateway!!.sendAndWait<UUID>(
                 CreatePayoutOrderCommand(
                     uuidGenerator.generateRandom(),
                     event.transactionId,
                     event.memberId,
                     event.amount,
-                    event.payoutHandler.accountId,
+                    event.payoutDetails.accountId,
                     event.address,
                     event.countryCode,
                     event.dateOfBirth,
@@ -53,7 +53,7 @@ class PayoutSaga {
                 PayoutRequest(
                     event.memberId,
                     event.amount,
-                    event.payoutHandler.accountId,
+                    event.payoutDetails.accountId,
                     event.address,
                     event.countryCode,
                     event.dateOfBirth,
@@ -65,24 +65,24 @@ class PayoutSaga {
                 hedvigOrderId
             )
         }
-        is PayoutHandler.Adyen -> {
+        is PayoutDetails.Adyen -> {
             commandGateway.sendAndWait<Any>(
                 InitiateAdyenTransactionPayoutCommand(
                     event.transactionId,
                     event.memberId,
-                    event.payoutHandler.shopperReference,
+                    event.payoutDetails.shopperReference,
                     event.amount,
                     event.email ?: ""
                 )
             )
         }
-        is PayoutHandler.Swish -> commandGateway.sendAndWait<Any>(
+        is PayoutDetails.Swish -> commandGateway.sendAndWait<Any>(
             InitiateSwishTransactionPayoutCommand(
                 event.transactionId,
                 event.memberId,
-                event.payoutHandler.phoneNumber,
-                event.payoutHandler.ssn,
-                event.payoutHandler.message,
+                event.payoutDetails.phoneNumber,
+                event.payoutDetails.ssn,
+                event.payoutDetails.message,
                 event.amount
             )
         )

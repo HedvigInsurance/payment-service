@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.domain.payments.events.upcasters
 
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
-import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
+import com.hedvig.paymentservice.domain.payments.events.PayoutDetails
 import java.util.stream.Collectors.toList
 import java.util.stream.Stream
 import org.axonframework.eventsourcing.GenericDomainEventMessage
@@ -45,8 +45,8 @@ class PayoutUpcasterTest {
             serializer.deserialize<PayoutCreatedEvent, PayoutCreatedEvent>(firstEvent.getData() as SerializedObject<PayoutCreatedEvent>)
 
         assertEquals("123", upcastedEvent.memberId)
-        assert(upcastedEvent.payoutHandler is PayoutHandler.Trustly)
-        assertEquals("TrustlyAccountId", (upcastedEvent.payoutHandler as PayoutHandler.Trustly).accountId)
+        assert(upcastedEvent.payoutDetails is PayoutDetails.Trustly)
+        assertEquals("TrustlyAccountId", (upcastedEvent.payoutDetails as PayoutDetails.Trustly).accountId)
 
         assertEquals(eventData.eventIdentifier, firstEvent.messageIdentifier)
         assertEquals(eventData.timestamp, firstEvent.timestamp)
@@ -82,8 +82,8 @@ class PayoutUpcasterTest {
             serializer.deserialize<PayoutCreatedEvent, PayoutCreatedEvent>(firstEvent.getData() as SerializedObject<PayoutCreatedEvent>)
 
         assertEquals("adyen", upcastedEvent.memberId)
-        assert(upcastedEvent.payoutHandler is PayoutHandler.Adyen)
-        assertEquals("adyenShopperReference123", (upcastedEvent.payoutHandler as PayoutHandler.Adyen).shopperReference)
+        assert(upcastedEvent.payoutDetails is PayoutDetails.Adyen)
+        assertEquals("adyenShopperReference123", (upcastedEvent.payoutDetails as PayoutDetails.Adyen).shopperReference)
 
         assertEquals(eventData.eventIdentifier, firstEvent.messageIdentifier)
         assertEquals(eventData.timestamp, firstEvent.timestamp)

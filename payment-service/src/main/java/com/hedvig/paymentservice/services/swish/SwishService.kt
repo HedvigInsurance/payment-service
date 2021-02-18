@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.services.swish.dto.PayoutPayload
 import com.hedvig.paymentservice.services.swish.dto.PayoutRequest
 import com.hedvig.paymentservice.services.swish.dto.StartPayoutResponse
 import com.hedvig.paymentservice.services.swish.util.SwishSignatureCreator
+import com.hedvig.paymentservice.services.swish.util.SwishUUIDConverter
 import feign.FeignException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -30,7 +31,7 @@ class SwishService(
     ): StartPayoutResponse {
         val payload = PayoutPayload(
             payerAlias = properties.payerAlias,
-            payoutInstructionUUID = transactionId.toString().replace("-", "").toUpperCase(),
+            payoutInstructionUUID = SwishUUIDConverter.fromTransactionIdToPayoutInstructionUUID(transactionId),
             payerPaymentReference = memberId,
             payeeAlias = payeeAlias,
             payeeSSN = payeeSSN,

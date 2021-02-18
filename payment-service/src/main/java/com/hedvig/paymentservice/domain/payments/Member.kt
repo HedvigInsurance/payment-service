@@ -7,7 +7,7 @@ import com.hedvig.paymentservice.domain.payments.commands.CreateMemberCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutCompletedCommand
 import com.hedvig.paymentservice.domain.payments.commands.PayoutFailedCommand
-import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutHandler
+import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutDetails
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenAccountCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateAdyenPayoutAccountCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
@@ -33,7 +33,7 @@ import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutErroredEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutFailedEvent
-import com.hedvig.paymentservice.domain.payments.events.PayoutHandler
+import com.hedvig.paymentservice.domain.payments.events.PayoutDetails
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -150,8 +150,8 @@ class Member() {
             throw IllegalArgumentException("Illegal to create a claim payout without carrier (memberId=$memberId)")
         }
 
-        when (command.selectedPayoutHandler) {
-            is SelectedPayoutHandler.Swish -> {
+        when (command.selectedPayoutDetails) {
+            is SelectedPayoutDetails.Swish -> {
                 apply(
                     PayoutCreatedEvent(
                         memberId = memberId,
@@ -168,16 +168,16 @@ class Member() {
                         note = command.note,
                         email = command.email,
                         carrier = command.carrier,
-                        payoutHandler = PayoutHandler.Swish(
-                            command.selectedPayoutHandler.phoneNumber,
-                            command.selectedPayoutHandler.ssn,
-                            command.selectedPayoutHandler.message
+                        payoutDetails = PayoutDetails.Swish(
+                            command.selectedPayoutDetails.phoneNumber,
+                            command.selectedPayoutDetails.ssn,
+                            command.selectedPayoutDetails.message
                         )
                     )
                 )
                 return true
             }
-            SelectedPayoutHandler.NotSelected -> {
+            SelectedPayoutDetails.NotSelected -> {
                 getTrustlyAccountBasedOnLatestHedvigOrder()?.let { trustlyAccount ->
                     apply(
                         PayoutCreatedEvent(
@@ -195,7 +195,7 @@ class Member() {
                             note = command.note,
                             email = command.email,
                             carrier = command.carrier,
-                            payoutHandler = PayoutHandler.Trustly(trustlyAccount.accountId)
+                            payoutDetails = PayoutDetails.Trustly(trustlyAccount.accountId)
                         )
                     )
                     return true
@@ -223,7 +223,7 @@ class Member() {
                         note = command.note,
                         email = command.email,
                         carrier = command.carrier,
-                        payoutHandler = PayoutHandler.Adyen(account.shopperReference)
+                        payoutDetails = PayoutDetails.Adyen(account.shopperReference)
                     )
                     return true
                 }
