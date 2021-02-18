@@ -10,7 +10,7 @@ import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionConfi
 import com.hedvig.paymentservice.domain.swish.commands.SwishPayoutTransactionFailedCommand
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionFailedEvent
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionInitiatedEvent
-import com.hedvig.paymentservice.services.swish.StartPayoutResponse
+import com.hedvig.paymentservice.services.swish.dto.StartPayoutResponse
 import com.hedvig.paymentservice.services.swish.SwishService
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.gateway.CommandGateway

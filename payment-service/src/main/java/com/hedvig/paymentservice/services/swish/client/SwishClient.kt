@@ -1,7 +1,6 @@
 package com.hedvig.paymentservice.services.swish.client
 
-import com.hedvig.paymentservice.services.swish.PayoutRequest
-import com.hedvig.paymentservice.services.swish.SwishService
+import com.hedvig.paymentservice.services.swish.dto.PayoutRequest
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping

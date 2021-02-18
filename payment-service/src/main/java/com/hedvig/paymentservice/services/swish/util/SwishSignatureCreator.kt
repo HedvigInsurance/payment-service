@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.services.swish
+package com.hedvig.paymentservice.services.swish.util
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.openssl.PEMParser

@@ -2,6 +2,11 @@ package com.hedvig.paymentservice.services.swish
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.hedvig.paymentservice.services.swish.client.SwishClient
+import com.hedvig.paymentservice.services.swish.config.SwishConfigurationProperties
+import com.hedvig.paymentservice.services.swish.dto.PayoutPayload
+import com.hedvig.paymentservice.services.swish.dto.PayoutRequest
+import com.hedvig.paymentservice.services.swish.dto.StartPayoutResponse
+import com.hedvig.paymentservice.services.swish.util.SwishSignatureCreator
 import feign.FeignException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -29,7 +34,7 @@ class SwishService(
             payerPaymentReference = memberId,
             payeeAlias = payeeAlias,
             payeeSSN = payeeSSN,
-            amount = String.format("%.2f", amount),
+            amount = String.format("%.2f", amount.number.doubleValueExact()),
             currency = amount.currency.currencyCode,
             message = message,
             instructionDate = instructionDate.toString(),

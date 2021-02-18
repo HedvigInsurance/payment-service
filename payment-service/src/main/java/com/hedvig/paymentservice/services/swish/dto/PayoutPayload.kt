@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.services.swish
+package com.hedvig.paymentservice.services.swish.dto
 
 data class PayoutPayload(
     val payerAlias: String,

@@ -6,7 +6,7 @@ import com.hedvig.paymentservice.domain.swish.commands.SwishPayoutTransactionFai
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionConfirmedEvent
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionInitiatedEvent
-import com.hedvig.paymentservice.services.swish.StartPayoutResponse
+import com.hedvig.paymentservice.services.swish.dto.StartPayoutResponse
 import com.hedvig.paymentservice.services.swish.SwishService
 import io.mockk.every
 import io.mockk.mockk

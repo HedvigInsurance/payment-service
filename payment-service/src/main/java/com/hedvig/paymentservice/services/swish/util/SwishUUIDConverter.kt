@@ -1,4 +1,4 @@
-package com.hedvig.paymentservice.services.swish
+package com.hedvig.paymentservice.services.swish.util
 
 import java.util.UUID
 

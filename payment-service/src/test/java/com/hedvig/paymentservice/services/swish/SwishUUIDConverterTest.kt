@@ -1,5 +1,6 @@
 package com.hedvig.paymentservice.services.swish
 
+import com.hedvig.paymentservice.services.swish.util.SwishUUIDConverter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.util.UUID

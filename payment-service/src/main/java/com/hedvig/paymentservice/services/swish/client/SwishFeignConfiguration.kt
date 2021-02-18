@@ -1,6 +1,6 @@
 package com.hedvig.paymentservice.services.swish.client
 
-import com.hedvig.paymentservice.services.swish.SwishConfigurationProperties
+import com.hedvig.paymentservice.services.swish.config.SwishConfigurationProperties
 import feign.Client
 import org.apache.http.conn.ssl.DefaultHostnameVerifier
 import org.apache.http.ssl.SSLContexts
