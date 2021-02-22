@@ -141,7 +141,7 @@ public class MemberEventListener {
         memberRepository.save(member);
     }
 
-
+    @Deprecated
     @EventHandler
     public void on(AdyenAccountCreatedEvent e) {
         Optional<Member> member = memberRepository.findById(e.getMemberId());
@@ -159,6 +159,7 @@ public class MemberEventListener {
         memberRepository.save(m);
     }
 
+    @Deprecated
     @EventHandler
     public void on(AdyenAccountUpdatedEvent e) {
         Optional<Member> member = memberRepository.findById(e.getMemberId());

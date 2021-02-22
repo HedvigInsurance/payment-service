@@ -4,17 +4,17 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEven
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitPendingConnectionEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
+import java.util.stream.Stream
 import org.axonframework.serialization.SimpleSerializedType
 import org.axonframework.serialization.upcasting.event.EventMultiUpcaster
 import org.axonframework.serialization.upcasting.event.IntermediateEventRepresentation
 import org.dom4j.Document
-import java.util.stream.Stream
 
 class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
 
   override fun canUpcast(intermediateRepresentation: IntermediateEventRepresentation): Boolean {
-    return intermediateRepresentation.type == eventTypes[TRUSTLY_ACCOUNT_CREATED]
-      && intermediateRepresentation.type.revision == eventTypes[TRUSTLY_ACCOUNT_CREATED]?.revision
+    return intermediateRepresentation.type == eventTypes[TRUSTLY_ACCOUNT_CREATED] &&
+      intermediateRepresentation.type.revision == eventTypes[TRUSTLY_ACCOUNT_CREATED]?.revision
   }
 
   override fun doUpcast(intermediateRepresentation: IntermediateEventRepresentation): Stream<IntermediateEventRepresentation> {
@@ -33,8 +33,8 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
   }
 
   private fun convertToDirectDebitRepresentation(
-    intermediateRepresentation: IntermediateEventRepresentation,
-    directDebit: Boolean?
+      intermediateRepresentation: IntermediateEventRepresentation,
+      directDebit: Boolean?
   ): IntermediateEventRepresentation? {
     val eventType = when (directDebit) {
       true -> CONNECTED
@@ -77,5 +77,4 @@ class TrustlyAccountCreatedUpCaster : EventMultiUpcaster() {
       TRUSTLY_ACCOUNT_CREATED_V1 to Pair(TrustlyAccountCreatedEvent::class.java.typeName, "1.0")
     ).mapValues { SimpleSerializedType(it.value.first, it.value.second) }
   }
-
 }

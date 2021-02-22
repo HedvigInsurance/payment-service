@@ -29,7 +29,7 @@ type Mutation {
     tokenizePaymentDetails (req: TokenizationRequest) : TokenizationResponse
     """Tokenize payout details per member in order to be used in future and returns the status"""
     tokenizePayoutDetails (req: TokenizationRequest) : TokenizationResponse
-    """Submite additional payment details"""
+    """Submit additional payment details"""
     submitAdditionalPaymentDetails (req: AdditionalPaymentsDetailsRequest) : AdditionalPaymentsDetailsResponse!
     submitAdyenRedirection(req: SubmitAdyenRedirectionRequest): SubmitAdyenRedirectionResponse!
 }
@@ -53,6 +53,12 @@ enum TokenizationChannel{
     ANDROID
     IOS
     WEB
+}
+
+enum TokenizationResultType {
+    COMPLETED
+    PENDING
+    FAILED
 }
 
 input BrowserInfo{
@@ -80,6 +86,7 @@ union TokenizationResponse = TokenizationResponseFinished | TokenizationResponse
 
 type TokenizationResponseFinished {
     resultCode: String!
+    tokenizationResult: TokenizationResultType!
 }
 
 type TokenizationResponseAction {
@@ -90,6 +97,7 @@ union AdditionalPaymentsDetailsResponse = AdditionalPaymentsDetailsResponseFinis
 
 type AdditionalPaymentsDetailsResponseFinished {
     resultCode: String!
+    tokenizationResult: TokenizationResultType!
 }
 
 type AdditionalPaymentsDetailsResponseAction {
@@ -131,6 +139,7 @@ enum PayinMethodStatus{
     PENDING
     NEEDS_SETUP
 }
+
 enum DirectDebitStatus {
     ACTIVE
     PENDING

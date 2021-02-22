@@ -5,8 +5,8 @@ import java.util.UUID
 import javax.money.MonetaryAmount
 
 data class PayoutFailedEvent(
-  val memberId: String,
-  val transactionId: UUID,
-  val amount: MonetaryAmount,
-  val timestamp: Instant
+    val memberId: String,
+    val transactionId: UUID,
+    val amount: MonetaryAmount,
+    val timestamp: Instant
 )

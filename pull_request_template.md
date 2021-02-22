@@ -1,13 +1,13 @@
-# Jira Issue: [] 
+# Jira Issue: []
 
 ## What?
-- 
+-
 
 ## Why?
-- 
+-
 
 ## Optional checklist
-- [ ] Boyscouted
+- [ ] Codecouted
 - [ ] Unit tests written
-- [ ] Tested locally
+- [ ] Tested locally
 

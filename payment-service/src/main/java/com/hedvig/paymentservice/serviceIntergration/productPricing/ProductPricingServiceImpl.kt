@@ -5,12 +5,12 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Contract
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.ContractStateFilter
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessRequestDto
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.PolicyGuessResponseDto
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.time.YearMonth
 import java.util.Optional
 import java.util.UUID
 import java.util.stream.Collectors
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 @Component
 class ProductPricingServiceImpl(

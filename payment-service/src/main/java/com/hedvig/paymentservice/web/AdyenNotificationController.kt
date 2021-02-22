@@ -12,6 +12,7 @@ import com.hedvig.paymentservice.query.adyenNotification.AdyenNotification
 import com.hedvig.paymentservice.query.adyenNotification.AdyenNotificationRepository
 import com.hedvig.paymentservice.services.adyen.AdyenService
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequest
+import java.util.UUID
 import lombok.extern.slf4j.Slf4j
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
 
 @Slf4j
 @RestController

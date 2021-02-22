@@ -4,7 +4,6 @@ import com.adyen.model.checkout.PaymentsDetailsRequest
 import com.adyen.model.checkout.PaymentsResponse
 import com.adyen.model.payout.ConfirmThirdPartyResponse
 import com.adyen.model.payout.SubmitResponse
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.graphQl.types.ActivePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.AvailablePaymentMethodsResponse
 import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
@@ -20,7 +19,12 @@ import javax.money.MonetaryAmount
 interface AdyenService {
     fun getAvailablePayinMethods(memberId: String): AvailablePaymentMethodsResponse
     fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse
-    fun tokenizePaymentDetails(request: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
+    fun tokenizePaymentDetails(
+        request: TokenizationRequest,
+        memberId: String,
+        endUserIp: String?
+    ): AdyenPaymentsResponse
+
     fun tokenizePayoutDetails(request: TokenizationRequest, memberId: String, endUserIp: String?): AdyenPaymentsResponse
     fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse
     fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse?

@@ -1,21 +1,21 @@
 package com.hedvig.paymentservice.query.adyenTransaction
 
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
+import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAutoRescueProcessStartedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionCancellationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionInitiatedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionPendingResponseReceivedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenTransactionAuthorisationResponseReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.CaptureFailureAdyenTransactionReceivedEvent
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenTransactionRepository
+import java.math.BigDecimal
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 @Component
 @Transactional

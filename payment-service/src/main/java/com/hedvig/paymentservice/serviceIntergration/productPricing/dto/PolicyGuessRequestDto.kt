@@ -6,9 +6,9 @@ import java.time.ZoneId
 import java.util.UUID
 
 data class PolicyGuessRequestDto(
-  val id: UUID,
-  val memberId: String,
-  val date: LocalDate
+    val id: UUID,
+    val memberId: String,
+    val date: LocalDate
 ) {
 
   companion object {

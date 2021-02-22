@@ -1,9 +1,9 @@
 package com.hedvig.paymentservice.query.directDebit
 
+import java.util.*
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
-import java.util.*
 
 @Repository
 interface DirectDebitAccountOrderRepository : CrudRepository<DirectDebitAccountOrder, UUID> {

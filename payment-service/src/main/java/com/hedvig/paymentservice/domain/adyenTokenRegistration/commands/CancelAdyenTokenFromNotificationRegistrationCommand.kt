@@ -1,7 +1,7 @@
 package com.hedvig.paymentservice.domain.adyenTokenRegistration.commands
 
-import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.UUID
+import org.axonframework.commandhandling.TargetAggregateIdentifier
 
 data class CancelAdyenTokenFromNotificationRegistrationCommand(
     @TargetAggregateIdentifier

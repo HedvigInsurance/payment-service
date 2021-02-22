@@ -1,11 +1,13 @@
 package com.hedvig.paymentservice.services.bankAccounts
 
-
 import com.hedvig.paymentservice.domain.accountRegistration.enums.AccountRegistrationStatus
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.graphQl.types.BankAccount
+import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus
+import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromAdyenAccountStatus
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus.Companion.fromTrustlyDirectDebitStatus
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrder
 import com.hedvig.paymentservice.query.directDebit.DirectDebitAccountOrderRepository
 import com.hedvig.paymentservice.query.member.entities.MemberRepository
@@ -14,17 +16,16 @@ import com.hedvig.paymentservice.query.registerAccount.enteties.AccountRegistrat
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.util.getNextChargeChargeDate
 import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO
-import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import java.time.LocalDate
-import com.hedvig.paymentservice.graphQl.types.DirectDebitStatus as DirectDebitStatusDTO
+import org.springframework.stereotype.Service
 
 @Service
 class BankAccountServiceImpl(
     private val memberRepository: MemberRepository,
     private val accountRegistrationRepository: AccountRegistrationRepository,
     private val productPricingService: ProductPricingService,
-    private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository
+    private val directDebitAccountOrderRepository: DirectDebitAccountOrderRepository,
+    private val memberAdyenAccountRepository: MemberAdyenAccountRepository
 ) : BankAccountService {
 
     override fun getBankAccount(memberId: String): BankAccount? {
@@ -74,14 +75,10 @@ class BankAccountServiceImpl(
     }
 
     override fun getPayinMethodStatus(memberId: String): PayinMethodStatus {
-        val memberMaybe = memberRepository.findById(memberId)
+        val adyenAccountMaybe = memberAdyenAccountRepository.findById(memberId)
 
-        if (!memberMaybe.isPresent) return PayinMethodStatus.NEEDS_SETUP
-
-        val member = memberMaybe.get()
-
-        if (member.adyenRecurringDetailReference != null) {
-            return member.payinMethodStatus
+        if (adyenAccountMaybe.isPresent) {
+            return fromAdyenAccountStatus(adyenAccountMaybe.get().accountStatus)
         }
 
         return fromTrustlyDirectDebitStatus(getDirectDebitStatus(memberId))

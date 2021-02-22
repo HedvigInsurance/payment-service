@@ -14,12 +14,12 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenToken
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.AdyenTokenRegistrationCanceledFromNotificationEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationCreatedEvent
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.PendingAdyenTokenRegistrationUpdatedEvent
+import java.util.UUID
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
-import java.util.UUID
 
 @Aggregate
 class AdyenTokenRegistration() {
@@ -136,7 +136,7 @@ class AdyenTokenRegistration() {
     fun on(e: AdyenTokenRegistrationAuthorisedFromNotificationEvent) {
         this.adyenTokenRegistrationId = e.adyenTokenRegistrationId
         this.memberId = e.memberId
-        //TODO: To be future proof maybe we should look at the notification item to see if we can add recurring payment details
+        // TODO: To be future proof maybe we should look at the notification item to see if we can add recurring payment details
         this.adyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED
     }
 

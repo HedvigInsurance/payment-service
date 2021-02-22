@@ -13,6 +13,7 @@ import com.hedvig.paymentservice.domain.trustlyOrder.commands.SelectAccountRespo
 import com.hedvig.paymentservice.domain.trustlyOrder.events.AccountNotificationReceivedEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.OrderCanceledEvent
 import com.hedvig.paymentservice.domain.trustlyOrder.events.SelectAccountResponseReceivedEvent
+import java.util.UUID
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.eventhandling.saga.EndSaga
 import org.axonframework.eventhandling.saga.SagaEventHandler
@@ -22,7 +23,6 @@ import org.axonframework.spring.stereotype.Saga
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.UUID
 
 @Saga
 class AccountRegistrationSaga {
@@ -63,27 +63,23 @@ class AccountRegistrationSaga {
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
   fun on(e: SelectAccountResponseReceivedEvent) {
     commandGateway.sendAndWait<Any>(ReceiveAccountRegistrationResponseCommand(accountRegistrationId))
-
   }
 
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
   fun on(e: AccountNotificationReceivedEvent) {
     commandGateway.sendAndWait<Any>(ReceiveAccountRegistrationNotificationCommand(accountRegistrationId, e.memberId))
-
   }
 
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
   @EndSaga
   fun on(e: TrustlyAccountCreatedEvent) {
     commandGateway.sendAndWait<Any>(ReceiveAccountRegistrationConfirmationCommand(accountRegistrationId, e.memberId))
-
   }
 
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)
   @EndSaga
   fun on(e: TrustlyAccountUpdatedEvent) {
     commandGateway.sendAndWait<Any>(ReceiveAccountRegistrationConfirmationCommand(accountRegistrationId, e.memberId))
-
   }
 
   @SagaEventHandler(associationProperty = HEDVIG_ORDER_ID)

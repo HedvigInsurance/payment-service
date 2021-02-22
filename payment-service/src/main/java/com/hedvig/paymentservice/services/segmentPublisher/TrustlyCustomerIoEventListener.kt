@@ -3,13 +3,11 @@ package com.hedvig.paymentservice.services.segmentPublisher
 import com.hedvig.paymentservice.domain.payments.DirectDebitStatus
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
-import com.hedvig.paymentservice.query.member.entities.MemberRepository
 import com.hedvig.paymentservice.serviceIntergration.notificationService.NotificationService
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
-import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
@@ -34,7 +32,7 @@ class TrustlyCustomerIoEventListener(
             DirectDebitStatus.DISCONNECTED -> mapOf(IS_DIRECT_DEBIT_ACTIVATED to false)
             DirectDebitStatus.CONNECTED -> mapOf(IS_DIRECT_DEBIT_ACTIVATED to true)
         }
-        log.info("Updating direct debit status to ${status.name} on customerio. [MemberId: ${memberId}]")
+        log.info("Updating direct debit status to ${status.name} on customerio. [MemberId: $memberId]")
         notificationService.updateCustomer(memberId, traits)
     }
 

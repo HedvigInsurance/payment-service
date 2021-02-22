@@ -34,7 +34,6 @@ import com.hedvig.paymentService.trustly.data.request.RequestData;
 import com.hedvig.paymentService.trustly.data.response.ErrorBody;
 import com.hedvig.paymentService.trustly.data.response.Response;
 import com.hedvig.paymentService.trustly.data.response.Result;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
@@ -68,8 +67,11 @@ public class SignatureHandler {
   private String usernamePremium;
   private String passwordPremium;
 
-  private String usernameClaim;
-  private String passwordClaim;
+  private String usernameClaimHdi;
+  private String passwordClaimHdi;
+
+  private String usernameClaimHedvig;
+  private String passwordClaimHedvig;
 
   public static SignatureHandler getInstance() {
     if (instance == null) {
@@ -83,14 +85,19 @@ public class SignatureHandler {
     final String keyPassword,
     final String usernamePremium,
     final String passwordPremium,
-    final String usernameClaim,
-    final String passwordClaim,
-    final boolean testEnvironment)
+    final String usernameClaimHdi,
+    final String passwordClaimHdi,
+    final String usernameClaimHedvig,
+    final String passwordClaimHedvig,
+    final boolean testEnvironment
+  )
     throws KeyException, URISyntaxException {
     this.usernamePremium = usernamePremium;
     this.passwordPremium = passwordPremium;
-    this.usernameClaim = usernameClaim;
-    this.passwordClaim = passwordClaim;
+    this.usernameClaimHdi = usernameClaimHdi;
+    this.passwordClaimHdi = passwordClaimHdi;
+    this.usernameClaimHedvig = usernameClaimHedvig;
+    this.passwordClaimHedvig = passwordClaimHedvig;
 
     keyChain = new KeyChain(testEnvironment);
     keyChain.loadMerchantPrivateKey(privateKeyPath, keyPassword);
@@ -106,9 +113,14 @@ public class SignatureHandler {
     request.getParams().getData().setPassword(passwordPremium);
   }
 
-  public void insertClaimAccountCredentials(final Request request) {
-    request.getParams().getData().setUsername(usernameClaim);
-    request.getParams().getData().setPassword(passwordClaim);
+  public void insertClaimHdiAccountCredentials(final Request request) {
+    request.getParams().getData().setUsername(usernameClaimHdi);
+    request.getParams().getData().setPassword(passwordClaimHdi);
+  }
+
+  public void insertClaimHedvigAccountCredentials(final Request request) {
+    request.getParams().getData().setUsername(usernameClaimHedvig);
+    request.getParams().getData().setPassword(passwordClaimHedvig);
   }
 
   /**

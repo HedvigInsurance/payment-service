@@ -18,126 +18,125 @@ import java.util.UUID;
 @Entity
 public class Member {
 
-  @Id
-  public String id;
+    @Id
+    public String id;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "member", orphanRemoval = true)
-  @MapKey
-  Map<UUID, Transaction> transactions = new HashMap<>();
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "member", orphanRemoval = true)
+    @MapKey
+    Map<UUID, Transaction> transactions = new HashMap<>();
 
-  String trustlyAccountNumber;
+    String trustlyAccountNumber;
 
-  String adyenRecurringDetailReference;
+    String adyenRecurringDetailReference;
 
-  String adyenMerchantAccount;
+    String adyenMerchantAccount;
 
-  @Enumerated(EnumType.STRING)
-  DirectDebitStatus directDebitStatus;
+    @Enumerated(EnumType.STRING)
+    DirectDebitStatus directDebitStatus;
 
-  @Enumerated(EnumType.STRING)
-  PayinMethodStatus payinMethodStatus;
+    @Enumerated(EnumType.STRING)
+    PayinMethodStatus payinMethodStatus;
 
-  String bank;
-  String descriptor;
+    String bank;
+    String descriptor;
 
-  public Member() {
-  }
+    public Member() {
+    }
 
+    public PayinMethodStatus getPayinMethodStatus() {
+        return payinMethodStatus;
+    }
 
-  public PayinMethodStatus getPayinMethodStatus() {
-    return payinMethodStatus;
-  }
+    public void setPayinMethodStatus(PayinMethodStatus payinMethodStatus) {
+        this.payinMethodStatus = payinMethodStatus;
+    }
 
-  public void setPayinMethodStatus(PayinMethodStatus payinMethodStatus) {
-    this.payinMethodStatus = payinMethodStatus;
-  }
+    public Transaction getTransaction(UUID transactionId) {
+        return this.transactions.get(transactionId);
+    }
 
-  public Transaction getTransaction(UUID transactionId) {
-    return this.transactions.get(transactionId);
-  }
+    public String getId() {
+        return this.id;
+    }
 
-  public String getId() {
-    return this.id;
-  }
+    public Map<UUID, Transaction> getTransactions() {
+        return this.transactions;
+    }
 
-  public Map<UUID, Transaction> getTransactions() {
-    return this.transactions;
-  }
+    public String getTrustlyAccountNumber() {
+        return this.trustlyAccountNumber;
+    }
 
-  public String getTrustlyAccountNumber() {
-    return this.trustlyAccountNumber;
-  }
+    public String getAdyenRecurringDetailReference() {
+        return this.adyenRecurringDetailReference;
+    }
 
-  public String getAdyenRecurringDetailReference() {
-    return this.adyenRecurringDetailReference;
-  }
+    public DirectDebitStatus getDirectDebitStatus() {
+        return this.directDebitStatus;
+    }
 
-  public DirectDebitStatus getDirectDebitStatus() {
-    return this.directDebitStatus;
-  }
+    public String getBank() {
+        return this.bank;
+    }
 
-  public String getBank() {
-    return this.bank;
-  }
+    public String getDescriptor() {
+        return this.descriptor;
+    }
 
-  public String getDescriptor() {
-    return this.descriptor;
-  }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-  public void setId(String id) {
-    this.id = id;
-  }
+    public void setTransactions(Map<UUID, Transaction> transactions) {
+        this.transactions = transactions;
+    }
 
-  public void setTransactions(Map<UUID, Transaction> transactions) {
-    this.transactions = transactions;
-  }
+    public void setTrustlyAccountNumber(String trustlyAccountNumber) {
+        this.trustlyAccountNumber = trustlyAccountNumber;
+    }
 
-  public void setTrustlyAccountNumber(String trustlyAccountNumber) {
-    this.trustlyAccountNumber = trustlyAccountNumber;
-  }
+    public void setAdyenRecurringDetailReference(String adyenRecurringDetailReference) {
+        this.adyenRecurringDetailReference = adyenRecurringDetailReference;
+    }
 
-  public void setAdyenRecurringDetailReference(String adyenRecurringDetailReference) {
-    this.adyenRecurringDetailReference = adyenRecurringDetailReference;
-  }
+    public void setDirectDebitStatus(DirectDebitStatus directDebitStatus) {
+        this.directDebitStatus = directDebitStatus;
+    }
 
-  public void setDirectDebitStatus(DirectDebitStatus directDebitStatus) {
-    this.directDebitStatus = directDebitStatus;
-  }
+    public void setBank(String bank) {
+        this.bank = bank;
+    }
 
-  public void setBank(String bank) {
-    this.bank = bank;
-  }
+    public void setDescriptor(String descriptor) {
+        this.descriptor = descriptor;
+    }
 
-  public void setDescriptor(String descriptor) {
-    this.descriptor = descriptor;
-  }
+    public String getAdyenMerchantAccount() {
+        return adyenMerchantAccount;
+    }
 
-  public String getAdyenMerchantAccount() {
-    return adyenMerchantAccount;
-  }
+    public void setAdyenMerchantAccount(String adyenMerchantAccount) {
+        this.adyenMerchantAccount = adyenMerchantAccount;
+    }
 
-  public void setAdyenMerchantAccount(String adyenMerchantAccount) {
-    this.adyenMerchantAccount = adyenMerchantAccount;
-  }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Member)) return false;
+        Member member = (Member) o;
+        return Objects.equals(getId(), member.getId()) &&
+            Objects.equals(getTransactions(), member.getTransactions()) &&
+            Objects.equals(getTrustlyAccountNumber(), member.getTrustlyAccountNumber()) &&
+            Objects.equals(getAdyenRecurringDetailReference(), member.getAdyenRecurringDetailReference()) &&
+            Objects.equals(getAdyenMerchantAccount(), member.getAdyenMerchantAccount()) &&
+            getDirectDebitStatus() == member.getDirectDebitStatus() &&
+            getPayinMethodStatus() == member.getPayinMethodStatus() &&
+            Objects.equals(getBank(), member.getBank()) &&
+            Objects.equals(getDescriptor(), member.getDescriptor());
+    }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Member)) return false;
-    Member member = (Member) o;
-    return Objects.equals(getId(), member.getId()) &&
-      Objects.equals(getTransactions(), member.getTransactions()) &&
-      Objects.equals(getTrustlyAccountNumber(), member.getTrustlyAccountNumber()) &&
-      Objects.equals(getAdyenRecurringDetailReference(), member.getAdyenRecurringDetailReference()) &&
-      Objects.equals(getAdyenMerchantAccount(), member.getAdyenMerchantAccount()) &&
-      getDirectDebitStatus() == member.getDirectDebitStatus() &&
-      getPayinMethodStatus() == member.getPayinMethodStatus() &&
-      Objects.equals(getBank(), member.getBank()) &&
-      Objects.equals(getDescriptor(), member.getDescriptor());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(getId(), getTransactions(), getTrustlyAccountNumber(), getAdyenRecurringDetailReference(), getAdyenMerchantAccount(), getDirectDebitStatus(), getPayinMethodStatus(), getBank(), getDescriptor());
-  }
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getTransactions(), getTrustlyAccountNumber(), getAdyenRecurringDetailReference(), getAdyenMerchantAccount(), getDirectDebitStatus(), getPayinMethodStatus(), getBank(), getDescriptor());
+    }
 }

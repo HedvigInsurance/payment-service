@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.adyen
 
 import com.adyen.constants.ApiConstants
 import com.adyen.model.Amount
+import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 import com.adyen.model.checkout.DefaultPaymentMethodDetails
 import com.adyen.model.checkout.PaymentMethod
 import com.adyen.model.checkout.PaymentMethodsRequest
@@ -26,7 +27,6 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CancelAd
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreateAuthorisedAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.CreatePendingAdyenTokenRegistrationCommand
 import com.hedvig.paymentservice.domain.adyenTokenRegistration.commands.UpdatePendingAdyenTokenRegistrationCommand
-import com.hedvig.paymentservice.domain.adyenTokenRegistration.enums.AdyenTokenRegistrationStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTransactionUnsuccessfulRetryResponseCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
@@ -46,6 +46,7 @@ import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionRequest
 import com.hedvig.paymentservice.graphQl.types.SubmitAdyenRedirectionResponse
 import com.hedvig.paymentservice.graphQl.types.TokenizationChannel
 import com.hedvig.paymentservice.graphQl.types.TokenizationRequest
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransaction
@@ -62,17 +63,16 @@ import com.hedvig.paymentservice.services.adyen.dtos.StoredPaymentMethodsDetails
 import com.hedvig.paymentservice.services.adyen.extentions.NoMerchantAccountForMarket
 import com.hedvig.paymentservice.services.adyen.util.AdyenMerchantPicker
 import com.hedvig.paymentservice.web.dtos.adyen.NotificationRequestItem
+import java.util.Optional
+import java.util.UUID
+import javax.money.MonetaryAmount
+import kotlin.collections.set
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.Optional
-import java.util.UUID
-import javax.money.MonetaryAmount
-import kotlin.collections.set
-import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 @Service
 class AdyenServiceImpl(
@@ -89,8 +89,11 @@ class AdyenServiceImpl(
     val transactionRepository: AdyenTransactionRepository,
     val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository,
     val adyenMerchantPicker: AdyenMerchantPicker,
+    val memberAdyenAccountRepository: MemberAdyenAccountRepository,
     @param:Value("\${hedvig.adyen.allow3DS2}")
     val allow3DS2: Boolean,
+    @param:Value("\${hedvig.adyen.allowTrustlyPayouts}")
+    val allowTrustlyPayouts: Boolean,
     @param:Value("\${hedvig.adyen.public.key}")
     val adyenPublicKey: String,
     @param:Value("\${hedvig.adyen.charge.autorescue.scenario}")
@@ -105,6 +108,9 @@ class AdyenServiceImpl(
     override fun getAvailablePayoutMethods(memberId: String): AvailablePaymentMethodsResponse {
         val response: PaymentMethodsResponse = getAvailablePaymentMethods(memberId)
         response.paymentMethods = includeOnlyTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+        if (!allowTrustlyPayouts) {
+            response.paymentMethods = excludeTrustlyFromAvailablePayoutMethods(response.paymentMethods)
+        }
         return AvailablePaymentMethodsResponse(paymentMethodsResponse = response)
     }
 
@@ -316,7 +322,7 @@ class AdyenServiceImpl(
         return response
     }
 
-    //Extra method for web
+    // Extra method for web
     override fun submitAdyenRedirection(
         request: SubmitAdyenRedirectionRequest,
         memberId: String
@@ -402,18 +408,17 @@ class AdyenServiceImpl(
                 )
             }
         } else {
-            //TODO: Figure out what to do if it is not successful. Maybe keeping it in pending state is okay, maybe we should cancel it
+            // TODO: Figure out what to do if it is not successful. Maybe keeping it in pending state is okay, maybe we should cancel it
         }
     }
 
     override fun chargeMemberWithToken(request: ChargeMemberWithTokenRequest): PaymentsResponse {
-        val member = memberRepository.findById(request.memberId).orElse(null)
+        val memberAdyenAccount = memberAdyenAccountRepository.findById(request.memberId).orElse(null)
             ?: throw RuntimeException("ChargeMemberWithToken - Member ${request.memberId} doesn't exist")
 
-        require(member.adyenRecurringDetailReference == request.recurringDetailReference)
-        {
-            "RecurringDetailReference mismatch [MemberId : ${member.id}] " +
-                "[MemberRecurringDetailReference: ${member.adyenRecurringDetailReference} " +
+        require(memberAdyenAccount.recurringDetailReference == request.recurringDetailReference) {
+            "RecurringDetailReference mismatch [MemberId : ${memberAdyenAccount.memberId}] " +
+                "[MemberRecurringDetailReference: ${memberAdyenAccount.recurringDetailReference} " +
                 "[RequestRecurringDetailReference: ${request.recurringDetailReference}] ] "
         }
 
@@ -553,16 +558,16 @@ class AdyenServiceImpl(
         }
 
     override fun handlePayoutDeclinedNotification(adyenNotification: NotificationRequestItem) =
-       getAndApplyCommand {
-           getPayoutTransactionCommand(adyenNotification) { transaction ->
-               ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
-                   transactionId = transaction.transactionId,
-                   memberId = transaction.memberId,
-                   amount = Money.of(transaction.amount, transaction.currency),
-                   reason = adyenNotification.reason
-               )
-           }
-       }
+        getAndApplyCommand {
+            getPayoutTransactionCommand(adyenNotification) { transaction ->
+                ReceivedDeclinedAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency),
+                    reason = adyenNotification.reason
+                )
+            }
+        }
 
     override fun handlePayoutExpireNotification(adyenNotification: NotificationRequestItem) =
         getAndApplyCommand {
@@ -577,17 +582,18 @@ class AdyenServiceImpl(
         }
 
     override fun handlePayoutPaidOutReservedNotification(adyenNotification: NotificationRequestItem) =
-        getAndApplyCommand {  getPayoutTransactionCommand(adyenNotification) { transaction ->
-            ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
-                transactionId = transaction.transactionId,
-                memberId = transaction.memberId,
-                amount = Money.of(transaction.amount, transaction.currency),
-                reason = adyenNotification.reason
-            )
-        }
+        getAndApplyCommand {
+            getPayoutTransactionCommand(adyenNotification) { transaction ->
+                ReceivedReservedAdyenPayoutTransactionFromNotificationCommand(
+                    transactionId = transaction.transactionId,
+                    memberId = transaction.memberId,
+                    amount = Money.of(transaction.amount, transaction.currency),
+                    reason = adyenNotification.reason
+                )
+            }
         }
 
-    override fun handleAutoRescueNotification(adyenNotification: NotificationRequestItem) : Any =
+    override fun handleAutoRescueNotification(adyenNotification: NotificationRequestItem): Any =
         withTransaction(adyenNotification) { transaction ->
             ReceivedAdyenTransactionAutoRescueProcessEndedFromNotificationCommand(
                 transactionId = transaction.transactionId,
@@ -603,7 +609,7 @@ class AdyenServiceImpl(
     private fun withTransaction(
         adyenNotification: NotificationRequestItem,
         getCommandFromTransaction: (AdyenTransaction) -> Any
-    ) : Any {
+    ): Any {
         val adyenTransactionId = UUID.fromString(adyenNotification.merchantReference)
 
         val transactionMaybe: Optional<AdyenTransaction> = transactionRepository.findById(adyenTransactionId)
@@ -617,12 +623,11 @@ class AdyenServiceImpl(
         return getCommandFromTransaction(transaction)
     }
 
-    private fun getAndApplyCommand(fn: () -> Any)
-    {
+    private fun getAndApplyCommand(fn: () -> Any) {
         try {
             val command = fn()
             commandGateway.sendAndWait<Void>(command)
-        }catch(e: RuntimeException){
+        } catch (e: RuntimeException) {
             logger.error(e.message, e)
         }
     }
@@ -630,7 +635,7 @@ class AdyenServiceImpl(
     private fun getPayoutTransactionCommand(
         adyenNotification: NotificationRequestItem,
         getCommandFromTransaction: (AdyenPayoutTransaction) -> Any
-    ) : Any {
+    ): Any {
         val adyenTransactionId = UUID.fromString(adyenNotification.originalReference)
 
         val adyenTransactionMaybe = adyenPayoutTransactionRepository.findById(adyenTransactionId)
@@ -659,13 +664,12 @@ class AdyenServiceImpl(
                 )
             }
         }
-
     }
 
     private fun handlePayinAuthorizationNotification(
         adyenNotification: NotificationRequestItem,
         transaction: AdyenTransaction
-    ) : Any {
+    ): Any {
         val hasAutoRescueScheduled = adyenNotification.additionalData?.get("retry.rescueScheduled") == "true"
 
         return when {
@@ -745,6 +749,9 @@ class AdyenServiceImpl(
 
     private fun includeOnlyTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePayoutMethods.filter { it.type.toLowerCase() == TRUSTLY }
+
+    private fun excludeTrustlyFromAvailablePayoutMethods(listOfAvailablePayoutMethods: List<PaymentMethod>): List<PaymentMethod> =
+        listOfAvailablePayoutMethods.filter { it.type.toLowerCase() != TRUSTLY }
 
     private fun excludeTrustlyFromAvailablePaymentMethods(listOfAvailablePaymentMethods: List<PaymentMethod>): List<PaymentMethod> =
         listOfAvailablePaymentMethods.filter { it.type.toLowerCase() != TRUSTLY }

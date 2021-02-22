@@ -1,8 +1,10 @@
 package com.hedvig.paymentservice.domain.payments
 
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand
+import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
+import com.hedvig.paymentservice.domain.payments.enums.Carrier
 import com.hedvig.paymentservice.domain.payments.enums.PayinProvider
 import com.hedvig.paymentservice.domain.payments.events.AdyenAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.ChargeCreatedEvent
@@ -10,6 +12,8 @@ import com.hedvig.paymentservice.domain.payments.events.ChargeCreationFailedEven
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitConnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedEvent
 import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -17,6 +21,11 @@ import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Contract
 import com.hedvig.paymentservice.serviceIntergration.productPricing.dto.Market
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
+import javax.money.Monetary
+import javax.money.MonetaryAmount
 import org.assertj.core.api.Assertions.assertThat
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.javamoney.moneta.Money
@@ -24,10 +33,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.time.Instant
-import java.util.*
-import javax.money.Monetary
-import javax.money.MonetaryAmount
 
 @RunWith(SpringRunner::class)
 class MemberTest {
@@ -111,9 +116,55 @@ class MemberTest {
     }
 
     @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreatePayout_expect_PayoutCreatedEvent() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreatePayoutCommand()
+            )
+            .expectSuccessfulHandlerExecution()
+            .expectEvents(
+                makePayoutCreatedEvent()
+            )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreateClaimPayoutWithoutCarrier_expect_PayoutCreationFailedEvent() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreatePayoutCommand().copy(category = TransactionCategory.CLAIM, carrier = null)
+            )
+            .expectException(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreateClaimPayoutWithCarrier_expect_PayoutCreatedEvent() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreatePayoutCommand().copy(category = TransactionCategory.CLAIM, carrier = Carrier.HDI)
+            )
+            .expectEvents(
+                makePayoutCreatedEvent().copy(category = TransactionCategory.CLAIM, carrier = Carrier.HDI)
+            )
+    }
+
+    @Test
     fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreationFailedEvent() {
         fixture
-
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
                 makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.PENDING)
@@ -130,7 +181,6 @@ class MemberTest {
     @Test
     fun given_memberCreatedEventAndAdyenAccountCreatedEvent_when_CreateCharge_expect_ChargeCreatedEvent() {
         fixture
-
             .given(
                 MemberCreatedEvent(MEMBER_ID_ONE),
                 makeAdyenAccountCreated(MEMBER_ID_ONE, AdyenAccountStatus.AUTHORISED)
@@ -171,31 +221,35 @@ class MemberTest {
             )
             .expectState { member ->
                 assertThat(member.directDebitAccountOrders.size).isEqualTo(2)
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
-                    .account
-                    .directDebitStatus
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
+                        .account
+                        .directDebitStatus
                 ).isEqualTo(
                     DirectDebitStatus.DISCONNECTED
                 )
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
-                    .account
-                    .accountId
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_ONE }
+                        .account
+                        .accountId
                 ).isEqualTo(
                     TRUSTLY_ACCOUNT_ID_ONE
                 )
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
-                    .account
-                    .directDebitStatus
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                        .account
+                        .directDebitStatus
                 ).isEqualTo(
                     DirectDebitStatus.CONNECTED
                 )
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
-                    .account
-                    .accountId
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                        .account
+                        .accountId
                 ).isEqualTo(
                     TRUSTLY_ACCOUNT_ID_TWO
                 )
@@ -228,17 +282,19 @@ class MemberTest {
             )
             .expectState { member ->
                 assertThat(member.directDebitAccountOrders.size).isEqualTo(2)
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
-                    .account
-                    .directDebitStatus
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                        .account
+                        .directDebitStatus
                 ).isEqualTo(
                     DirectDebitStatus.CONNECTED
                 )
-                assertThat(member.directDebitAccountOrders
-                    .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
-                    .account
-                    .accountId
+                assertThat(
+                    member.directDebitAccountOrders
+                        .first { it.hedvigOrderId == HEDVIG_ORDER_ID_TWO }
+                        .account
+                        .accountId
                 ).isEqualTo(
                     TRUSTLY_ACCOUNT_ID_TWO
                 )
@@ -347,7 +403,7 @@ class MemberTest {
 
     private fun makeDirectDebitConnectedEvent(
         memberId: String,
-        trustlyAccountId: String = "trusttlyAccountId",
+        trustlyAccountId: String = TRUSTLY_ACCOUNT_ID_ONE,
         hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
     ) =
         DirectDebitConnectedEvent(
@@ -358,7 +414,7 @@ class MemberTest {
 
     private fun makeDirectDebitDisConnectedEvent(
         memberId: String,
-        trustlyAccountId: String = "trusttlyAccountId",
+        trustlyAccountId: String = TRUSTLY_ACCOUNT_ID_ONE,
         hedvigOrderId: UUID = HEDVIG_ORDER_ID_ONE
     ) =
         DirectDebitDisconnectedEvent(
@@ -405,8 +461,28 @@ class MemberTest {
         createdBy = CREATED_BY
     )
 
+    private fun makeCreatePayoutCommand(
+        transactionId: UUID = TRANSACTION_ID_ONE
+    ) = CreatePayoutCommand(
+        memberId = MEMBER_ID_ONE,
+        address = "Address",
+        countryCode = null,
+        dateOfBirth = LocalDate.of(1912, 12, 12),
+        firstName = FIRST_NAME,
+        lastName = LAST_NAME,
+        transactionId = transactionId,
+        amount = AMOUNT,
+        timestamp = NOW,
+        email = EMAIL,
+        category = TransactionCategory.CLAIM,
+        referenceId = null,
+        note = null,
+        handler = null,
+        carrier = Carrier.HDI
+    )
+
     private fun makeChargeCreatedEvent(
-        payinProvider : PayinProvider = PayinProvider.TRUSTLY,
+        payinProvider: PayinProvider = PayinProvider.TRUSTLY,
         providerId: String = TRUSTLY_ACCOUNT_ID_ONE
     ) = ChargeCreatedEvent(
         memberId = MEMBER_ID_ONE,
@@ -419,6 +495,30 @@ class MemberTest {
         createdBy = CREATED_BY
     )
 
+    private fun makePayoutCreatedEvent(
+        transactionId: UUID = TRANSACTION_ID_ONE,
+        trustlyAccountId: String? = TRUSTLY_ACCOUNT_ID_ONE,
+        adyenShopperReference: String? = null
+    ) = PayoutCreatedEvent(
+        memberId = MEMBER_ID_ONE,
+        address = "Address",
+        countryCode = null,
+        dateOfBirth = LocalDate.of(1912, 12, 12),
+        firstName = FIRST_NAME,
+        lastName = LAST_NAME,
+        transactionId = transactionId,
+        amount = AMOUNT,
+        timestamp = NOW,
+        email = EMAIL,
+        category = TransactionCategory.CLAIM,
+        referenceId = null,
+        note = null,
+        handler = null,
+        carrier = Carrier.HDI,
+        trustlyAccountId = trustlyAccountId,
+        adyenShopperReference = adyenShopperReference
+    )
+
     private fun makeChargeCreationFailedEvent(
         reason: String = DIRECT_DEBIT_NOT_CONNECTED
     ) = ChargeCreationFailedEvent(
@@ -429,8 +529,17 @@ class MemberTest {
         reason = reason
     )
 
+    private fun makePayoutCreationFailedEvent() = PayoutCreationFailedEvent(
+        memberId = MEMBER_ID_ONE,
+        transactionId = TRANSACTION_ID_ONE,
+        amount = AMOUNT,
+        timestamp = NOW
+    )
+
     companion object {
         const val MEMBER_ID_ONE = "12345"
+        const val FIRST_NAME = "Tolvan"
+        const val LAST_NAME = "Tolvansson"
         val TRANSACTION_ID_ONE: UUID = UUID.fromString("4DC41766-803E-423F-B604-E7F7F8CE5FD7")
         val HEDVIG_ORDER_ID_ONE: UUID = UUID.fromString("06467B87-3EED-4000-9887-2B4C6033FC05")
         val HEDVIG_ORDER_ID_TWO: UUID = UUID.fromString("DE58DE3C-C7FD-456D-A3F3-1CD840D8B505")
@@ -440,11 +549,10 @@ class MemberTest {
         const val CREATED_BY: String = "hedvig"
         const val NO_PAYIN_METHOD_FOUND_MESSAGE = "no payin method found"
         const val DIRECT_DEBIT_NOT_CONNECTED = "direct debit mandate not received in Trustly"
-        const val TRUSTLY_ACCOUNT_ID_ONE = "trusttlyAccountId"
-        const val TRUSTLY_ACCOUNT_ID_TWO = "secondTrusttlyAccountId"
+        const val TRUSTLY_ACCOUNT_ID_ONE = "trustlyAccountId"
+        const val TRUSTLY_ACCOUNT_ID_TWO = "secondTrustlyAccountId"
         const val RECURRING_DETAIL_REFERENCE = "recurringDetailReference"
         const val ADYEN_NOT_AUTHORISED = "adyen recurring is not authorised"
         const val CURRENCY_MISMATCH = "currency mismatch"
-
     }
 }

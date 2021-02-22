@@ -2,13 +2,9 @@ package com.hedvig.paymentservice.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hedvig.paymentservice.PaymentServiceTestConfiguration;
-import com.hedvig.paymentservice.domain.payments.DirectDebitStatus;
 import com.hedvig.paymentservice.graphQl.types.PayinMethodStatus;
-import com.hedvig.paymentservice.query.member.entities.Member;
-import com.hedvig.paymentservice.query.member.entities.MemberRepository;
 import com.hedvig.paymentservice.services.bankAccounts.BankAccountService;
 import com.hedvig.paymentservice.services.trustly.TrustlyService;
-import com.hedvig.paymentservice.web.dtos.DirectDebitAccountOrderDTO;
 import com.hedvig.paymentservice.web.dtos.DirectDebitResponse;
 import com.hedvig.paymentservice.web.dtos.RegisterDirectDebitRequestDTO;
 import org.junit.Test;
@@ -24,9 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,65 +34,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class DirectDebitControllerTest {
 
-  private static final String MEMBER_ID = "12345";
+    private static final String MEMBER_ID = "12345";
 
-  @Autowired
-  private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-  @MockBean
-  private TrustlyService trustlyService;
+    @MockBean
+    private TrustlyService trustlyService;
 
-  @MockBean
-  private BankAccountService bankAccountService;
-
-  @MockBean
-  private MemberRepository memberRepository;
-
-  @Test
-  public void Should_ReturnBadRequest_WhenMemberCannotBeFound() throws Exception {
-    given(memberRepository.findById(any())).willReturn(Optional.empty());
-
-    given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(null);
-
-      mockMvc
-          .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-          .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  public void Should_ReturnDirectDebitStatus_WhenMemberHasDirectDebit() throws Exception {
-      Member member = makeMember("123", false);
-
-      given(memberRepository.findById(any())).willReturn(Optional.of(member));
-
-      given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(
-          new DirectDebitAccountOrderDTO(
-              UUID.randomUUID(),
-              MEMBER_ID,
-              "account",
-              DirectDebitStatus.CONNECTED
-          )
-      );
-
-    mockMvc
-      .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
-      .andExpect(status().is2xxSuccessful())
-      .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-      .andExpect(jsonPath("$.directDebitActivated").value(true));
-  }
+    @MockBean
+    private BankAccountService bankAccountService;
 
     @Test
-    public void Should_ReturnDirectDebitStatusActive_WhenMemberHasCardConnectedWithAdyen() throws Exception {
-        Member member = makeMember("123", true);
-
-        given(memberRepository.findById(any())).willReturn(Optional.of(member));
-
-        given(bankAccountService.getLatestDirectDebitAccountOrder(Mockito.anyString())).willReturn(
-            null
-        );
+    public void Should_ReturnDirectDebitStatus_WhenMemberHasActivePayinStatus() throws Exception {
+        given(bankAccountService.getPayinMethodStatus(Mockito.anyString())).willReturn(PayinMethodStatus.ACTIVE);
 
         mockMvc
             .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
@@ -108,34 +59,43 @@ public class DirectDebitControllerTest {
             .andExpect(jsonPath("$.directDebitActivated").value(true));
     }
 
-  @Test
-  public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
+    @Test
+    public void Should_ReturnDirectDebitStatus_WhenMemberHasNeedsSetupPayinStatus() throws Exception {
+        given(bankAccountService.getPayinMethodStatus(Mockito.anyString())).willReturn(PayinMethodStatus.NEEDS_SETUP);
 
-    given(trustlyService.requestDirectDebitAccount(any(), any(), any()))
-      .willReturn(new DirectDebitResponse("url", "orderId"));
-
-    mockMvc
-      .perform(post("/directDebit/register")
-        .header("hedvig.token", MEMBER_ID)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(
-          new RegisterDirectDebitRequestDTO("Tst",
-            "tdst", "198902171234", null))))
-      .andExpect(status().is2xxSuccessful())
-      .andExpect(jsonPath(".url").value("url"));
-  }
-
-
-  private Member makeMember(String memberId, boolean isConnectedToAdyen) {
-    Member member = new Member();
-    member.setId(memberId);
-
-    if (isConnectedToAdyen) {
-      member.setAdyenRecurringDetailReference("Test");
-      member.setPayinMethodStatus(PayinMethodStatus.ACTIVE);
+        mockMvc
+            .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+            .andExpect(status().is2xxSuccessful())
+            .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
+            .andExpect(jsonPath("$.directDebitActivated").value(false));
     }
 
-    return member;
-  }
+    @Test
+    public void Should_ReturnDirectDebitStatus_WhenMemberHasPendingPayinStatus() throws Exception {
+        given(bankAccountService.getPayinMethodStatus(Mockito.anyString())).willReturn(PayinMethodStatus.PENDING);
+
+        mockMvc
+            .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
+            .andExpect(status().is2xxSuccessful())
+            .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
+            .andExpect(jsonPath("$.directDebitActivated").value(false));
+    }
+
+    @Test
+    public void Should_ReturnOk_WhenMemberRegisterSuccessfullyForDirectDebit() throws Exception {
+
+        given(trustlyService.requestDirectDebitAccount(any(), any(), any()))
+            .willReturn(new DirectDebitResponse("url", "orderId"));
+
+        mockMvc
+            .perform(post("/directDebit/register")
+                .header("hedvig.token", MEMBER_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                    new RegisterDirectDebitRequestDTO("Tst",
+                        "tdst", "198902171234", null))))
+            .andExpect(status().is2xxSuccessful())
+            .andExpect(jsonPath(".url").value("url"));
+    }
 
 }

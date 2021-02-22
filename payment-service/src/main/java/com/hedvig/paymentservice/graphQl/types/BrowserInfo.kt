@@ -3,14 +3,14 @@ package com.hedvig.paymentservice.graphQl.types
 import com.adyen.model.BrowserInfo as AdyenBrowserInfo
 
 data class BrowserInfo(
-  val userAgent: String,
-  val acceptHeader: String,
-  val language: String,
-  val colorDepth: Int,
-  val screenHeight: Int,
-  val screenWidth: Int,
-  val timeZoneOffset: Int,
-  val javaEnabled: Boolean
+    val userAgent: String,
+    val acceptHeader: String,
+    val language: String,
+    val colorDepth: Int,
+    val screenHeight: Int,
+    val screenWidth: Int,
+    val timeZoneOffset: Int,
+    val javaEnabled: Boolean
 ) {
 
   companion object {

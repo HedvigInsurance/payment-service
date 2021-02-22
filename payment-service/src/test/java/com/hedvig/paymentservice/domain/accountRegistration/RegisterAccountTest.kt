@@ -8,10 +8,10 @@ import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegist
 import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationNotificationReceivedEvent
 import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationRequestCreatedEvent
 import com.hedvig.paymentservice.domain.accountRegistration.events.AccountRegistrationResponseReceivedEvent
+import java.util.*
 import org.axonframework.test.aggregate.AggregateTestFixture
 import org.junit.Before
 import org.junit.Test
-import java.util.*
 
 class RegisterAccountTest {
   lateinit var fixture: AggregateTestFixture<AccountRegistrationAggregate>
@@ -68,5 +68,4 @@ class RegisterAccountTest {
     const val TEST_TRUSTLY_ORDER_ID: String = "RemarkableTrustlyOrderId"
     const val TEST_TRUSTLY_URL: String = "RemarkableTrustlyUrl"
   }
-
 }

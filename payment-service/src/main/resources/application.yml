@@ -17,7 +17,6 @@ spring:
 spring.jpa.generate-ddl: true
 spring.jpa.properties.hibernate.dialect: com.hedvig.paymentservice.PostgresDialect
 
-
 graphql:
     servlet:
         mapping: /graphql
@@ -37,6 +36,7 @@ hedvig:
         public:
             key: test
         allow3DS2: true
+        allowTrustlyPayouts: true
         returnUrl: test
         merchantAccount: test
         enviroment: TEST

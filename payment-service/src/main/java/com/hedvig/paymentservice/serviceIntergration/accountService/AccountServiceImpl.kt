@@ -1,19 +1,19 @@
 package com.hedvig.paymentservice.serviceIntergration.accountService
 
 import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeCompletedRequestDto
-import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeInitiatedRequestDto
 import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeFailedRequestDto
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
-import org.springframework.stereotype.Service
+import com.hedvig.paymentservice.serviceIntergration.accountService.dto.NotifyChargeInitiatedRequestDto
 import java.time.Instant
 import java.util.*
 import javax.money.MonetaryAmount
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.stereotype.Service
 
 @Service
 class AccountServiceImpl @Autowired constructor(
-  private val accountServiceClient: AccountServiceClient
-): AccountService {
+    private val accountServiceClient: AccountServiceClient
+) : AccountService {
   override fun notifyChargeFailed(memberId: String, transactionId: UUID, failedAt: Instant): ResponseEntity<Void> {
     val request = NotifyChargeFailedRequestDto(
       transactionId = transactionId,

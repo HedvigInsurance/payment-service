@@ -12,6 +12,7 @@ import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAdyenTr
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveAuthorisationAdyenTransactionCommand
 import com.hedvig.paymentservice.domain.adyenTransaction.commands.ReceiveCancellationResponseAdyenTransactionCommand
 import com.hedvig.paymentservice.graphQl.types.PayoutMethodStatus
+import com.hedvig.paymentservice.query.adyenAccount.MemberAdyenAccountRepository
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistration
 import com.hedvig.paymentservice.query.adyenTokenRegistration.entities.AdyenTokenRegistrationRepository
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
@@ -28,14 +29,14 @@ import com.neovisionaries.i18n.CurrencyCode
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import java.math.BigDecimal
+import java.util.*
 import org.assertj.core.api.Assertions.assertThat
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.test.context.junit4.SpringRunner
-import java.math.BigDecimal
-import java.util.*
 
 @RunWith(SpringRunner::class)
 class AdyenServiceTest {
@@ -70,24 +71,28 @@ class AdyenServiceTest {
     @MockkBean
     lateinit var adyenMerchantPicker: AdyenMerchantPicker
 
+    @MockkBean
+    lateinit var memberAdyenAccountRepository: MemberAdyenAccountRepository
 
     lateinit var adyenService: AdyenService
 
     @Before
     fun setup() {
         adyenService = AdyenServiceImpl(
-            adyenCheckout,
-            adyenPayout,
-            adyenPayout,
-            memberRepository,
-            uuidGenerator,
-            memberService,
-            commandGateway,
-            adyenTokenRegistrationRepository,
-            adyenTransactionRepository,
-            adyenPayoutTransactionRepository,
+            adyenCheckout = adyenCheckout,
+            adyenPayout = adyenPayout,
+            adyenPayoutConfirmation = adyenPayout,
+            memberRepository = memberRepository,
+            uuidGenerator = uuidGenerator,
+            memberService = memberService,
+            commandGateway = commandGateway,
+            tokenRegistrationRepository = adyenTokenRegistrationRepository,
+            transactionRepository = adyenTransactionRepository,
+            adyenPayoutTransactionRepository = adyenPayoutTransactionRepository,
             adyenMerchantPicker = adyenMerchantPicker,
+            memberAdyenAccountRepository = memberAdyenAccountRepository,
             allow3DS2 = true,
+            allowTrustlyPayouts = true,
             adyenPublicKey = "",
             autoRescueScenario = null
         )
@@ -196,7 +201,7 @@ class AdyenServiceTest {
 
         adyenService.handleAuthorisationNotification(notification)
 
-        verify(exactly = 1) { commandGateway.sendAndWait(ofType(AuthoriseAdyenTokenRegistrationFromNotificationCommand::class))  }
+        verify(exactly = 1) { commandGateway.sendAndWait(ofType(AuthoriseAdyenTokenRegistrationFromNotificationCommand::class)) }
     }
 
     @Test
@@ -308,7 +313,7 @@ class AdyenServiceTest {
     private fun makeNotificationRequestItem(
         isSuccessful: Boolean,
         merchantReference: String? = UUID.randomUUID().toString(),
-            isAutoRescue: Boolean = false
+        isAutoRescue: Boolean = false
     ) = NotificationRequestItem(
         amount = null,
         eventCode = "AUTHORISATION",
@@ -324,7 +329,7 @@ class AdyenServiceTest {
         additionalData = if (isAutoRescue) mapOf("retry.rescueScheduled" to "true", "retry.rescueReference" to "something", "retry.orderAttemptNumber" to "2") else null
     )
 
-    private fun makeAdyenTokenRegistration(status : AdyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED): AdyenTokenRegistration {
+    private fun makeAdyenTokenRegistration(status: AdyenTokenRegistrationStatus = AdyenTokenRegistrationStatus.AUTHORISED): AdyenTokenRegistration {
         val tokenRegistration = AdyenTokenRegistration()
         tokenRegistration.adyenTokenRegistrationId = UUID.fromString("CD076349-4454-432A-AD19-42C5C4A1396A")
         tokenRegistration.memberId = "MEMBER_ID"
@@ -336,9 +341,9 @@ class AdyenServiceTest {
     }
 
     private fun makeAdyenTransaction() = AdyenTransaction().apply {
-        transactionId = UUID.fromString("8C0A90BF-A8A4-4F2D-A68B-BA40B10C39FB");
-        memberId = "1234";
-        amount = BigDecimal.TEN;
+        transactionId = UUID.fromString("8C0A90BF-A8A4-4F2D-A68B-BA40B10C39FB")
+        memberId = "1234"
+        amount = BigDecimal.TEN
         currency = "SEK"
     }
 }

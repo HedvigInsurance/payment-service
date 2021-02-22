@@ -1,27 +1,26 @@
 package com.hedvig.paymentservice.query.adyenTransaction
 
 import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenPayoutTransactionStatus
-import com.hedvig.paymentservice.domain.adyenTransaction.enums.AdyenTransactionStatus
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionAuthorisedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionCanceledEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionConfirmedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.AdyenPayoutTransactionInitiatedEvent
-import com.hedvig.paymentservice.domain.adyenTransaction.events.SuccessfulAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.DeclinedAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.ExpiredAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.FailedAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.domain.adyenTransaction.events.ReservedAdyenPayoutTransactionReceivedEvent
+import com.hedvig.paymentservice.domain.adyenTransaction.events.SuccessfulAdyenPayoutTransactionReceivedEvent
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransaction
 import com.hedvig.paymentservice.query.adyenTransaction.entities.AdyenPayoutTransactionRepository
+import java.math.BigDecimal
 import org.axonframework.eventhandling.EventHandler
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 @Component
 @Transactional
 class AdyenPayoutTransactionEventListener(
-   val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository
+    val adyenPayoutTransactionRepository: AdyenPayoutTransactionRepository
 ) {
   @EventHandler
   fun on(e: AdyenPayoutTransactionInitiatedEvent) {

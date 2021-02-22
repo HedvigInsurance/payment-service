@@ -1,10 +1,9 @@
 package com.hedvig.paymentservice.domain.trustlyOrder.commands
 
 import java.util.UUID
-import lombok.Value
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 
-data class CancelNotificationReceivedCommand (
+data class CancelNotificationReceivedCommand(
     @TargetAggregateIdentifier
     val hedvigOrderId: UUID,
 

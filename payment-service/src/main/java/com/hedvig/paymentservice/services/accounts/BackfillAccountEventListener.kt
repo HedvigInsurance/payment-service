@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.services.accounts
 
 import com.hedvig.paymentservice.domain.payments.events.ChargeCompletedEvent
 import com.hedvig.paymentservice.serviceIntergration.accountService.AccountService
+import java.time.Instant
 import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.eventhandling.Timestamp
@@ -9,13 +10,12 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 @Profile("BackfillCharges")
 @ProcessingGroup("BackfillCharges")
 class BackfillAccountEventListener @Autowired constructor(
-  private val accountService: AccountService
+    private val accountService: AccountService
 ) {
 
   private val logger = LoggerFactory.getLogger(BackfillAccountEventListener::class.java)
