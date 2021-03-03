@@ -72,6 +72,7 @@ import org.javamoney.moneta.Money
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
@@ -461,18 +462,19 @@ class AdyenServiceImpl(
             )
             throw exception
         }
-
+2
         return paymentsResponse
     }
 
     override fun getActivePayinMethods(memberId: String): ActivePaymentMethodsResponse? {
         val activePaymentMethods = getActivePaymentMethodsResponse(memberId) ?: return null
-
-        val activePaymentMethodWithoutTrustly = excludeTrustlyFromActivePaymentMethods(activePaymentMethods).last()
+        val activePaymentMethodsWithoutTrustly = excludeTrustlyFromActivePaymentMethods(activePaymentMethods)
+        val memberAdyenAccount = memberAdyenAccountRepository.findByIdOrNull(memberId)
 
         return ActivePaymentMethodsResponse(
             storedPaymentMethodsDetails = StoredPaymentMethodsDetails.from(
-                activePaymentMethodWithoutTrustly
+                activePaymentMethodsWithoutTrustly.find { method -> method.id == memberAdyenAccount?.recurringDetailReference }
+                    ?: activePaymentMethodsWithoutTrustly.first()
             )
         )
     }
