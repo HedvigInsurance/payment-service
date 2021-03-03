@@ -462,7 +462,6 @@ class AdyenServiceImpl(
             )
             throw exception
         }
-2
         return paymentsResponse
     }
 
