@@ -116,6 +116,21 @@ class MemberTest {
     }
 
     @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreateChargeWithNegativeAmount_expect_Explosion() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreateChargeCommand().copy(amount = AMOUNT.negate())
+            )
+            .expectException(IllegalArgumentException::class.java)
+            .expectNoEvents()
+    }
+
+    @Test
     fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreatePayout_expect_PayoutCreatedEvent() {
         fixture
             .given(
@@ -130,6 +145,21 @@ class MemberTest {
             .expectEvents(
                 makePayoutCreatedEvent()
             )
+    }
+
+    @Test
+    fun given_memberCreatedEventAndTrustlyAccountCreatedEventAndDirectDebitConnectedEvent_when_CreatePayoutWithNegativeAmount_expect_Explosion() {
+        fixture
+            .given(
+                MemberCreatedEvent(MEMBER_ID_ONE),
+                makeTrustlyAccountCreatedEvent(MEMBER_ID_ONE),
+                makeDirectDebitConnectedEvent(MEMBER_ID_ONE)
+            )
+            .`when`(
+                makeCreatePayoutCommand().copy(amount = AMOUNT.negate())
+            )
+            .expectException(IllegalArgumentException::class.java)
+            .expectNoEvents()
     }
 
     @Test
