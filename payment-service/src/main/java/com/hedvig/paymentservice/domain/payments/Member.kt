@@ -39,10 +39,6 @@ import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEve
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType
-import java.time.Instant
-import java.util.ArrayList
-import java.util.UUID
-import javax.money.MonetaryAmount
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.commandhandling.model.AggregateIdentifier
 import org.axonframework.commandhandling.model.AggregateLifecycle.apply
@@ -50,6 +46,10 @@ import org.axonframework.eventhandling.Timestamp
 import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.spring.stereotype.Aggregate
 import org.slf4j.LoggerFactory
+import java.time.Instant
+import java.util.ArrayList
+import java.util.UUID
+import javax.money.MonetaryAmount
 
 @Aggregate
 class Member() {
@@ -69,6 +69,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreateChargeCommand, productPricingService: ProductPricingService): ChargeMemberResult {
+        command.amount.ensureAmountIsPositiveOrThrow(command.javaClass.simpleName, command.email)
         val contractMarketInfo = productPricingService.getContractMarketInfo(command.memberId)
         if (contractMarketInfo.preferredCurrency != command.amount.currency) {
             log.error("Currency mismatch while charging [MemberId: $command.memberId] [PreferredCurrency: ${contractMarketInfo.preferredCurrency}] [RequestCurrency: ${command.amount.currency}]")
@@ -146,6 +147,7 @@ class Member() {
 
     @CommandHandler
     fun handle(command: CreatePayoutCommand): Boolean {
+        command.amount.ensureAmountIsPositiveOrThrow(command.javaClass.simpleName, command.email)
         require(command.category != TransactionCategory.CLAIM || command.carrier != null) {
             throw IllegalArgumentException("Illegal to create a claim payout without carrier (memberId=$memberId)")
         }
@@ -544,6 +546,10 @@ class Member() {
                 reason
             )
         )
+    }
+
+    private fun MonetaryAmount.ensureAmountIsPositiveOrThrow(commandName: String, initatedBy: String) = require(this.isPositive) {
+        throw IllegalArgumentException("Illegal to perform command $commandName with a negative amount (memberId=$memberId, initiatedBy=$initatedBy)")
     }
 
     private fun getSingleTransaction(
