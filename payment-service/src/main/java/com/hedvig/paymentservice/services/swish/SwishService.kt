@@ -16,9 +16,9 @@ import javax.money.MonetaryAmount
 
 @Service
 class SwishService(
-    val objectMapper: ObjectMapper,
-    val client: SwishClient,
-    val properties : SwishConfigurationProperties
+    private val objectMapper: ObjectMapper,
+    private val client: SwishClient,
+    private val properties : SwishConfigurationProperties
 ) {
     fun startPayout(
         transactionId: UUID,
@@ -38,7 +38,7 @@ class SwishService(
             amount = String.format("%.2f", amount.number.doubleValueExact()),
             currency = amount.currency.currencyCode,
             message = message,
-            instructionDate = instructionDate.toString(),
+            instructionDate = "2021-03-11T13:45:36Z",
             signingCertificateSerialNumber = properties.signingCertificateSerialNumber
         )
         val json = objectMapper.writeValueAsString(payload)

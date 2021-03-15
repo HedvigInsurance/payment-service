@@ -10,6 +10,7 @@ import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionConfi
 import com.hedvig.paymentservice.domain.swish.commands.SwishPayoutTransactionFailedCommand
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionFailedEvent
 import com.hedvig.paymentservice.domain.swish.events.SwishPayoutTransactionInitiatedEvent
+import com.hedvig.paymentservice.domain.swish.validation.isValidSwishMessage
 import com.hedvig.paymentservice.services.swish.dto.StartPayoutResponse
 import com.hedvig.paymentservice.services.swish.SwishService
 import org.axonframework.commandhandling.CommandHandler
@@ -44,6 +45,10 @@ class SwishPayoutTransaction() {
     ) : this() {
         require(cmd.amount.currency.currencyCode == "SEK") {
             throw IllegalArgumentException("Only sek is supported for swish payout")
+        }
+
+        require(cmd.message.isValidSwishMessage()) {
+            throw IllegalArgumentException("The message: [${cmd.message}] is not a valid swish message!]")
         }
 
         AggregateLifecycle.apply(
