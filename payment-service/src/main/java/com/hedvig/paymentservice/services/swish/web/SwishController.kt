@@ -22,7 +22,7 @@ class SwishController(
     ) {
         when (callback.status) {
             "PAID" -> {
-                commandGateway.sendAndWait<Any>(
+                commandGateway.sendAndWait<Void>(
                     SwishPayoutTransactionCompletedCommand(
                         SwishUUIDConverter.fromPayoutInstructionUUIDToTransactionId(callback.payoutInstructionUUID),
                         callback.payerPaymentReference
@@ -30,7 +30,7 @@ class SwishController(
                 )
             }
             else -> {
-                commandGateway.sendAndWait<Any>(
+                commandGateway.sendAndWait<Void>(
                     SwishPayoutTransactionFailedCommand(
                         SwishUUIDConverter.fromPayoutInstructionUUIDToTransactionId(callback.payoutInstructionUUID),
                         callback.payerPaymentReference,
