@@ -1,14 +1,15 @@
-package com.hedvig.paymentservice.domain.adyenTransaction.commands
+package com.hedvig.paymentservice.domain.swish.commands
 
 import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.util.UUID
 import javax.money.MonetaryAmount
 
-data class InitiateAdyenTransactionPayoutCommand(
+data class InitiateSwishTransactionPayoutCommand(
     @TargetAggregateIdentifier
     val transactionId: UUID,
     val memberId: String,
-    val shopperReference: String,
+    val phoneNumber: String,
+    val ssn: String,
+    val message: String,
     val amount: MonetaryAmount,
-    val email: String
 )

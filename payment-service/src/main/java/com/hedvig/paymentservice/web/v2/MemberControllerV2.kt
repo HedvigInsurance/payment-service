@@ -30,8 +30,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(path = ["/v2/_/members/"])
 class MemberControllerV2(
     private val paymentService: PaymentService,
-    private val memberService: MemberService,
-    private val meerkat: Meerkat,
     private val memberPayinMethodFilterService: MemberPayinMethodFilterService
 ) {
 
@@ -54,51 +52,27 @@ class MemberControllerV2(
         return ResponseEntity.ok(result)
     }
 
+
     @PostMapping(path = ["{memberId}/payout"])
     fun payoutMember(
         @PathVariable memberId: String,
-        @RequestParam(required = false, defaultValue = "CLAIM") category: TransactionCategory,
-        @RequestParam(required = false) referenceId: String?,
-        @RequestParam(name = "note", required = false) note: String?,
-        @RequestParam(name = "handler", required = false) handler: String?,
-        @RequestParam(required = false) carrier: Carrier?,
+        @RequestParam(required = false, defaultValue = "CLAIM") category: TransactionCategory, // Deprecated use request
+        @RequestParam(required = false) referenceId: String?, // Deprecated use request
+        @RequestParam(name = "note", required = false) note: String?, // Deprecated use request
+        @RequestParam(name = "handler", required = false) handler: String?, // Deprecated use request
+        @RequestParam(required = false) carrier: Carrier?, // Deprecated use request
         @RequestBody request: PayoutRequestDTO
     ): ResponseEntity<UUID> {
-        if (category != TransactionCategory.CLAIM &&
-            request.amount.number.numberValueExact(BigDecimal::class.java) > BigDecimal.valueOf(10000)
-        ) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
-        }
-
-        val optionalMember = memberService.getMember(memberId)
-        if (!optionalMember.isPresent) {
-            return ResponseEntity.notFound().build()
-        }
-
-        val member = optionalMember.get()
-        val memberStatus = meerkat.getMemberSanctionStatus(member.firstName + ' ' + member.lastName)
-        if (memberStatus == SanctionStatus.FullHit) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        }
-
-        if (!request.sanctionBypassed &&
-            (memberStatus == SanctionStatus.Undetermined || memberStatus == SanctionStatus.PartialHit)
-        ) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        }
-
-        val payoutMemberRequest = PayoutMemberRequestDTO(
-            amount = request.amount,
-            category = category,
-            referenceId = referenceId,
-            note = note,
-            handler = handler,
-            carrier = when (carrier) {
-                null -> if (category == TransactionCategory.CLAIM) Carrier.HDI else null // TODO: FIXME remove this logic once carrier is sent from claims-service
-                else -> carrier
-            }
+        // Yes this is a bit messy but let's stop using RequestParam
+        val payoutRequest = request.copy(
+            category = request.category ?: category,
+            referenceId = request.referenceId ?: referenceId,
+            note = request.note ?: note,
+            handler = request.handler ?: handler,
+            carrier = request.carrier ?: carrier ?: if (category == TransactionCategory.CLAIM) Carrier.HDI else null // TODO: FIXME remove this logic once carrier is sent from claims-service
         )
-        val result = paymentService.payoutMember(memberId, member, payoutMemberRequest)
+
+        val result = paymentService.payoutMember(memberId, payoutRequest)
 
         return result.map { uuid -> ResponseEntity.accepted().body(uuid) }.orElseGet {
             ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build()
