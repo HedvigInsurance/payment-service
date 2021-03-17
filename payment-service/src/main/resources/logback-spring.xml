@@ -36,6 +36,7 @@
             <providers>
                 <arguments/>
                 <mdc/>
+                <logstashMarkers/>
                 <stackTrace/>
                 <timestamp>
                     <timeZone>UTC</timeZone>
