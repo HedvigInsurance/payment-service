@@ -7,6 +7,7 @@ import com.hedvig.paymentservice.domain.adyenTokenRegistration.events.upcasters.
 import com.hedvig.paymentservice.domain.payments.events.upcasters.ChargeCreatedEventUpcaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventUpCaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventV2UpCaster;
+import com.hedvig.paymentservice.domain.payments.events.upcasters.PayoutCreatedEventV3UpCaster;
 import com.hedvig.paymentservice.domain.payments.events.upcasters.TrustlyAccountCreatedUpCaster;
 import org.axonframework.config.EventProcessingConfiguration;
 import org.axonframework.eventhandling.TrackingEventProcessorConfiguration;
@@ -25,6 +26,7 @@ public class Axon {
       new TrustlyAccountCreatedUpCaster(),
       new PayoutCreatedEventUpCaster(),
       new PayoutCreatedEventV2UpCaster(),
+      new PayoutCreatedEventV3UpCaster(),
       new ChargeCreatedEventUpcaster(),
       new AdyenTokenRegistrationAuthorisedEventUpcaster(),
       new PendingAdyenTokenRegistrationCreatedEventUpcaster(),

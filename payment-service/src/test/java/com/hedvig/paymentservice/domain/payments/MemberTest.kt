@@ -2,6 +2,7 @@ package com.hedvig.paymentservice.domain.payments
 
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand
 import com.hedvig.paymentservice.domain.payments.commands.CreatePayoutCommand
+import com.hedvig.paymentservice.domain.payments.commands.SelectedPayoutDetails
 import com.hedvig.paymentservice.domain.payments.commands.UpdateTrustlyAccountCommand
 import com.hedvig.paymentservice.domain.payments.enums.AdyenAccountStatus
 import com.hedvig.paymentservice.domain.payments.enums.Carrier
@@ -14,6 +15,7 @@ import com.hedvig.paymentservice.domain.payments.events.DirectDebitDisconnectedE
 import com.hedvig.paymentservice.domain.payments.events.MemberCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.PayoutCreationFailedEvent
+import com.hedvig.paymentservice.domain.payments.events.PayoutDetails
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountCreatedEvent
 import com.hedvig.paymentservice.domain.payments.events.TrustlyAccountUpdatedEvent
 import com.hedvig.paymentservice.serviceIntergration.productPricing.ProductPricingService
@@ -508,7 +510,8 @@ class MemberTest {
         referenceId = null,
         note = null,
         handler = null,
-        carrier = Carrier.HDI
+        carrier = Carrier.HDI,
+        selectedPayoutDetails = SelectedPayoutDetails.NotSelected
     )
 
     private fun makeChargeCreatedEvent(
@@ -543,10 +546,8 @@ class MemberTest {
         category = TransactionCategory.CLAIM,
         referenceId = null,
         note = null,
-        handler = null,
         carrier = Carrier.HDI,
-        trustlyAccountId = trustlyAccountId,
-        adyenShopperReference = adyenShopperReference
+        payoutDetails = PayoutDetails.Trustly(trustlyAccountId!!)
     )
 
     private fun makeChargeCreationFailedEvent(

@@ -2,11 +2,11 @@ package com.hedvig.paymentservice.domain.payments.commands
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.enums.Carrier
+import org.axonframework.commandhandling.TargetAggregateIdentifier
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import javax.money.MonetaryAmount
-import org.axonframework.commandhandling.TargetAggregateIdentifier
 
 data class CreatePayoutCommand(
     @TargetAggregateIdentifier
@@ -24,5 +24,7 @@ data class CreatePayoutCommand(
     val note: String?,
     val handler: String?,
     val email: String,
-    val carrier: Carrier?
+    val carrier: Carrier?,
+    val selectedPayoutDetails: SelectedPayoutDetails
 )
+

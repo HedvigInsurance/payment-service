@@ -2,13 +2,13 @@ package com.hedvig.paymentservice.domain.payments.events
 
 import com.hedvig.paymentservice.domain.payments.TransactionCategory
 import com.hedvig.paymentservice.domain.payments.enums.Carrier
+import org.axonframework.serialization.Revision
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import javax.money.MonetaryAmount
-import org.axonframework.serialization.Revision
 
-@Revision("2.0")
+@Revision("3.0")
 data class PayoutCreatedEvent(
     val memberId: String,
     val transactionId: UUID,
@@ -19,12 +19,11 @@ data class PayoutCreatedEvent(
     val firstName: String?,
     val lastName: String?,
     val timestamp: Instant,
-    val trustlyAccountId: String?,
     val category: TransactionCategory,
     val referenceId: String?,
     val note: String?,
-    val handler: String?,
-    val adyenShopperReference: String?,
     val email: String?,
-    val carrier: Carrier?
+    val carrier: Carrier?,
+    val payoutDetails: PayoutDetails
 )
+

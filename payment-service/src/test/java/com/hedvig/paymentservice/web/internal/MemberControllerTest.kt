@@ -39,7 +39,7 @@ internal class MemberControllerTest {
 
         val response = cut.getPayoutMethodStatus("mem").body!!
 
-        assertThat(response.activated).isTrue
+        assertThat(response.activated).isTrue()
     }
 
     @Test
@@ -55,7 +55,7 @@ internal class MemberControllerTest {
 
         val response = cut.getPayoutMethodStatus("mem").body!!
 
-        assertThat(response.activated).isTrue
+        assertThat(response.activated).isTrue()
     }
 
     @Test
@@ -71,7 +71,7 @@ internal class MemberControllerTest {
 
         val response = cut.getPayoutMethodStatus("mem").body!!
 
-        assertThat(response.activated).isFalse
+        assertThat(response.activated).isFalse()
     }
 
     private fun create() = MemberController(

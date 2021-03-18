@@ -51,3 +51,16 @@ hedvig:
     trustly:
         validRedirectHosts: [ ]
         URLScheme: test
+
+
+---
+spring:
+    profiles: development
+
+swish:
+    tlsCertPath: /local/path/to/Hedvig_19012021_1235261086.p12
+    tlsCertPassword: found_at_1pass
+    signingPrivatePemPath: /local/path/to/Key_From_HedvigABPayut_sign_1231388792_20210218.pem
+    signingCertificateSerialNumber: found_at_1pass
+    callbackUrl: https://gateway.test.hedvig.com/swish/callback
+    payerAlias: found_at_1pass

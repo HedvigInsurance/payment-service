@@ -2,6 +2,8 @@ package com.hedvig.paymentservice.services.payments;
 
 import com.hedvig.paymentservice.common.UUIDGenerator;
 import com.hedvig.paymentservice.domain.payments.commands.CreateChargeCommand;
+import com.hedvig.paymentservice.serviceIntergration.meerkat.Meerkat;
+import com.hedvig.paymentservice.serviceIntergration.memberService.MemberService;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberRequest;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResult;
 import com.hedvig.paymentservice.services.payments.dto.ChargeMemberResultType;
@@ -29,6 +31,9 @@ public class PaymentServiceTest {
 
   @Mock private UUIDGenerator uuidGenerator;
 
+  @Mock private MemberService memberService;
+  @Mock private Meerkat meerkat;
+
   @Captor private ArgumentCaptor<CreateChargeCommand> captor;
 
   @Test
@@ -40,7 +45,7 @@ public class PaymentServiceTest {
       .willReturn(new ChargeMemberResult(UUID.fromString(REQUEST_ID), ChargeMemberResultType.SUCCESS));
 
 
-    PaymentService paymentService = new PaymentService(gateway, uuidGenerator);
+    PaymentService paymentService = new PaymentService(gateway, uuidGenerator, memberService, meerkat);
 
     paymentService.chargeMember(makeChargeMemberRequest());
 
