@@ -1,4 +1,6 @@
 spring:
+    application:
+        name: payment-service
     jackson:
         serialization:
             WRITE_DATES_AS_TIMESTAMPS: false
