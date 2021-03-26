@@ -546,6 +546,7 @@ class MemberTest {
         category = TransactionCategory.CLAIM,
         referenceId = null,
         note = null,
+        handler = null,
         carrier = Carrier.HDI,
         payoutDetails = PayoutDetails.Trustly(trustlyAccountId!!)
     )

@@ -22,6 +22,7 @@ data class PayoutCreatedEvent(
     val category: TransactionCategory,
     val referenceId: String?,
     val note: String?,
+    val handler: String?,
     val email: String?,
     val carrier: Carrier?,
     val payoutDetails: PayoutDetails
