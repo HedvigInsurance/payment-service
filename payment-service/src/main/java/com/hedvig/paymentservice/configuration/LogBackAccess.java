@@ -6,15 +6,8 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.servlet.Filter;
-
 @Configuration
 public class LogBackAccess {
-
-    @Bean(name = "TeeFilter")
-    public Filter teeFilter() {
-        return new ch.qos.logback.access.servlet.TeeFilter();
-    }
 
     @Bean
     public ServletWebServerFactory servletContainer() {
