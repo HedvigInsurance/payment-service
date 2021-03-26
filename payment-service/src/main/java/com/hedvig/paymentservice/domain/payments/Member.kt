@@ -168,6 +168,7 @@ class Member() {
                         category = command.category,
                         referenceId = command.referenceId,
                         note = command.note,
+                        handler = command.handler,
                         email = command.email,
                         carrier = command.carrier,
                         payoutDetails = PayoutDetails.Swish(
@@ -195,6 +196,7 @@ class Member() {
                             category = command.category,
                             referenceId = command.referenceId,
                             note = command.note,
+                            handler = command.handler,
                             email = command.email,
                             carrier = command.carrier,
                             payoutDetails = PayoutDetails.Trustly(trustlyAccount.accountId)
@@ -223,6 +225,7 @@ class Member() {
                         category = command.category,
                         referenceId = command.referenceId,
                         note = command.note,
+                        handler = command.handler,
                         email = command.email,
                         carrier = command.carrier,
                         payoutDetails = PayoutDetails.Adyen(account.shopperReference)
