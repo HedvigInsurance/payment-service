@@ -10,9 +10,12 @@ import com.hedvig.paymentservice.services.swish.util.SwishSignatureCreator
 import com.hedvig.paymentservice.services.swish.util.SwishUUIDConverter
 import feign.FeignException
 import org.springframework.stereotype.Service
+import java.text.DateFormat
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.money.MonetaryAmount
+import javax.swing.text.DateFormatter
 
 @Service
 class SwishService(
@@ -20,6 +23,9 @@ class SwishService(
     private val client: SwishClient,
     private val properties : SwishConfigurationProperties
 ) {
+
+    private val swishDateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern(("yyyy-MM-dd'T'HH:mm:ss'Z'"))
+
     fun startPayout(
         transactionId: UUID,
         memberId: String,
@@ -38,7 +44,7 @@ class SwishService(
             amount = String.format("%.2f", amount.number.doubleValueExact()),
             currency = amount.currency.currencyCode,
             message = message,
-            instructionDate = "2021-03-11T13:45:36Z",
+            instructionDate = instructionDate.format(swishDateFormat),
             signingCertificateSerialNumber = properties.signingCertificateSerialNumber
         )
         val json = objectMapper.writeValueAsString(payload)
