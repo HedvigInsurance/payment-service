@@ -45,7 +45,7 @@ class SwishServiceTest {
             payeeSSN = payeeSSN,
             amount = amount,
             message = message,
-            instructionDate = LocalDateTime.now(),
+            instructionDate = LocalDateTime.of(2021, 3, 29, 10, 14),
         )
 
         val payoutRequest = slot.captured
@@ -56,6 +56,7 @@ class SwishServiceTest {
         assertThat(payoutRequest.payload.payeeAlias).isEqualTo(payeeAlias)
         assertThat(payoutRequest.payload.payeeSSN).isEqualTo(payeeSSN)
         assertThat(payoutRequest.payload.message).isEqualTo(message)
+        assertThat(payoutRequest.payload.instructionDate).isEqualTo("2021-03-29T10:14:00Z")
     }
 
     companion object {
