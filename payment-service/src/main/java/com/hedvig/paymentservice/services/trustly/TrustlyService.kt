@@ -217,6 +217,7 @@ class TrustlyService(
                 TransactionCategory.CLAIM -> when (request.carrier) {
                     Carrier.HDI -> Account.CLAIM_HDI
                     Carrier.HEDVIG -> Account.CLAIM_HEDVIG
+                    Carrier.EIR -> throw IllegalArgumentException("Cannot start a claim payout order for claim with EIR as a carrier")
                     null -> throw IllegalArgumentException("Cannot start a claim payout order for claim without a carrier")
                 }
                 else -> Account.PREMIUM
