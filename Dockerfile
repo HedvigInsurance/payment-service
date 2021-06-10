@@ -6,7 +6,8 @@ WORKDIR /usr/app
 COPY pom.xml .
 COPY payment-service/pom.xml payment-service/
 COPY trustly-client/pom.xml trustly-client/
-RUN mvn dependency:go-offline
+COPY settings.xml .
+RUN mvn dependency:go-offline -s settings.xml
 
 
 ##### Build stage #####
