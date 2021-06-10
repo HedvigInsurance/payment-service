@@ -13,7 +13,7 @@ COPY pom.xml .
 COPY payment-service/pom.xml payment-service/
 COPY trustly-client/pom.xml trustly-client/
 COPY settings.xml .
-RUN mvn dependency:go-offline -s settings.xml
+RUN mvn dependency:go-offline -pl payment-service -s settings.xml
 
 
 ##### Build stage #####
