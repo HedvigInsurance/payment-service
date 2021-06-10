@@ -56,7 +56,8 @@ public class DirectDebitControllerTest {
             .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-            .andExpect(jsonPath("$.directDebitActivated").value(true));
+            .andExpect(jsonPath("$.directDebitActivated").value(true))
+            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.ACTIVE));
     }
 
     @Test
@@ -67,7 +68,8 @@ public class DirectDebitControllerTest {
             .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-            .andExpect(jsonPath("$.directDebitActivated").value(false));
+            .andExpect(jsonPath("$.directDebitActivated").value(false))
+            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.NEEDS_SETUP));
     }
 
     @Test
@@ -78,7 +80,8 @@ public class DirectDebitControllerTest {
             .perform(get("/directDebit/status").header("hedvig.token", MEMBER_ID))
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
-            .andExpect(jsonPath("$.directDebitActivated").value(false));
+            .andExpect(jsonPath("$.directDebitActivated").value(false))
+            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.PENDING));
     }
 
     @Test
