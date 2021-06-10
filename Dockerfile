@@ -2,6 +2,12 @@
 ##### Dependencies stage #####
 FROM maven:3.6.3-amazoncorretto-11 AS dependencies
 WORKDIR /usr/app
+
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+
+ENV MAVEN_OPTS="-Dmaven.repo.local=/usr/share/maven/ref/repository -DGITHUB_USERNAME=$GITHUB_USER -DGITHUB_TOKEN=$GITHUB_TOKEN"
+
 # Resolve dependencies and cache them
 COPY pom.xml .
 COPY payment-service/pom.xml payment-service/

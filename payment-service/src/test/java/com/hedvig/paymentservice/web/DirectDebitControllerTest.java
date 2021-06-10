@@ -57,7 +57,7 @@ public class DirectDebitControllerTest {
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
             .andExpect(jsonPath("$.directDebitActivated").value(true))
-            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.ACTIVE.name()));
+            .andExpect(jsonPath("$.directDebitStatus").value("ACTIVE"));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class DirectDebitControllerTest {
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
             .andExpect(jsonPath("$.directDebitActivated").value(false))
-            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.NEEDS_SETUP.name()));
+            .andExpect(jsonPath("$.directDebitStatus").value("NEEDS_SETUP"));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class DirectDebitControllerTest {
             .andExpect(status().is2xxSuccessful())
             .andExpect(jsonPath("$.memberId").value(MEMBER_ID))
             .andExpect(jsonPath("$.directDebitActivated").value(false))
-            .andExpect(jsonPath("$.directDebitStatus").value(PayinMethodStatus.PENDING.name()));
+            .andExpect(jsonPath("$.directDebitStatus").value("PENDING"));
     }
 
     @Test
