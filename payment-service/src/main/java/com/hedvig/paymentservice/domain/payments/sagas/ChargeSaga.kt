@@ -16,47 +16,49 @@ import org.springframework.beans.factory.annotation.Autowired
 
 @Saga
 class ChargeSaga {
-  @Autowired
-  @Transient
-  lateinit var commandGateway: CommandGateway
-  @Autowired
-  @Transient
-  lateinit var trustlyService: TrustlyService
-  @Autowired
-  @Transient
-  lateinit var uuidGenerator: UUIDGenerator
+    @Autowired
+    @Transient
+    lateinit var commandGateway: CommandGateway
 
-  @StartSaga
-  @SagaEventHandler(associationProperty = "memberId")
-  @EndSaga
-  fun on(e: ChargeCreatedEvent) {
-    when (e.provider) {
-      PayinProvider.TRUSTLY -> {
-        val hedvigOrderId = uuidGenerator.generateRandom()
-        commandGateway.sendAndWait<Any>(
-          CreatePaymentOrderCommand(
-            hedvigOrderId,
-            e.transactionId,
-            e.memberId,
-            e.amount,
-            e.providerId
-          )
-        )
-        trustlyService.startPaymentOrder(
-          PaymentRequest(e.memberId, e.amount, e.providerId, e.email),
-          hedvigOrderId
-        )
-      }
-      PayinProvider.ADYEN -> {
-        commandGateway.sendAndWait<Void>(
-          InitiateAdyenTransactionCommand(
-            e.transactionId,
-            e.memberId,
-            e.providerId,
-            e.amount
-          )
-        )
-      }
+    @Autowired
+    @Transient
+    lateinit var trustlyService: TrustlyService
+
+    @Autowired
+    @Transient
+    lateinit var uuidGenerator: UUIDGenerator
+
+    @StartSaga
+    @SagaEventHandler(associationProperty = "memberId")
+    @EndSaga
+    fun on(e: ChargeCreatedEvent) {
+        when (e.provider) {
+            PayinProvider.TRUSTLY -> {
+                val hedvigOrderId = uuidGenerator.generateRandom()
+                commandGateway.sendAndWait<Unit>(
+                    CreatePaymentOrderCommand(
+                        hedvigOrderId,
+                        e.transactionId,
+                        e.memberId,
+                        e.amount,
+                        e.providerId
+                    )
+                )
+                trustlyService.startPaymentOrder(
+                    PaymentRequest(e.memberId, e.amount, e.providerId, e.email),
+                    hedvigOrderId
+                )
+            }
+            PayinProvider.ADYEN -> {
+                commandGateway.sendAndWait<Unit>(
+                    InitiateAdyenTransactionCommand(
+                        e.transactionId,
+                        e.memberId,
+                        e.providerId,
+                        e.amount
+                    )
+                )
+            }
+        }
     }
-  }
 }
