@@ -45,7 +45,11 @@ public class DirectDebitController {
     ) {
         final PayinMethodStatus status = bankAccountService.getPayinMethodStatus(memberId);
 
-        return ResponseEntity.ok(new DirectDebitStatusDTO(memberId, status == PayinMethodStatus.ACTIVE));
+        return ResponseEntity.ok(new DirectDebitStatusDTO(
+            memberId,
+            status == PayinMethodStatus.ACTIVE,
+            status
+        ));
     }
 
     @PostMapping(path = "register")
@@ -56,12 +60,11 @@ public class DirectDebitController {
 
         logger.info("Starting register directDebit for member {}", memberId);
 
-        final DirectDebitResponse response = trustlyService
-            .requestDirectDebitAccount(
-                new DirectDebitOrderInfo(memberId, req, false),
-                req.getClientContext() == null ? null : req.getClientContext().getSuccessUrl(),
-                req.getClientContext() == null ? null : req.getClientContext().getFailureUrl()
-            );
+        final DirectDebitResponse response = trustlyService.requestDirectDebitAccount(
+            new DirectDebitOrderInfo(memberId, req, false),
+            req.getClientContext() == null ? null : req.getClientContext().getSuccessUrl(),
+            req.getClientContext() == null ? null : req.getClientContext().getFailureUrl()
+        );
 
         return ResponseEntity.ok(response);
     }

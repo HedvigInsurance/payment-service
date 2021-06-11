@@ -13,12 +13,9 @@
 
     <repositories>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-hedvig-hedvig-java</id>
-            <name>bintray</name>
-            <url>https://dl.bintray.com/hedvig/hedvig-java</url>
+            <id>github</id>
+            <name>GitHub Hedvig Maven Packages</name>
+            <url>https://maven.pkg.github.com/HedvigInsurance/libs</url>
         </repository>
     </repositories>
 
@@ -232,7 +229,7 @@
         <dependency>
             <groupId>com.hedvig.graphql.commons</groupId>
             <artifactId>graphql-commons</artifactId>
-            <version>1.0.6</version>
+            <version>1.0.8</version>
         </dependency>
         <dependency>
             <groupId>com.graphql-java-kickstart</groupId>

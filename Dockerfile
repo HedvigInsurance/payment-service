@@ -2,11 +2,24 @@
 ##### Dependencies stage #####
 FROM maven:3.6.3-amazoncorretto-11 AS dependencies
 WORKDIR /usr/app
-# Resolve dependencies and cache them
+
+ARG GITHUB_USER
+ARG GITHUB_TOKEN
+
+ENV MAVEN_OPTS="-Dmaven.repo.local=/usr/share/maven/ref/repository -DGITHUB_USERNAME=$GITHUB_USER -DGITHUB_TOKEN=$GITHUB_TOKEN"
+
+# Running `mvn dependency:go-offline` and similar will not be able to detect
+# local module dependencies that have not yet been built. In order to make sure
+# we can split up the different build stages, we build+install the local deps
+# upfront, to then only focus on the actual application module: payment-service.
 COPY pom.xml .
-COPY payment-service/pom.xml payment-service/
 COPY trustly-client/pom.xml trustly-client/
-RUN mvn dependency:go-offline
+RUN mvn install -f trustly-client/pom.xml -s /usr/share/maven/ref/settings-docker.xml
+
+# Resolve dependencies and cache them
+COPY payment-service/pom.xml payment-service/
+COPY settings.xml .
+RUN mvn dependency:go-offline -pl payment-service -s settings.xml
 
 
 ##### Build stage #####
